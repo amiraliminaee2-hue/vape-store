@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
+
+const prisma = await getPrisma();
+const data = await prisma.user.findMany();
+import { getServerSession } from "next-auth";
+import { isAdmin } from "@/lib/isAdmin";
+import { authOptions } from "@/lib/auth";
+import { commentStatusSchema } from "@/lib/validations/schemas";
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
+      return NextResponse.json(
+        { error: "دسترسی غیرمجاز" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+
+    // Zod validation
+    const validationResult = commentStatusSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "ورودی نامعتبر",
+          details: validationResult.error.issues,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { status } = validationResult.data;
+
+    const comment = await prisma.comment.update({
+      where: { id: parseInt(id) },
+      data: { status },
+    });
+
+    return NextResponse.json({ comment });
+  } catch (error) {
+    console.error("Update comment error:", error);
+    return NextResponse.json(
+      { error: "خطا در ویرایش نظر" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
+      return NextResponse.json(
+        { error: "دسترسی غیرمجاز" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+
+    await prisma.comment.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Admin delete comment error:", error);
+    return NextResponse.json(
+      { error: "خطا در حذف نظر" },
+      { status: 500 }
+    );
+  }
+}
