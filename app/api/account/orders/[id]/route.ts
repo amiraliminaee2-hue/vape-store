@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { Prisma } from "@prisma/client";
 
 // تعریف تایپ برای OrderStatus بر اساس مقادیر موجود در schema
 type OrderStatus = "REGISTERED" | "PAYED" | "ERROR" | "PROCESSING" | "SHIPPING" | "SHIPPED" | "CANCELLED";
+
+// تعریف تایپ برای where
+interface OrderWhereInput {
+  userId: string;
+  status?: OrderStatus;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,14 +28,17 @@ export async function GET(request: NextRequest) {
     // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
-    // ✅ ساخت where با استفاده از Prisma.OrderWhereInput
-    const where: Prisma.OrderWhereInput = {
+    // ✅ ساخت where با تایپ سفارشی
+    const where: OrderWhereInput = {
       userId: session.user.id,
     };
 
     // ✅ اضافه کردن شرط status در صورت وجود
-    if (statusParam && Object.values(["REGISTERED", "PAYED", "ERROR", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED"]).includes(statusParam)) {
-      where.status = statusParam as OrderStatus;
+    if (statusParam) {
+      const validStatuses: OrderStatus[] = ["REGISTERED", "PAYED", "ERROR", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED"];
+      if (validStatuses.includes(statusParam as OrderStatus)) {
+        where.status = statusParam as OrderStatus;
+      }
     }
 
     const [orders, total] = await Promise.all([
