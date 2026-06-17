@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+// ❌ حذف import Footer
 
 export const metadata: Metadata = {
   title: "درباره ما | پاد بوشهر",
@@ -45,7 +45,7 @@ export default function AboutPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      {/* ❌ حذف <Footer /> */}
     </>
   );
 }

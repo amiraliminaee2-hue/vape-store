@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+// ❌ حذف import Footer
 
 interface FAQItem {
   question: string;
@@ -96,7 +96,7 @@ export default function FAQPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      {/* ❌ حذف <Footer /> */}
     </>
   );
 }

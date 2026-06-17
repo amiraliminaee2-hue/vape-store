@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+// ❌ حذف import Footer
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -124,7 +124,7 @@ export default function ContactPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      {/* ❌ حذف <Footer /> */}
     </>
   );
 }
