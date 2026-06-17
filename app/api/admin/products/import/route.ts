@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import * as fs from "fs";
@@ -123,6 +120,7 @@ export async function POST(request: NextRequest) {
       results = excelToJson(buffer);
     }
 
+    const prisma = await getPrisma();
     const importedProducts: Array<{ id: number; title: string }> = [];
     const errors: Array<{ row: ProductCSVRow; error: string }> = [];
 

@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
-
 export async function POST(request: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const body = await request.json();
     const { phone, code } = body;
 

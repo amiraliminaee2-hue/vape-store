@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 
 // GET - دریافت لیست کدهای تخفیف (ادمین) یا اعتبارسنجی یک کد (عمومی)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
     const subtotal = parseInt(searchParams.get("subtotal") || "0");
@@ -108,6 +106,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const {
       code,
@@ -167,6 +166,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const { id, ...data } = body;
 
@@ -207,6 +207,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const id = parseInt(searchParams.get("id") || "0");
 

@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
-import { z } from "zod";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
+import { z } from "zod";
 
 // Schema validation for PATCH request body
 const patchBodySchema = z.object({
@@ -41,6 +38,7 @@ export async function PATCH(
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
     const { productId } = await params;
 
@@ -188,6 +186,7 @@ export async function DELETE(
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
     const { productId } = await params;
 

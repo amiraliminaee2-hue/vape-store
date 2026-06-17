@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { validateCsrfToken } from "@/lib/csrf";
 import { authOptions } from "@/lib/auth";
 import { commentCreateSchema } from "@/lib/validations/schemas";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
 
@@ -51,6 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     // CSRF Protection - Validate token

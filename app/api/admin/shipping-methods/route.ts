@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 
 // GET - لیست روش‌های ارسال
 export async function GET() {
   try {
+    const prisma = await getPrisma();
     const methods = await prisma.shippingMethod.findMany({
       include: { provincePrices: true },
       orderBy: { createdAt: "desc" },
@@ -29,6 +27,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const body = await req.json();
     const { name, code, basePrice, pricePerKg, estimatedDays } = body;
 
@@ -61,6 +60,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const body = await req.json();
     const { id, name, code, basePrice, pricePerKg, estimatedDays, isActive } = body;
 
@@ -88,6 +88,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(req.url);
     const id = parseInt(searchParams.get("id")!);
 

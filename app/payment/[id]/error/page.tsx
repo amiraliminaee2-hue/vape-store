@@ -1,7 +1,4 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import Link from "next/link";
 
 interface Props {
@@ -13,6 +10,7 @@ interface Props {
 export default async function ErrorPage({
   params,
 }: Props) {
+  const prisma = await getPrisma();
   const { id } = await params;
 
   await prisma.order.update({

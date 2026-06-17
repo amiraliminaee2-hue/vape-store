@@ -1,8 +1,5 @@
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
@@ -17,6 +14,7 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const prisma = await getPrisma();
   const { slug } = await params;
   
   // تلاش برای پیدا کردن محصول با slug یا id
@@ -52,6 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductPage({ params }: PageProps) {
+  const prisma = await getPrisma();
   const { slug } = await params;
   
   // تلاش برای پیدا کردن محصول با slug یا id

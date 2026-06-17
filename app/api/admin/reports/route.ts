@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -18,6 +15,7 @@ export async function GET() {
       );
     }
 
+    const prisma = await getPrisma();
     const now = new Date();
 
     // ---- Daily Sales: last 30 days ----

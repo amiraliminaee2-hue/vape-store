@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
-import * as XLSX from "xlsx";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
+import * as XLSX from "xlsx";
 
 interface UserExportData {
   "شناسه کاربری": string;
@@ -57,6 +54,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type"); // 'users', 'products', 'orders'
     const format = searchParams.get("format") || "xlsx"; // 'xlsx', 'csv'
+
+    const prisma = await getPrisma();
 
     let data: UserExportData[] | ProductExportData[] | OrderExportData[] = [];
     let filename = "";

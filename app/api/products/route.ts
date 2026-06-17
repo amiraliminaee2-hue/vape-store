@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { Prisma } from "@prisma/client";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { productCreateSchema } from "@/lib/validations/schemas";
@@ -37,6 +34,7 @@ interface ProductWithRelations {
 
 export async function GET(request: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
 
     const category =
@@ -197,6 +195,7 @@ export async function POST(
   request: NextRequest
 ) {
   try {
+    const prisma = await getPrisma();
     const body =
       await request.json();
 

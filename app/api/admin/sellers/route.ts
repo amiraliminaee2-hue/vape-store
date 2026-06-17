@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 // GET - دریافت لیست فروشندگان یا یک فروشنده خاص
@@ -20,6 +17,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     
@@ -138,6 +136,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const { userId, storeName, slug, description, logo, coverImage, phone, address, commission, status } = body;
 
@@ -218,6 +217,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -274,6 +274,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

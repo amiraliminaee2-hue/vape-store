@@ -1,14 +1,10 @@
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { OrderStatus } from "@prisma/client";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { sendOrderStatusSMS } from "@/lib/sms";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
+import { sendOrderStatusSMS } from "@/lib/sms";
 
 // Schema validation for params
 const paramsSchema = z.object({
@@ -57,6 +53,7 @@ export async function PATCH(
       );
     }
 
+    const prisma = await getPrisma();
     const { id } = await params;
 
     // Validate params with Zod
@@ -102,7 +99,7 @@ export async function PATCH(
         id: Number(id),
       },
       data: {
-        status: status as OrderStatus,
+        status: status,
       },
     });
 

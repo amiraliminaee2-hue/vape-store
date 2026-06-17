@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const body = await request.json();
     const { email, password, name } = body;
 

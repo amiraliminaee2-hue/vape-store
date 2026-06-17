@@ -4,7 +4,6 @@ import { MetadataRoute } from "next";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://vapestore.ir";
 
-  // ✅ دریافت prisma از getPrisma
   const prisma = await getPrisma();
 
   const products = await prisma.product.findMany({

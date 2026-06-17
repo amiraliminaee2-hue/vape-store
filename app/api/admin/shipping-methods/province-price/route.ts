@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 
 // POST - ایجاد یا ویرایش قیمت استان
 export async function POST(req: NextRequest) {
@@ -15,6 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const body = await req.json();
     const { province, shippingMethodId, price } = body;
 
@@ -48,6 +46,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(req.url);
     const id = parseInt(searchParams.get("id")!);
 

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 // GET - لیست روش‌های پرداخت
 export async function GET() {
   try {
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
     
     const methods = await prisma.paymentMethod.findMany({
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "نام و کد روش پرداخت الزامی است" }, { status: 400 });
     }
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
     const method = await prisma.paymentMethod.create({
@@ -69,7 +67,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "آیدی الزامی است" }, { status: 400 });
     }
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
     const method = await prisma.paymentMethod.update({
@@ -99,7 +96,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "آیدی الزامی است" }, { status: 400 });
     }
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
     await prisma.paymentMethod.delete({ where: { id } });

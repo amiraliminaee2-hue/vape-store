@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +9,9 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "ابتدا وارد شوید" }, { status: 401 });
     }
+
+    // ✅ دریافت prisma در داخل تابع
+    const prisma = await getPrisma();
 
     const orders = await prisma.order.findMany({
       where: {

@@ -3,15 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
-
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ isBanned: false });
     }
+
+    const prisma = await getPrisma();
 
     const profile = await prisma.userProfile.findUnique({
       where: { userId: session.user.id },

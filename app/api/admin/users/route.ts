@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");

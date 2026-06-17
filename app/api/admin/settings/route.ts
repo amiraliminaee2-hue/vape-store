@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -17,6 +14,8 @@ export async function GET() {
         { status: 403 }
       );
     }
+
+    const prisma = await getPrisma();
 
     const settings = await prisma.setting.findMany();
     
@@ -47,6 +46,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
 
     // Update each setting

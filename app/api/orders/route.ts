@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { orderCreateSchema } from "@/lib/validations/schemas";
 import { sendOrderConfirmationSMS, sendAdminNotificationSMS } from "@/lib/sms";
 
@@ -31,6 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     // CSRF Protection - موقتاً غیرفعال (برای تست)

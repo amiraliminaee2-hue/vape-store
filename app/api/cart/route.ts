@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { cartItemSchema } from "@/lib/validations/schemas";
 
 export async function GET() {
@@ -22,6 +19,7 @@ export async function GET() {
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     const cart = await prisma.cart.findUnique({
@@ -87,6 +85,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
     const body = await request.json();
 
@@ -184,6 +183,7 @@ export async function DELETE() {
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     const cart = await prisma.cart.findUnique({

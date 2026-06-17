@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 // POST - ثبت درخواست فروشندگی
@@ -16,6 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "ابتدا وارد حساب کاربری خود شوید" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const { storeName, slug, description, phone, address } = body;
 
@@ -79,6 +77,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get("status");
     const search = searchParams.get("search");
@@ -138,6 +137,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const { id, storeName, slug, description, phone, address, status, commission } = body;
 
@@ -187,6 +187,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

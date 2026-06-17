@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
-import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { isAdmin } from "@/lib/isAdmin";
 import { commentStatusSchema } from "@/lib/validations/schemas";
+import { getPrisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
@@ -39,6 +36,9 @@ export async function PATCH(
 
     const { status } = validationResult.data;
 
+    // ✅ دریافت prisma در داخل تابع
+    const prisma = await getPrisma();
+
     const comment = await prisma.comment.update({
       where: { id: parseInt(id) },
       data: { status },
@@ -69,6 +69,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    // ✅ دریافت prisma در داخل تابع
+    const prisma = await getPrisma();
 
     await prisma.comment.delete({
       where: { id: parseInt(id) },

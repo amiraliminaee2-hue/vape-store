@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { validateCsrfToken } from "@/lib/csrf";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { userProfileSchema } from "@/lib/validations/schemas";
 
 export async function GET() {
@@ -16,6 +13,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     const profile = await prisma.userProfile.findUnique({
@@ -38,6 +36,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     // CSRF Protection - Validate token

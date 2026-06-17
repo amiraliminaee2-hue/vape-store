@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { createPaymentRequest } from "@/lib/dargaah";
 
 export async function POST(request: NextRequest) {
@@ -14,6 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "لطفاً وارد حساب کاربری شوید" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const body = await request.json();
     const { orderId, amount, description, mobile } = body;
 

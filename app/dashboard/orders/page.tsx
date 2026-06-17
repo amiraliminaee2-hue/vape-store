@@ -1,7 +1,4 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -42,6 +39,7 @@ const statusColors: Record<
 
 export default async function OrdersPage() {
   const session = await getServerSession(authOptions);
+  const prisma = await getPrisma();
 
   if (!session?.user?.id) {
     redirect("/auth/signin");

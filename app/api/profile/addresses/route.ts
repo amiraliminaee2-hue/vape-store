@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 import { addressSchema } from "@/lib/validations/schemas";
 
 export async function GET() {
@@ -15,6 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
 
     const addresses = await prisma.savedAddress.findMany({
@@ -37,6 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
     const body = await request.json();
 

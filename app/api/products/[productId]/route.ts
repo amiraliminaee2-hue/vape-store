@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { z } from "zod";
 import { sanitizeHtml } from "../../../../lib/sanitize";
 
@@ -36,6 +33,7 @@ export async function GET(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
+    const prisma = await getPrisma();
     const { productId } = await params;
 
     const paramsValidationResult = paramsSchema.safeParse({ productId });
@@ -90,6 +88,7 @@ export async function PUT(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
+    const prisma = await getPrisma();
     const { productId } = await params;
 
     const paramsValidationResult = paramsSchema.safeParse({ productId });
@@ -161,6 +160,7 @@ export async function DELETE(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
+    const prisma = await getPrisma();
     const { productId } = await params;
 
     const paramsValidationResult = paramsSchema.safeParse({ productId });

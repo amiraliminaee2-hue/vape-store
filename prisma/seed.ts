@@ -2,7 +2,6 @@ import { getPrisma } from "../lib/prisma";
 import "dotenv/config";
 
 async function main() {
-  // ✅ دریافت prisma از getPrisma
   const prisma = await getPrisma();
 
   // ==================== CATEGORIES ====================

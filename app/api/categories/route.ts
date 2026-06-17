@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { z } from "zod";
 
 // Schema validation for POST request body
@@ -15,6 +12,7 @@ const postBodySchema = z.object({
 
 export async function GET() {
   try {
+    const prisma = await getPrisma();
     const categories = await prisma.category.findMany({
       orderBy: { name: "asc" },
     });
@@ -31,6 +29,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const prisma = await getPrisma();
     const body = await request.json();
 
     // Validate body with Zod

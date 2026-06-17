@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
-
 // تابع تولید کد تصادفی ۶ رقمی
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -53,6 +50,7 @@ async function sendSMS(phone: string, code: string): Promise<boolean> {
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const body = await request.json();
     const { phone } = body;
 

@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { verifyPayment } from "@/lib/dargaah";
 
 export async function GET(request: NextRequest) {
+  const prisma = await getPrisma();
   const searchParams = request.nextUrl.searchParams;
   const authority = searchParams.get("Authority");
   const orderIdParam = searchParams.get("orderId");
-  const amountParam = searchParams.get("amount"); // ✅ دریافت amount از query string
+  const amountParam = searchParams.get("amount");
   const status = searchParams.get("Status");
 
   console.log("Verify endpoint called with:", { authority, orderIdParam, amountParam, status });

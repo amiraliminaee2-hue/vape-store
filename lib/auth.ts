@@ -20,7 +20,6 @@ export const authOptions: AuthOptions = {
           throw new Error("شماره تلفن نامعتبر است");
         }
 
-        // ✅ دریافت prisma از getPrisma
         const prisma = await getPrisma();
         
         const user = await prisma.user.findUnique({

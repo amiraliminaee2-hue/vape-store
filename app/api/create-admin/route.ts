@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
+    const prisma = await getPrisma();
     const hashedPassword = await bcrypt.hash("Amirali13871387", 10);
     
     await prisma.user.update({

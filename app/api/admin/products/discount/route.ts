@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +21,8 @@ export async function POST(request: NextRequest) {
     if (discountPercent === undefined || discountPercent < 0 || discountPercent > 100) {
       return NextResponse.json({ error: "درصد تخفیف باید بین 0 تا 100 باشد" }, { status: 400 });
     }
+
+    const prisma = await getPrisma();
 
     const product = await prisma.product.update({
       where: { id: productId },

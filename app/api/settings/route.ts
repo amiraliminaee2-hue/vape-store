@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
-
 export async function GET(req: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const { searchParams } = new URL(req.url);
     const group = searchParams.get("group");
 
@@ -34,6 +32,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
+    const prisma = await getPrisma();
     const body = await req.json();
     const { key, value } = body;
 

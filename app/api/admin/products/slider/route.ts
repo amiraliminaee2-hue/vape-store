@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
     const { searchParams } = new URL(request.url);
@@ -122,7 +121,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "فیلد نامعتبر است" }, { status: 400 });
     }
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
     const product = await prisma.product.update({

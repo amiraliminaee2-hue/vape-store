@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 
 // Schema validation for params
 const paramsSchema = z.object({
@@ -27,6 +24,7 @@ export async function DELETE(
       );
     }
 
+    const prisma = await getPrisma();
     const userId = session.user.id;
     const { id } = await params;
 

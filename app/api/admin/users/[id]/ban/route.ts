@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { isAdmin } from "@/lib/isAdmin";  // یا مسیر درست فایل admin تو
+import { isAdmin } from "@/lib/isAdmin";
+import { getPrisma } from "@/lib/prisma";
 
 type DurationKey = "8h" | "12h" | "24h" | "1w" | "1m";
 
@@ -32,6 +29,7 @@ export async function POST(
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const { id } = await params;
     const body = await req.json();
     const { duration, reason } = body;
@@ -87,6 +85,7 @@ export async function DELETE(
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
+    const prisma = await getPrisma();
     const { id } = await params;
 
     await prisma.userProfile.update({

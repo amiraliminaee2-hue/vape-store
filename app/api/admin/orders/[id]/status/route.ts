@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
@@ -25,6 +22,8 @@ export async function PATCH(
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "وضعیت نامعتبر است" }, { status: 400 });
     }
+
+    const prisma = await getPrisma();
 
     const order = await prisma.order.update({
       where: { id: Number(id) },

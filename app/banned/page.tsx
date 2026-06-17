@@ -1,13 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import Link from "next/link";
 
 export default async function BannedPage() {
   const session = await getServerSession(authOptions);
+  const prisma = await getPrisma();
   
   if (!session?.user?.id) {
     return (

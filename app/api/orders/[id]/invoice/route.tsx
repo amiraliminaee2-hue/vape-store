@@ -1,7 +1,4 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import { renderToBuffer } from "@react-pdf/renderer";
 import InvoiceDocument from "@/components/pdf/InvoiceDocument";
 
@@ -10,6 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const prisma = await getPrisma();
     const { id } = await params;
     const orderId = parseInt(id, 10);
 
