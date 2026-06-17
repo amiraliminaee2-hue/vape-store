@@ -64,7 +64,7 @@ export default async function Footer() {
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
-                <Link href="/products" className="text-zinc-500 hover:text-violet-400 transition-colors">
+                <Link href="/shop" className="text-zinc-500 hover:text-violet-400 transition-colors">
                   فروشگاه
                 </Link>
               </li>
