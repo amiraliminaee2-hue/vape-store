@@ -1,6 +1,6 @@
 import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -20,7 +20,9 @@ export const authOptions: AuthOptions = {
           throw new Error("شماره تلفن نامعتبر است");
         }
 
-        // ✅ استفاده مستقیم از prisma (که الان هرگز null نیست)
+        // ✅ دریافت prisma از getPrisma
+        const prisma = await getPrisma();
+        
         const user = await prisma.user.findUnique({
           where: { phone: credentials.phone },
           include: { profile: true },

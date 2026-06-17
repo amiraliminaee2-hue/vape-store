@@ -16,10 +16,6 @@ const nextConfig: NextConfig = {
   },
   // ✅ جلوگیری از اجرای Prisma در build
   output: 'standalone',
-  // ✅ متغیرهای محیطی برای runtime
-  env: {
-    DATABASE_URL: process.env.DATABASE_URL,
-  },
 };
 
 export default nextConfig;

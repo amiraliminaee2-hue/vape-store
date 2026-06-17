@@ -1,9 +1,8 @@
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
-
 export default async function CategoriesPage() {
+  const prisma = await getPrisma();
+  
   const categories = await prisma.category.findMany({
     include: {
       _count: {
