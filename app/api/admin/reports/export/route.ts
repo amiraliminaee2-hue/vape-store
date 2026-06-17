@@ -51,11 +51,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type"); // 'users', 'products', 'orders'
     const format = searchParams.get("format") || "xlsx"; // 'xlsx', 'csv'
-
-    const prisma = await getPrisma();
 
     let data: UserExportData[] | ProductExportData[] | OrderExportData[] = [];
     let filename = "";
