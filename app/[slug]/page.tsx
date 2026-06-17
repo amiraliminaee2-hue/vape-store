@@ -8,13 +8,25 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
+interface PageData {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string | null;
+  image: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  status: string;
+  publishedAt: Date | null;
+  updatedAt: Date;
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await prisma.page.findFirst({
+  const prisma = await getPrisma();
+  
+  const page: PageData | null = await prisma.page.findFirst({
     where: {
       slug,
       status: "PUBLISHED",
@@ -35,7 +47,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PagePage({ params }: PageProps) {
   const { slug } = await params;
-  const page = await prisma.page.findFirst({
+  const prisma = await getPrisma();
+  
+  const page: PageData | null = await prisma.page.findFirst({
     where: {
       slug,
       status: "PUBLISHED",

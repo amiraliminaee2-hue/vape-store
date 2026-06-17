@@ -34,8 +34,8 @@ interface FormData {
 
 export default function AdminPaymentMethodsPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -50,10 +50,10 @@ export default function AdminPaymentMethodsPage() {
   });
 
   // دریافت روش‌های پرداخت از API
-  const fetchMethods = async () => {
+  const fetchMethods = async (): Promise<void> => {
     try {
       const res = await fetch("/api/admin/payment-methods");
-      const data = await res.json();
+      const data: PaymentMethod[] = await res.json();
       setMethods(data);
     } catch (error) {
       console.error("Error fetching payment methods:", error);
@@ -67,7 +67,7 @@ export default function AdminPaymentMethodsPage() {
   }, []);
 
   // ذخیره روش پرداخت
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     try {
       const settings: PaymentMethodSettings = {};
       
@@ -114,9 +114,9 @@ export default function AdminPaymentMethodsPage() {
   };
 
   // تغییر وضعیت فعال/غیرفعال
-  const toggleActive = async (id: number, isActive: boolean) => {
+  const toggleActive = async (id: number, isActive: boolean): Promise<void> => {
     try {
-      const method = methods.find(m => m.id === id);
+      const method = methods.find((m: PaymentMethod) => m.id === id);
       if (!method) return;
 
       const res = await fetch("/api/admin/payment-methods", {
@@ -134,7 +134,7 @@ export default function AdminPaymentMethodsPage() {
   };
 
   // حذف روش پرداخت
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این روش پرداخت مطمئن هستید؟")) return;
     try {
       const res = await fetch(`/api/admin/payment-methods?id=${id}`, { method: "DELETE" });
@@ -148,7 +148,7 @@ export default function AdminPaymentMethodsPage() {
     }
   };
 
-  const openModal = (method?: PaymentMethod) => {
+  const openModal = (method?: PaymentMethod): void => {
     if (method) {
       setEditingMethod(method);
       setFormData({
@@ -179,7 +179,7 @@ export default function AdminPaymentMethodsPage() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setIsModalOpen(false);
     setEditingMethod(null);
   };
@@ -214,7 +214,7 @@ export default function AdminPaymentMethodsPage() {
         </div>
 
         <div className="divide-y divide-white/5">
-          {methods.map((method) => (
+          {methods.map((method: PaymentMethod) => (
             <div key={method.id} className="grid grid-cols-5 gap-4 px-6 py-4 items-center hover:bg-white/5 transition">
               <span className="font-medium">{method.name}</span>
               <span className="text-zinc-400 text-sm">{method.code}</span>
@@ -262,13 +262,13 @@ export default function AdminPaymentMethodsPage() {
               <input
                 type="text"
                 value={formData.name}
-                onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="نام روش (مثال: پرداخت آنلاین)"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
               />
               <select
                 value={formData.code}
-                onChange={e => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, code: e.target.value }))}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
               >
                 <option value="online">پرداخت آنلاین (درگاه بانکی)</option>
@@ -282,7 +282,7 @@ export default function AdminPaymentMethodsPage() {
                   <label className="block text-sm text-zinc-400 mb-1">درگاه پرداخت</label>
                   <select
                     value={formData.gateway}
-                    onChange={e => setFormData(prev => ({ ...prev, gateway: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, gateway: e.target.value }))}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                   >
                     <option value="zarinpal">زرین‌پال</option>
@@ -297,14 +297,14 @@ export default function AdminPaymentMethodsPage() {
                     <input
                       type="text"
                       value={formData.cardNumber}
-                      onChange={e => setFormData(prev => ({ ...prev, cardNumber: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, cardNumber: e.target.value }))}
                       placeholder="شماره کارت (مثال: 6037-****-****-****)"
                       className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                     />
                     <input
                       type="text"
                       value={formData.bankName}
-                      onChange={e => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
                       placeholder="نام بانک"
                       className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                     />
@@ -312,7 +312,7 @@ export default function AdminPaymentMethodsPage() {
                   <input
                     type="text"
                     value={formData.accountName}
-                    onChange={e => setFormData(prev => ({ ...prev, accountName: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, accountName: e.target.value }))}
                     placeholder="نام صاحب حساب"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                   />
@@ -320,21 +320,21 @@ export default function AdminPaymentMethodsPage() {
                     <input
                       type="text"
                       value={formData.telegram}
-                      onChange={e => setFormData(prev => ({ ...prev, telegram: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, telegram: e.target.value }))}
                       placeholder="لینک تلگرام پشتیبانی"
                       className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                     />
                     <input
                       type="text"
                       value={formData.rubika}
-                      onChange={e => setFormData(prev => ({ ...prev, rubika: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, rubika: e.target.value }))}
                       placeholder="لینک روبیکا پشتیبانی"
                       className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"
                     />
                   </div>
                   <textarea
                     value={formData.message}
-                    onChange={e => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                     placeholder="پیام راهنمای کاربر (مثال: لطفاً پس از واریز، رسید را در تلگرام ارسال کنید)"
                     rows={3}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none resize-none"

@@ -9,13 +9,26 @@ interface User {
   name: string | null;
 }
 
+interface FormData {
+  userId: string;
+  storeName: string;
+  slug: string;
+  description: string;
+  phone: string;
+  address: string;
+  logo: string;
+  coverImage: string;
+  commission: number;
+  status: string;
+}
+
 export default function NewSellerPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormData>({
     userId: "",
     storeName: "",
     slug: "",
@@ -30,10 +43,10 @@ export default function NewSellerPage() {
 
   useEffect(() => {
     // دریافت لیست کاربران برای انتخاب فروشنده
-    const fetchUsers = async () => {
+    const fetchUsers = async (): Promise<void> => {
       try {
         const res = await fetch("/api/admin/users?limit=100");
-        const data = await res.json();
+        const data: { users: User[] } = await res.json();
         setUsers(data.users || []);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -46,12 +59,12 @@ export default function NewSellerPage() {
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  ): void => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const generateSlug = () => {
+  const generateSlug = (): void => {
     const slug = form.storeName
       .trim()
       .toLowerCase()
@@ -60,7 +73,7 @@ export default function NewSellerPage() {
     setForm((prev) => ({ ...prev, slug }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
 
@@ -138,7 +151,7 @@ export default function NewSellerPage() {
                 {loadingUsers ? (
                   <option disabled>در حال بارگذاری...</option>
                 ) : (
-                  users.map((user) => (
+                  users.map((user: User) => (
                     <option key={user.id} value={user.id} className="bg-zinc-900">
                       {user.name || user.email} - {user.email}
                     </option>

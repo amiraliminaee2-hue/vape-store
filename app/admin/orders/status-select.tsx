@@ -8,15 +8,30 @@ interface Props {
   currentStatus: string;
 }
 
+interface StatusOption {
+  value: string;
+  label: string;
+}
+
+const statusOptions: StatusOption[] = [
+  { value: "REGISTERED", label: "سفارش ثبت شده است" },
+  { value: "PAYED", label: "پرداخت شده است" },
+  { value: "PROCESSING", label: "سفارش در حال پردازش است" },
+  { value: "SHIPPING", label: "سفارش در مرحله ارسال است" },
+  { value: "SHIPPED", label: "سفارش ارسال شده است" },
+  { value: "CANCELLED", label: "سفارش کنسل شده است" },
+  { value: "ERROR", label: "خطا در پرداخت" },
+];
+
 export default function OrderStatusSelect({
   orderId,
   currentStatus,
 }: Props) {
   const router = useRouter();
-  const [status, setStatus] = useState(currentStatus);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<string>(currentStatus);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const updateStatus = async (value: string) => {
+  const updateStatus = async (value: string): Promise<void> => {
     if (value === status) return;
     
     setLoading(true);
@@ -63,33 +78,11 @@ export default function OrderStatusSelect({
         disabled:opacity-50
       "
     >
-      <option value="REGISTERED">
-        سفارش ثبت شده است
-      </option>
-
-      <option value="PAYED">
-        پرداخت شده است
-      </option>
-
-      <option value="PROCESSING">
-        سفارش در حال پردازش است
-      </option>
-
-      <option value="SHIPPING">
-        سفارش در مرحله ارسال است
-      </option>
-
-      <option value="SHIPPED">
-        سفارش ارسال شده است
-      </option>
-
-      <option value="CANCELLED">
-        سفارش کنسل شده است
-      </option>
-
-      <option value="ERROR">
-        خطا در پرداخت
-      </option>
+      {statusOptions.map((option: StatusOption) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
     </select>
   );
 }

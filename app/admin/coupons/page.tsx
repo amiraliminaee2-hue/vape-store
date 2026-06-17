@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, JSX } from "react";
 import Link from "next/link";
 
 interface Coupon {
@@ -17,12 +17,27 @@ interface Coupon {
   status: string;
 }
 
+interface FormData {
+  code: string;
+  type: string;
+  value: string;
+  minPurchase: string;
+  maxDiscount: string;
+  usageLimit: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface CouponResponse {
+  coupons?: Coupon[];
+}
+
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     code: "",
     type: "FIXED",
     value: "",
@@ -33,10 +48,10 @@ export default function AdminCouponsPage() {
     endDate: "",
   });
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = async (): Promise<void> => {
     try {
       const res = await fetch("/api/coupons");
-      const data = await res.json();
+      const data: CouponResponse = await res.json();
       if (data.coupons) setCoupons(data.coupons);
     } catch (error) {
       console.error("Error fetching coupons:", error);
@@ -49,7 +64,7 @@ export default function AdminCouponsPage() {
     fetchCoupons();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     try {
       const res = await fetch("/api/coupons", {
@@ -91,7 +106,7 @@ export default function AdminCouponsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این کد تخفیف اطمینان دارید؟")) return;
     try {
       const res = await fetch(`/api/coupons?id=${id}`, { method: "DELETE" });
@@ -105,7 +120,7 @@ export default function AdminCouponsPage() {
     }
   };
 
-  const handleEdit = (coupon: Coupon) => {
+  const handleEdit = (coupon: Coupon): void => {
     setEditingCoupon(coupon);
     setFormData({
       code: coupon.code,
@@ -120,7 +135,7 @@ export default function AdminCouponsPage() {
     setShowModal(true);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string): JSX.Element => {
     switch (status) {
       case "ACTIVE":
         return <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">فعال</span>;
@@ -193,7 +208,7 @@ export default function AdminCouponsPage() {
               </tr>
             </thead>
             <tbody>
-              {coupons.map((coupon) => (
+              {coupons.map((coupon: Coupon) => (
                 <tr key={coupon.id} className="border-t border-white/10">
                   <td className="p-4 font-mono">{coupon.code}</td>
                   <td className="p-4">

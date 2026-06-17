@@ -11,20 +11,34 @@ interface ImportResult {
   errors: Array<{ row: Record<string, string>; error: string }>;
 }
 
+interface SampleProduct {
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: string;
+  category_slug: string;
+  images: string;
+  isActive: string;
+  isFeatured: string;
+  specs: string;
+}
+
 export default function ImportProductsPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<ImportResult | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setResult(null);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!file) {
       alert("لطفاً فایل CSV یا Excel را انتخاب کنید");
@@ -40,7 +54,7 @@ export default function ImportProductsPage() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+      const data: ImportResult = await res.json();
       setResult(data);
       
       if (data.imported > 0) {
@@ -58,14 +72,14 @@ export default function ImportProductsPage() {
     }
   };
 
-  const downloadSampleCSV = () => {
-    const sampleData = [
+  const downloadSampleCSV = (): void => {
+    const sampleData: SampleProduct[] = [
       {
         title: "محصول نمونه",
         slug: "product-sample",
         description: "توضیحات محصول نمونه",
-        price: "250000",
-        stock: "10",
+        price: 250000,
+        stock: 10,
         category: "دستگاه‌ها",
         category_slug: "devices",
         images: "https://example.com/image1.jpg",
@@ -75,7 +89,7 @@ export default function ImportProductsPage() {
       },
     ];
     
-    const headers = [
+    const headers: string[] = [
       "title",
       "slug",
       "description",
@@ -89,10 +103,10 @@ export default function ImportProductsPage() {
       "specs",
     ];
     
-    const csvRows = [headers.join(",")];
+    const csvRows: string[] = [headers.join(",")];
     for (const product of sampleData) {
-      const values = headers.map(header => {
-        const value = product[header as keyof typeof product] || "";
+      const values = headers.map((header: string) => {
+        const value = product[header as keyof SampleProduct] || "";
         return `"${String(value).replace(/"/g, '""')}"`;
       });
       csvRows.push(values.join(","));
@@ -107,8 +121,8 @@ export default function ImportProductsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const downloadSampleExcel = () => {
-    const sampleData = [
+  const downloadSampleExcel = (): void => {
+    const sampleData: SampleProduct[] = [
       {
         title: "محصول نمونه 1",
         slug: "product-sample-1",

@@ -36,18 +36,60 @@ interface Order {
   items: OrderItem[];
 }
 
+interface InvoiceItem {
+  id: number;
+  title: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+interface InvoiceData {
+  id: number;
+  trackingNumber: string;
+  transactionId: string | null;
+  createdAt: string;
+  status: string;
+  userName: string;
+  userEmail: string;
+  phone: string;
+  address: string;
+  customerNote: string | null;
+  adminNote: string | null;
+  subtotal: number;
+  couponCode: string | null;
+  discountAmount: number;
+  shippingCost: number;
+  totalPrice: number;
+  items: InvoiceItem[];
+}
+
+interface StatusOption {
+  value: string;
+  label: string;
+}
+
+const statusOptions: StatusOption[] = [
+  { value: "REGISTERED", label: "ثبت شده" },
+  { value: "PAYED", label: "پرداخت شده" },
+  { value: "PROCESSING", label: "در حال پردازش" },
+  { value: "SHIPPING", label: "در حال ارسال" },
+  { value: "SHIPPED", label: "ارسال شده" },
+  { value: "CANCELLED", label: "لغو شده" },
+];
+
 export default function AdminOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [adminNote, setAdminNote] = useState("");
-  const [savingNote, setSavingNote] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
+  const [adminNote, setAdminNote] = useState<string>("");
+  const [savingNote, setSavingNote] = useState<boolean>(false);
 
   const orderId = params?.id as string;
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`);
       if (!res.ok) {
@@ -56,7 +98,7 @@ export default function AdminOrderDetailPage() {
         }
         throw new Error("خطا در دریافت سفارش");
       }
-      const data = await res.json();
+      const data: Order = await res.json();
       setOrder(data);
       setAdminNote(data.adminNote || "");
     } catch (error) {
@@ -72,7 +114,7 @@ export default function AdminOrderDetailPage() {
     }
   }, [orderId]);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string): Promise<void> => {
     if (!order) return;
     setUpdatingStatus(true);
     try {
@@ -95,7 +137,7 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  const saveAdminNote = async () => {
+  const saveAdminNote = async (): Promise<void> => {
     setSavingNote(true);
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -140,7 +182,7 @@ export default function AdminOrderDetailPage() {
   }
 
   // تبدیل داده‌ها به فرمت InvoiceViewer
-  const invoiceData = {
+  const invoiceData: InvoiceData = {
     id: order.id,
     trackingNumber: order.trackingNumber,
     transactionId: order.transactionId,
@@ -157,7 +199,7 @@ export default function AdminOrderDetailPage() {
     discountAmount: order.discountAmount || 0,
     shippingCost: 0,
     totalPrice: order.totalPrice,
-    items: order.items.map(item => ({
+    items: order.items.map((item: OrderItem): InvoiceItem => ({
       id: item.id,
       title: item.product.title,
       quantity: item.quantity,
@@ -165,15 +207,6 @@ export default function AdminOrderDetailPage() {
       total: item.price * item.quantity,
     })),
   };
-
-  const statusOptions = [
-    { value: "REGISTERED", label: "ثبت شده" },
-    { value: "PAYED", label: "پرداخت شده" },
-    { value: "PROCESSING", label: "در حال پردازش" },
-    { value: "SHIPPING", label: "در حال ارسال" },
-    { value: "SHIPPED", label: "ارسال شده" },
-    { value: "CANCELLED", label: "لغو شده" },
-  ];
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8">
@@ -189,7 +222,7 @@ export default function AdminOrderDetailPage() {
               disabled={updatingStatus}
               className="px-4 py-2 rounded-xl bg-zinc-900 border border-white/10 focus:border-violet-500 outline-none"
             >
-              {statusOptions.map(opt => (
+              {statusOptions.map((opt: StatusOption) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>

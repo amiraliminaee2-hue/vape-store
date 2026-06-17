@@ -20,7 +20,15 @@ interface ProvincePrice {
   price: number;
 }
 
-const provinces = [
+interface FormData {
+  name: string;
+  code: string;
+  basePrice: string;
+  pricePerKg: string;
+  estimatedDays: string;
+}
+
+const provinces: string[] = [
   "تهران", "البرز", "اصفهان", "فارس", "خراسان رضوی", "خوزستان", "مازندران",
   "گیلان", "کرمان", "آذربایجان شرقی", "آذربایجان غربی", "قم", "سمنان", "یزد",
   "همدان", "مرکزی", "لرستان", "کردستان", "کرمانشاه", "ایلام", "بوشهر", "هرمزگان",
@@ -31,17 +39,23 @@ const provinces = [
 export default function AdminShippingPage() {
   const router = useRouter();
   const [methods, setMethods] = useState<ShippingMethod[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingMethod, setEditingMethod] = useState<ShippingMethod | null>(null);
-  const [formData, setFormData] = useState({ name: "", code: "", basePrice: "", pricePerKg: "", estimatedDays: "" });
+  const [formData, setFormData] = useState<FormData>({ 
+    name: "", 
+    code: "", 
+    basePrice: "", 
+    pricePerKg: "", 
+    estimatedDays: "" 
+  });
   const [expandedMethod, setExpandedMethod] = useState<number | null>(null);
 
   // دریافت روش‌های ارسال
-  const fetchMethods = async () => {
+  const fetchMethods = async (): Promise<void> => {
     try {
       const res = await fetch("/api/admin/shipping-methods");
-      const data = await res.json();
+      const data: ShippingMethod[] = await res.json();
       setMethods(data);
     } catch (error) {
       console.error("Error fetching methods:", error);
@@ -55,7 +69,7 @@ export default function AdminShippingPage() {
   }, []);
 
   // ذخیره روش ارسال جدید/ویرایش
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     try {
       const payload = {
         ...(editingMethod && { id: editingMethod.id }),
@@ -87,9 +101,9 @@ export default function AdminShippingPage() {
   };
 
   // تغییر وضعیت فعال/غیرفعال
-  const toggleActive = async (id: number, isActive: boolean) => {
+  const toggleActive = async (id: number, isActive: boolean): Promise<void> => {
     try {
-      const method = methods.find(m => m.id === id);
+      const method = methods.find((m: ShippingMethod) => m.id === id);
       if (!method) return;
 
       const res = await fetch("/api/admin/shipping-methods", {
@@ -107,7 +121,7 @@ export default function AdminShippingPage() {
   };
 
   // حذف روش ارسال
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این روش ارسال مطمئن هستید؟")) return;
     try {
       const res = await fetch(`/api/admin/shipping-methods?id=${id}`, { method: "DELETE" });
@@ -122,7 +136,7 @@ export default function AdminShippingPage() {
   };
 
   // تنظیم قیمت استان
-  const handleProvincePrice = async (methodId: number, province: string, price: number) => {
+  const handleProvincePrice = async (methodId: number, province: string, price: number): Promise<void> => {
     try {
       const res = await fetch("/api/admin/shipping-methods/province-price", {
         method: "POST",
@@ -137,7 +151,7 @@ export default function AdminShippingPage() {
     }
   };
 
-  const openModal = (method?: ShippingMethod) => {
+  const openModal = (method?: ShippingMethod): void => {
     if (method) {
       setEditingMethod(method);
       setFormData({
@@ -154,7 +168,7 @@ export default function AdminShippingPage() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setIsModalOpen(false);
     setEditingMethod(null);
     setFormData({ name: "", code: "", basePrice: "", pricePerKg: "", estimatedDays: "" });
@@ -181,7 +195,7 @@ export default function AdminShippingPage() {
       </div>
 
       <div className="space-y-4">
-        {methods.map((method) => (
+        {methods.map((method: ShippingMethod) => (
           <div key={method.id} className="border border-white/10 rounded-2xl overflow-hidden bg-white/5">
             <div className="grid grid-cols-6 gap-4 px-6 py-4 items-center hover:bg-white/5 transition">
               <div className="col-span-2">
@@ -221,15 +235,15 @@ export default function AdminShippingPage() {
               <div className="border-t border-white/10 p-6 bg-black/20">
                 <h3 className="font-semibold mb-4">قیمت ویژه استان‌ها</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {provinces.map((province) => {
-                    const provincePrice = method.provincePrices?.find(p => p.province === province);
+                  {provinces.map((province: string) => {
+                    const provincePrice = method.provincePrices?.find((p: ProvincePrice) => p.province === province);
                     return (
                       <div key={province} className="flex items-center gap-2">
                         <span className="text-sm text-zinc-400 w-24">{province}</span>
                         <input
                           type="number"
                           defaultValue={provincePrice?.price || method.basePrice}
-                          onBlur={(e) => handleProvincePrice(method.id, province, parseInt(e.target.value))}
+                          onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleProvincePrice(method.id, province, parseInt(e.target.value))}
                           className="w-28 px-2 py-1 rounded-lg bg-zinc-900 border border-white/10 text-sm"
                         />
                         <span className="text-xs">تومان</span>
@@ -249,11 +263,41 @@ export default function AdminShippingPage() {
           <div className="bg-[#0a0a0a] rounded-2xl max-w-md w-full p-6 border border-white/10">
             <h2 className="text-2xl font-bold mb-4">{editingMethod ? "ویرایش روش ارسال" : "روش ارسال جدید"}</h2>
             <div className="space-y-4">
-              <input type="text" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} placeholder="نام روش" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" />
-              <input type="text" value={formData.code} onChange={e => setFormData(prev => ({ ...prev, code: e.target.value }))} placeholder="کد (انگلیسی)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" />
-              <input type="number" value={formData.basePrice} onChange={e => setFormData(prev => ({ ...prev, basePrice: e.target.value }))} placeholder="قیمت پایه (تومان)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" />
-              <input type="number" value={formData.pricePerKg} onChange={e => setFormData(prev => ({ ...prev, pricePerKg: e.target.value }))} placeholder="هزینه هر کیلو (اختیاری)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" />
-              <input type="text" value={formData.estimatedDays} onChange={e => setFormData(prev => ({ ...prev, estimatedDays: e.target.value }))} placeholder="زمان تحویل (مثال: ۲-۳ روز)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" />
+              <input 
+                type="text" 
+                value={formData.name} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))} 
+                placeholder="نام روش" 
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" 
+              />
+              <input 
+                type="text" 
+                value={formData.code} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, code: e.target.value }))} 
+                placeholder="کد (انگلیسی)" 
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" 
+              />
+              <input 
+                type="number" 
+                value={formData.basePrice} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, basePrice: e.target.value }))} 
+                placeholder="قیمت پایه (تومان)" 
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" 
+              />
+              <input 
+                type="number" 
+                value={formData.pricePerKg} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, pricePerKg: e.target.value }))} 
+                placeholder="هزینه هر کیلو (اختیاری)" 
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" 
+              />
+              <input 
+                type="text" 
+                value={formData.estimatedDays} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, estimatedDays: e.target.value }))} 
+                placeholder="زمان تحویل (مثال: ۲-۳ روز)" 
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none" 
+              />
               <div className="flex gap-3 pt-4">
                 <button onClick={handleSave} className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition">ذخیره</button>
                 <button onClick={closeModal} className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition">انصراف</button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 
 interface Comment {
   id: number;
@@ -15,24 +15,44 @@ interface Comment {
   };
 }
 
-const statusLabels: Record<string, string> = {
+interface StatusLabels {
+  [key: string]: string;
+}
+
+interface StatusColors {
+  [key: string]: string;
+}
+
+const statusLabels: StatusLabels = {
   PENDING: "در انتظار تأیید",
   APPROVED: "تأیید شده",
   REJECTED: "رد شده",
 };
 
-const statusColors: Record<string, string> = {
+const statusColors: StatusColors = {
   PENDING: "bg-yellow-500/20 text-yellow-300",
   APPROVED: "bg-emerald-500/20 text-emerald-300",
   REJECTED: "bg-red-500/20 text-red-300",
 };
 
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+const filterOptions: FilterOption[] = [
+  { value: "PENDING", label: "در انتظار تأیید" },
+  { value: "APPROVED", label: "تأیید شده" },
+  { value: "REJECTED", label: "رد شده" },
+  { value: "ALL", label: "همه" },
+];
+
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("PENDING");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [filter, setFilter] = useState<string>("PENDING");
 
-  const fetchComments = async (status: string) => {
+  const fetchComments = async (status: string): Promise<void> => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/comments?status=${status}`);
@@ -52,7 +72,7 @@ export default function AdminCommentsPage() {
   const handleStatusChange = async (
     commentId: number,
     newStatus: "APPROVED" | "REJECTED"
-  ) => {
+  ): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/comments/${commentId}`, {
         method: "PATCH",
@@ -71,7 +91,7 @@ export default function AdminCommentsPage() {
     }
   };
 
-  const handleDelete = async (commentId: number) => {
+  const handleDelete = async (commentId: number): Promise<void> => {
     if (!confirm("آیا از حذف این نظر مطمئن هستید؟")) return;
 
     try {
@@ -90,8 +110,8 @@ export default function AdminCommentsPage() {
     }
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }).map((_, i) => (
+  const renderStars = (rating: number): JSX.Element[] => {
+    return Array.from({ length: 5 }).map((_, i: number) => (
       <span
         key={i}
         className={i < rating ? "text-yellow-400" : "text-zinc-600"}
@@ -109,12 +129,7 @@ export default function AdminCommentsPage() {
       </div>
 
       <div className="flex gap-3">
-        {[
-          { value: "PENDING", label: "در انتظار تأیید" },
-          { value: "APPROVED", label: "تأیید شده" },
-          { value: "REJECTED", label: "رد شده" },
-          { value: "ALL", label: "همه" },
-        ].map((opt) => (
+        {filterOptions.map((opt: FilterOption) => (
           <button
             key={opt.value}
             onClick={() => setFilter(opt.value)}
@@ -139,7 +154,7 @@ export default function AdminCommentsPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i: number) => (
             <div
               key={i}
               className="h-32 rounded-3xl border border-white/5 bg-white/[0.02] animate-pulse"
@@ -152,7 +167,7 @@ export default function AdminCommentsPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {comments.map((comment) => (
+          {comments.map((comment: Comment) => (
             <div
               key={comment.id}
               className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"

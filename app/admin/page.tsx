@@ -1,10 +1,27 @@
 import Link from "next/link";
 import { getPrisma } from "@/lib/prisma";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
+interface Product {
+  id: number;
+  title: string;
+  stock: number;
+  price: number;
+  isActive: boolean;
+}
+
+interface Order {
+  id: number;
+  totalPrice: number;
+  discountAmount: number;
+  couponCode: string | null;
+  status: string;
+  createdAt: Date;
+  userName: string | null;
+}
 
 export default async function AdminDashboardPage() {
+  const prisma = await getPrisma();
+  
   const now = new Date();
 
   const startOfToday = new Date();
@@ -146,7 +163,7 @@ export default async function AdminDashboardPage() {
     monthRevenue._sum.totalPrice ?? 0;
 
   // محاسبه مجموع تخفیف‌ها
-  const totalDiscount = latestOrders.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+  const totalDiscount = latestOrders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -235,7 +252,7 @@ export default async function AdminDashboardPage() {
           </p>
 
           <p className="mt-2 text-zinc-500 text-sm">
-            تومан
+            تومان
           </p>
         </div>
 
@@ -319,7 +336,7 @@ export default async function AdminDashboardPage() {
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {latestOrders.map((order) => {
+            {latestOrders.map((order: Order) => {
               const hasDiscount = (order.discountAmount || 0) > 0;
               return (
                 <div
@@ -396,7 +413,7 @@ export default async function AdminDashboardPage() {
 
         <div className="divide-y divide-white/5">
           {latestProducts.map(
-            (product) => (
+            (product: Product) => (
               <div
                 key={product.id}
                 className="px-6 py-4 flex items-center justify-between"

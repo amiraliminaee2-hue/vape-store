@@ -42,7 +42,7 @@ export default function WishlistPage() {
         router.push("/auth/signin");
         return;
       }
-      const data = await res.json();
+      const data: WishlistItem[] = await res.json();
       setItems(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error loading wishlist:", error);
@@ -135,7 +135,7 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {items.map((item) => (
+          {items.map((item: WishlistItem) => (
             <div
               key={item.id}
               className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] hover:border-violet-500/30 transition-all"

@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import Link from "next/link";
+
+interface Category {
+  name: string;
+}
 
 interface Product {
   id: number;
@@ -18,29 +22,33 @@ interface Product {
   showInPacks: boolean;
   showInGirls: boolean;
   showInLiquids: boolean;
-  category: {
-    name: string;
-  };
+  category: Category;
+}
+
+interface DiscountModal {
+  isOpen: boolean;
+  productId: number | null;
+  currentDiscount: number;
 }
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [discountModal, setDiscountModal] = useState<{ isOpen: boolean; productId: number | null; currentDiscount: number }>({
+  const [exporting, setExporting] = useState<boolean>(false);
+  const [discountModal, setDiscountModal] = useState<DiscountModal>({
     isOpen: false,
     productId: null,
     currentDiscount: 0,
   });
   const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [updatingDiscount, setUpdatingDiscount] = useState(false);
+  const [updatingDiscount, setUpdatingDiscount] = useState<boolean>(false);
   const [updatingSlider, setUpdatingSlider] = useState<number | null>(null);
 
-  const fetchProducts = async (mountedRef?: { current: boolean }) => {
+  const fetchProducts = async (mountedRef?: { current: boolean }): Promise<void> => {
     try {
       const res = await fetch("/api/products?limit=100");
-      const data = await res.json();
+      const data: { products: Product[] } = await res.json();
 
       if (!mountedRef || mountedRef.current) {
         setProducts(data.products || []);
@@ -62,7 +70,7 @@ export default function AdminProductsPage() {
     };
   }, []);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     const confirmed = confirm("آیا مطمئنی؟ این محصول حذف میشه.");
     if (!confirmed) return;
 
@@ -74,7 +82,7 @@ export default function AdminProductsPage() {
       });
 
       if (res.ok) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setProducts((prev) => prev.filter((p: Product) => p.id !== id));
       } else {
         alert("خطا در حذف محصول");
       }
@@ -86,7 +94,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleExport = async (format: "xlsx" | "csv") => {
+  const handleExport = async (format: "xlsx" | "csv"): Promise<void> => {
     setExporting(true);
     try {
       window.open(`/api/admin/reports/export?type=products&format=${format}`, "_blank");
@@ -97,7 +105,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  const openDiscountModal = (product: Product) => {
+  const openDiscountModal = (product: Product): void => {
     setDiscountModal({
       isOpen: true,
       productId: product.id,
@@ -106,12 +114,12 @@ export default function AdminProductsPage() {
     setDiscountPercent(product.discountPercent || 0);
   };
 
-  const closeDiscountModal = () => {
+  const closeDiscountModal = (): void => {
     setDiscountModal({ isOpen: false, productId: null, currentDiscount: 0 });
     setDiscountPercent(0);
   };
 
-  const applyDiscount = async () => {
+  const applyDiscount = async (): Promise<void> => {
     if (!discountModal.productId) return;
 
     if (discountPercent < 0 || discountPercent > 100) {
@@ -132,7 +140,7 @@ export default function AdminProductsPage() {
 
       if (res.ok) {
         setProducts((prev) =>
-          prev.map((p) =>
+          prev.map((p: Product) =>
             p.id === discountModal.productId
               ? { ...p, discountPercent: discountPercent }
               : p
@@ -152,7 +160,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  const updateSliderField = async (productId: number, field: string, value: boolean) => {
+  const updateSliderField = async (productId: number, field: string, value: boolean): Promise<void> => {
     setUpdatingSlider(productId);
     try {
       const res = await fetch("/api/admin/products/slider", {
@@ -167,7 +175,7 @@ export default function AdminProductsPage() {
 
       if (res.ok) {
         setProducts((prev) =>
-          prev.map((p) =>
+          prev.map((p: Product) =>
             p.id === productId
               ? { ...p, [field]: value }
               : p
@@ -185,9 +193,9 @@ export default function AdminProductsPage() {
     }
   };
 
-  const formatPriceWithDiscount = (price: number, discountPercent: number) => {
+  const formatPriceWithDiscount = (price: number, discountPercent: number): JSX.Element => {
     if (!discountPercent || discountPercent <= 0) {
-      return `${price.toLocaleString("fa-IR")} تومان`;
+      return <span>{price.toLocaleString("fa-IR")} تومان</span>;
     }
     const discountedPrice = price - (price * discountPercent / 100);
     return (
@@ -248,7 +256,7 @@ export default function AdminProductsPage() {
       {/* Table */}
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i: number) => (
             <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse" />
           ))}
         </div>
@@ -258,7 +266,7 @@ export default function AdminProductsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {products.map((product) => (
+          {products.map((product: Product) => (
             <div key={product.id} className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* اطلاعات اصلی */}
@@ -408,7 +416,7 @@ export default function AdminProductsPage() {
                 <input
                   type="number"
                   value={discountPercent}
-                  onChange={(e) => setDiscountPercent(parseInt(e.target.value) || 0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountPercent(parseInt(e.target.value) || 0)}
                   min="0"
                   max="100"
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none"

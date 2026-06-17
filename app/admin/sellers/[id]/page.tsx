@@ -39,6 +39,15 @@ interface Seller {
   products: Product[];
 }
 
+interface EditFormData {
+  storeName: string;
+  description: string;
+  phone: string;
+  address: string;
+  commission: number;
+  status: string;
+}
+
 const statusLabels: Record<string, string> = {
   PENDING: "در انتظار تأیید",
   APPROVED: "تأیید شده",
@@ -59,10 +68,10 @@ export default function SellerDetailsPage() {
   const id = params.id as string;
 
   const [seller, setSeller] = useState<Seller | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
+  const [loading, setLoading] = useState<boolean>(true);
+  const [updating, setUpdating] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState<EditFormData>({
     storeName: "",
     description: "",
     phone: "",
@@ -72,10 +81,10 @@ export default function SellerDetailsPage() {
   });
 
   // تعریف fetchSeller قبل از useEffect
-  const fetchSeller = async () => {
+  const fetchSeller = async (): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`);
-      const data = await res.json();
+      const data: Seller = await res.json();
       setSeller(data);
       setEditForm({
         storeName: data.storeName || "",
@@ -98,12 +107,12 @@ export default function SellerDetailsPage() {
 
   const handleEditChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  ): void => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (): Promise<void> => {
     setUpdating(true);
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`, {
@@ -128,7 +137,7 @@ export default function SellerDetailsPage() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string): Promise<void> => {
     setUpdating(true);
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`, {
@@ -427,7 +436,7 @@ export default function SellerDetailsPage() {
               <p className="text-zinc-500 text-center py-4">هیچ محصولی ثبت نشده است</p>
             ) : (
               <div className="space-y-2">
-                {seller.products.slice(0, 5).map((product) => (
+                {seller.products.slice(0, 5).map((product: Product) => (
                   <div
                     key={product.id}
                     className="flex justify-between items-center p-3 rounded-xl bg-white/5"

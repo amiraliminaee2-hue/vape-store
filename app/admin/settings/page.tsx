@@ -18,7 +18,6 @@ interface Settings {
   meta_title: string;
   meta_description: string;
   meta_keywords: string;
-  // ✅ تنظیمات کارت به کارت
   cart2cart_telegram: string;
   cart2cart_rubika: string;
   cart2cart_phone: string;
@@ -52,15 +51,15 @@ const defaultSettings: Settings = {
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
   const router = useRouter();
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (): Promise<void> => {
     try {
       const res = await fetch("/api/settings");
-      const data = await res.json();
+      const data: Partial<Settings> = await res.json();
       setSettings((prev) => ({ ...prev, ...data }));
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -73,11 +72,11 @@ export default function AdminSettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleChange = (key: keyof Settings, value: string) => {
+  const handleChange = (key: keyof Settings, value: string): void => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const saveSetting = async (key: string, value: string) => {
+  const saveSetting = async (key: string, value: string): Promise<void> => {
     try {
       await fetch("/api/settings", {
         method: "PUT",
@@ -89,13 +88,12 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setSaving(true);
     setMessage("");
 
     try {
-      // ذخیره همه تنظیمات
       const promises = Object.entries(settings).map(([key, value]) =>
         saveSetting(key, value)
       );
@@ -143,7 +141,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.site_phone}
-                  onChange={(e) => handleChange("site_phone", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("site_phone", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="۰۲۱-۱۲۳۴۵۶۷۸"
                 />
@@ -153,7 +151,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="email"
                   value={settings.site_email}
-                  onChange={(e) => handleChange("site_email", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("site_email", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="info@site.com"
                 />
@@ -163,7 +161,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.site_address}
-                  onChange={(e) => handleChange("site_address", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("site_address", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="تهران، خیابان ..."
                 />
@@ -173,7 +171,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.working_hours}
-                  onChange={(e) => handleChange("working_hours", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("working_hours", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="شنبه تا پنجشنبه ۱۰ تا ۲۰"
                 />
@@ -192,7 +190,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.instagram_url}
-                  onChange={(e) => handleChange("instagram_url", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("instagram_url", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://instagram.com/..."
                 />
@@ -202,7 +200,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.telegram_url}
-                  onChange={(e) => handleChange("telegram_url", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("telegram_url", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://t.me/..."
                 />
@@ -212,7 +210,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.rubika_url}
-                  onChange={(e) => handleChange("rubika_url", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("rubika_url", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://rubika.ir/..."
                 />
@@ -222,7 +220,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.whatsapp_url}
-                  onChange={(e) => handleChange("whatsapp_url", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("whatsapp_url", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://wa.me/..."
                 />
@@ -230,7 +228,7 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* ✅ تنظیمات کارت به کارت */}
+          {/* تنظیمات کارت به کارت */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               💳 تنظیمات پرداخت کارت به کارت
@@ -241,7 +239,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_telegram}
-                  onChange={(e) => handleChange("cart2cart_telegram", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_telegram", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://t.me/username"
                 />
@@ -251,7 +249,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_rubika}
-                  onChange={(e) => handleChange("cart2cart_rubika", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_rubika", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="https://rubika.ir/username"
                 />
@@ -261,7 +259,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_phone}
-                  onChange={(e) => handleChange("cart2cart_phone", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_phone", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="09123456789"
                 />
@@ -271,7 +269,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_card_number}
-                  onChange={(e) => handleChange("cart2cart_card_number", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_card_number", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="6037-****-****-****"
                 />
@@ -281,7 +279,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_bank_name}
-                  onChange={(e) => handleChange("cart2cart_bank_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_bank_name", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="بانک ملی"
                 />
@@ -291,7 +289,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.cart2cart_account_name}
-                  onChange={(e) => handleChange("cart2cart_account_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("cart2cart_account_name", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="فروشگاه ویپ"
                 />
@@ -310,7 +308,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.header_text}
-                  onChange={(e) => handleChange("header_text", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("header_text", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="متن هدر سایت..."
                 />
@@ -319,7 +317,7 @@ export default function AdminSettingsPage() {
                 <label className="block text-sm text-zinc-400 mb-2">متن فوتر</label>
                 <textarea
                   value={settings.footer_text}
-                  onChange={(e) => handleChange("footer_text", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange("footer_text", e.target.value)}
                   rows={3}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="متن فوتر سایت..."
@@ -329,7 +327,7 @@ export default function AdminSettingsPage() {
                 <label className="block text-sm text-zinc-400 mb-2">درباره ما</label>
                 <textarea
                   value={settings.about_us_text}
-                  onChange={(e) => handleChange("about_us_text", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange("about_us_text", e.target.value)}
                   rows={5}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="متن درباره ما..."
@@ -349,7 +347,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.meta_title}
-                  onChange={(e) => handleChange("meta_title", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("meta_title", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="عنوان سایت برای سئو..."
                 />
@@ -358,7 +356,7 @@ export default function AdminSettingsPage() {
                 <label className="block text-sm text-zinc-400 mb-2">توضیحات متا (Meta Description)</label>
                 <textarea
                   value={settings.meta_description}
-                  onChange={(e) => handleChange("meta_description", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange("meta_description", e.target.value)}
                   rows={3}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="توضیحات سایت برای سئو..."
@@ -369,7 +367,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="text"
                   value={settings.meta_keywords}
-                  onChange={(e) => handleChange("meta_keywords", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("meta_keywords", e.target.value)}
                   className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-violet-500/50"
                   placeholder="ویپ, پاد, لیکوئید, ..."
                 />

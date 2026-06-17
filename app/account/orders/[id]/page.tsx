@@ -35,6 +35,34 @@ interface Order {
   items: OrderItem[];
 }
 
+interface InvoiceItem {
+  id: number;
+  title: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+interface InvoiceData {
+  id: number;
+  trackingNumber: string;
+  transactionId: string | null;
+  createdAt: string;
+  status: string;
+  userName: string;
+  userEmail: string;
+  phone: string;
+  address: string;
+  customerNote: string | null;
+  adminNote: string | null;
+  subtotal: number;
+  couponCode: string | null;
+  discountAmount: number;
+  shippingCost: number;
+  totalPrice: number;
+  items: InvoiceItem[];
+}
+
 export default function UserOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -89,7 +117,7 @@ export default function UserOrderDetailPage() {
   }
 
   // تبدیل داده‌ها به فرمت InvoiceViewer
-  const invoiceData = {
+  const invoiceData: InvoiceData = {
     id: order.id,
     trackingNumber: order.trackingNumber,
     transactionId: order.transactionId,
@@ -106,7 +134,7 @@ export default function UserOrderDetailPage() {
     discountAmount: order.discountAmount || 0,
     shippingCost: 0,
     totalPrice: order.totalPrice,
-    items: order.items.map(item => ({
+    items: order.items.map((item: OrderItem): InvoiceItem => ({
       id: item.id,
       title: item.product.title,
       quantity: item.quantity,

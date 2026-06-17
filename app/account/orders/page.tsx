@@ -5,6 +5,19 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+interface Product {
+  id: number;
+  title: string;
+  slug: string;
+}
+
+interface OrderItem {
+  id: number;
+  quantity: number;
+  price: number;
+  product: Product;
+}
+
 interface Order {
   id: number;
   trackingNumber: string;
@@ -13,19 +26,15 @@ interface Order {
   couponCode: string | null;
   status: string;
   createdAt: string;
-  items: {
-    id: number;
-    quantity: number;
-    price: number;
-    product: {
-      id: number;
-      title: string;
-      slug: string;
-    };
-  }[];
+  items: OrderItem[];
 }
 
-const statusLabels: Record<string, { label: string; color: string }> = {
+interface StatusInfo {
+  label: string;
+  color: string;
+}
+
+const statusLabels: Record<string, StatusInfo> = {
   REGISTERED: { label: "ثبت شده", color: "bg-yellow-500/20 text-yellow-400" },
   PAYED: { label: "پرداخت شده", color: "bg-blue-500/20 text-blue-400" },
   PROCESSING: { label: "در حال پردازش", color: "bg-purple-500/20 text-purple-400" },
@@ -92,10 +101,10 @@ export default function UserOrdersPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => {
-              const statusInfo = statusLabels[order.status] || statusLabels.REGISTERED;
-              const originalTotal = order.totalPrice + (order.discountAmount || 0);
-              const hasDiscount = (order.discountAmount || 0) > 0;
+            {orders.map((order: Order) => {
+              const statusInfo: StatusInfo = statusLabels[order.status] || statusLabels.REGISTERED;
+              const originalTotal: number = order.totalPrice + (order.discountAmount || 0);
+              const hasDiscount: boolean = (order.discountAmount || 0) > 0;
 
               return (
                 <Link
@@ -148,7 +157,7 @@ export default function UserOrdersPage() {
                   {/* پیش‌نمایش محصولات */}
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <div className="flex gap-3 flex-wrap">
-                      {order.items.slice(0, 3).map((item) => (
+                      {order.items.slice(0, 3).map((item: OrderItem) => (
                         <div key={item.id} className="text-sm">
                           <span className="text-zinc-400">{item.quantity}×</span>
                           <span className="mr-1">{item.product.title}</span>

@@ -67,10 +67,10 @@ export default async function CouponReportsPage() {
   });
 
   // محاسبه آمار کلی
-  const totalCoupons = coupons.length;
-  const totalActiveCoupons = coupons.filter((c: Coupon) => c.status === "ACTIVE").length;
-  const totalUsedCount = coupons.reduce((sum: number, c: Coupon) => sum + c.usedCount, 0);
-  const totalDiscountGiven = coupons.reduce((sum: number, c: Coupon) => {
+  const totalCoupons: number = coupons.length;
+  const totalActiveCoupons: number = coupons.filter((c: Coupon) => c.status === "ACTIVE").length;
+  const totalUsedCount: number = coupons.reduce((sum: number, c: Coupon) => sum + c.usedCount, 0);
+  const totalDiscountGiven: number = coupons.reduce((sum: number, c: Coupon) => {
     const discountFromOrders = c.orders.reduce((orderSum: number, order: CouponOrder) => orderSum + (order.discountAmount || 0), 0);
     return sum + discountFromOrders;
   }, 0);

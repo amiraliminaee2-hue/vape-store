@@ -15,16 +15,41 @@ interface Category {
   slug: string;
 }
 
+interface Product {
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  stock: number;
+  categoryId: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  images: string[];
+  specs: Spec[];
+}
+
+interface FormData {
+  title: string;
+  slug: string;
+  description: string;
+  price: string;
+  stock: string;
+  categoryId: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  images: string[];
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetching, setFetching] = useState<boolean>(true);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormData>({
     title: "",
     slug: "",
     description: "",
@@ -33,21 +58,21 @@ export default function EditProductPage() {
     categoryId: "",
     isActive: true,
     isFeatured: false,
-    images: [] as string[],
+    images: [],
   });
 
   const [specs, setSpecs] = useState<Spec[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       try {
         const [productRes, categoriesRes] = await Promise.all([
           fetch(`/api/products/${id}`),
           fetch("/api/categories"),
         ]);
 
-        const product = await productRes.json();
-        const categoriesData = await categoriesRes.json();
+        const product: Product = await productRes.json();
+        const categoriesData: { categories: Category[] } = await categoriesRes.json();
 
         setCategories(categoriesData.categories || []);
 
@@ -82,15 +107,10 @@ export default function EditProductPage() {
   }, [id]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ): void => {
     const { name, value, type } = e.target;
-    const checked =
-      type === "checkbox"
-        ? (e.target as HTMLInputElement).checked
-        : undefined;
+    const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
 
     setForm((prev) => ({
       ...prev,
@@ -98,7 +118,7 @@ export default function EditProductPage() {
     }));
   };
 
-  const handleSlugGenerate = () => {
+  const handleSlugGenerate = (): void => {
     const slug = form.title
       .trim()
       .toLowerCase()
@@ -107,11 +127,7 @@ export default function EditProductPage() {
     setForm((prev) => ({ ...prev, slug }));
   };
 
-  const handleSpecChange = (
-    index: number,
-    field: "key" | "value",
-    value: string
-  ) => {
+  const handleSpecChange = (index: number, field: "key" | "value", value: string): void => {
     setSpecs((prev) => {
       const updated = [...prev];
       updated[index][field] = value;
@@ -119,19 +135,19 @@ export default function EditProductPage() {
     });
   };
 
-  const addSpec = () => {
+  const addSpec = (): void => {
     setSpecs((prev) => [...prev, { key: "", value: "" }]);
   };
 
-  const removeSpec = (index: number) => {
+  const removeSpec = (index: number): void => {
     setSpecs((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleImagesUploaded = (urls: string[]) => {
+  const handleImagesUploaded = (urls: string[]): void => {
     setForm((prev) => ({ ...prev, images: urls }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
 
@@ -149,7 +165,7 @@ export default function EditProductPage() {
           isActive: form.isActive,
           isFeatured: form.isFeatured,
           categoryId: Number(form.categoryId),
-          specs: specs.filter((s) => s.key && s.value),
+          specs: specs.filter((s: Spec) => s.key && s.value),
         }),
       });
 
@@ -229,9 +245,7 @@ export default function EditProductPage() {
             <h2 className="text-xl font-semibold">اطلاعات پایه</h2>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                نام محصول
-              </label>
+              <label className="block text-sm text-zinc-400 mb-2">نام محصول</label>
               <input
                 type="text"
                 name="title"
@@ -252,9 +266,7 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                Slug
-              </label>
+              <label className="block text-sm text-zinc-400 mb-2">Slug</label>
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -293,9 +305,7 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                توضیحات
-              </label>
+              <label className="block text-sm text-zinc-400 mb-2">توضیحات</label>
               <textarea
                 name="description"
                 value={form.description}
@@ -331,9 +341,7 @@ export default function EditProductPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">
-                  قیمت (تومان)
-                </label>
+                <label className="block text-sm text-zinc-400 mb-2">قیمت (تومان)</label>
                 <input
                   type="number"
                   name="price"
@@ -354,9 +362,7 @@ export default function EditProductPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">
-                  موجودی انبار
-                </label>
+                <label className="block text-sm text-zinc-400 mb-2">موجودی انبار</label>
                 <input
                   type="number"
                   name="stock"
@@ -378,9 +384,7 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                دسته‌بندی
-              </label>
+              <label className="block text-sm text-zinc-400 mb-2">دسته‌بندی</label>
               <select
                 name="categoryId"
                 value={form.categoryId}
@@ -398,15 +402,9 @@ export default function EditProductPage() {
                   cursor-pointer
                 "
               >
-                <option value="" className="bg-zinc-900">
-                  انتخاب دسته‌بندی
-                </option>
-                {categories.map((cat) => (
-                  <option
-                    key={cat.id}
-                    value={cat.id}
-                    className="bg-zinc-900"
-                  >
+                <option value="" className="bg-zinc-900">انتخاب دسته‌بندی</option>
+                {categories.map((cat: Category) => (
+                  <option key={cat.id} value={cat.id} className="bg-zinc-900">
                     {cat.name}
                   </option>
                 ))}
@@ -507,12 +505,12 @@ export default function EditProductPage() {
             </div>
 
             <div className="space-y-4">
-              {specs.map((spec, index) => (
+              {specs.map((spec: Spec, index: number) => (
                 <div key={index} className="flex gap-3 items-center">
                   <input
                     type="text"
                     value={spec.key}
-                    onChange={(e) =>
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleSpecChange(index, "key", e.target.value)
                     }
                     placeholder="مثلاً: باتری"
@@ -531,7 +529,7 @@ export default function EditProductPage() {
                   <input
                     type="text"
                     value={spec.value}
-                    onChange={(e) =>
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleSpecChange(index, "value", e.target.value)
                     }
                     placeholder="مثلاً: 850mAh"

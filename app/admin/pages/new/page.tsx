@@ -4,10 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+interface FormData {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  image: string;
+  metaTitle: string;
+  metaDescription: string;
+  status: string;
+}
+
 export default function NewPagePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     slug: "",
     content: "",
@@ -18,13 +29,13 @@ export default function NewPagePage() {
     status: "DRAFT",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // تولید خودکار slug از title
-  const generateSlug = () => {
+  const generateSlug = (): void => {
     const slug = formData.title
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
@@ -32,7 +43,7 @@ export default function NewPagePage() {
     setFormData((prev) => ({ ...prev, slug }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
 

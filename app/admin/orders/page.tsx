@@ -1,7 +1,4 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import OrderStatusSelect from "./status-select";
 import { Suspense } from "react";
 import ExportButtons from "@/components/admin/ExportButtons";
@@ -27,16 +24,48 @@ const statusLabels: Record<string, string> = {
   ERROR: "خطا در پرداخت",
 };
 
+interface OrderItem {
+  id: number;
+  quantity: number;
+  price: number;
+  product: {
+    id: number;
+    title: string;
+  };
+}
+
+interface Order {
+  id: number;
+  trackingNumber: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  address: string;
+  phone: string;
+  customerNote: string | null;
+  adminNote: string | null;
+  totalPrice: number;
+  couponCode: string | null;
+  discountAmount: number;
+  status: string;
+  createdAt: Date;
+  items: OrderItem[];
+}
+
+interface SearchParams {
+  search?: string;
+}
+
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    search?: string;
-  }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const { search = "" } = await searchParams;
 
-  const orders = await prisma.order.findMany({
+  const prisma = await getPrisma();
+
+  const orders: Order[] = await prisma.order.findMany({
     where: search
       ? {
           OR: [
@@ -81,24 +110,24 @@ export default async function OrdersPage({
     },
   });
 
-  const registered = orders.filter(
-    (o) => o.status === "REGISTERED"
+  const registered: number = orders.filter(
+    (o: Order) => o.status === "REGISTERED"
   ).length;
 
-  const processing = orders.filter(
-    (o) => o.status === "PROCESSING"
+  const processing: number = orders.filter(
+    (o: Order) => o.status === "PROCESSING"
   ).length;
 
-  const shipping = orders.filter(
-    (o) => o.status === "SHIPPING"
+  const shipping: number = orders.filter(
+    (o: Order) => o.status === "SHIPPING"
   ).length;
 
-  const shipped = orders.filter(
-    (o) => o.status === "SHIPPED"
+  const shipped: number = orders.filter(
+    (o: Order) => o.status === "SHIPPED"
   ).length;
 
   // محاسبه مجموع تخفیف‌ها
-  const totalDiscount = orders.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+  const totalDiscount: number = orders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -178,9 +207,9 @@ export default async function OrdersPage({
       </div>
 
       <div className="space-y-5">
-        {orders.map((order) => {
-          const originalTotal = order.totalPrice + (order.discountAmount || 0);
-          const hasDiscount = (order.discountAmount || 0) > 0;
+        {orders.map((order: Order) => {
+          const originalTotal: number = order.totalPrice + (order.discountAmount || 0);
+          const hasDiscount: boolean = (order.discountAmount || 0) > 0;
           
           return (
             <div
@@ -290,7 +319,7 @@ export default async function OrdersPage({
 
               <div className="mt-6 border-t border-white/10 pt-5">
                 <p className="text-sm text-zinc-500 mb-2">محصولات</p>
-                {order.items.map((item) => (
+                {order.items.map((item: OrderItem) => (
                   <div
                     key={item.id}
                     className="flex justify-between py-2 text-sm"

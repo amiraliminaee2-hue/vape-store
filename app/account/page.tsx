@@ -16,6 +16,17 @@ interface Profile {
   savedAddresses: SavedAddress[];
 }
 
+interface ProfileForm {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
+
+interface AddressForm {
+  label: string;
+  address: string;
+}
+
 export default function AccountPage() {
   const router = useRouter();
 
@@ -26,23 +37,23 @@ export default function AccountPage() {
     savedAddresses: [],
   });
 
-  const [profileForm, setProfileForm] = useState({
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
     firstName: "",
     lastName: "",
     phone: "",
   });
 
-  const [addressForm, setAddressForm] = useState({
+  const [addressForm, setAddressForm] = useState<AddressForm>({
     label: "",
     address: "",
   });
 
   const [editingAddress, setEditingAddress] = useState<SavedAddress | null>(null);
 
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [savingAddress, setSavingAddress] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profileSuccess, setProfileSuccess] = useState(false);
+  const [savingProfile, setSavingProfile] = useState<boolean>(false);
+  const [savingAddress, setSavingAddress] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [profileSuccess, setProfileSuccess] = useState<boolean>(false);
 
   // تابع دریافت توکن CSRF
   const getCsrfToken = async (): Promise<string | null> => {
@@ -56,14 +67,14 @@ export default function AccountPage() {
     }
   };
 
-  const loadProfile = async () => {
+  const loadProfile = async (): Promise<void> => {
     try {
       const res = await fetch("/api/profile");
       if (res.status === 401) {
         router.push("/sign-in");
         return;
       }
-      const data = await res.json();
+      const data: Profile = await res.json();
       setProfile(data);
       setProfileForm({
         firstName: data.firstName ?? "",
@@ -81,7 +92,7 @@ export default function AccountPage() {
     loadProfile();
   }, []);
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = async (): Promise<void> => {
     try {
       setSavingProfile(true);
       
@@ -116,7 +127,7 @@ export default function AccountPage() {
     }
   };
 
-  const handleSaveAddress = async () => {
+  const handleSaveAddress = async (): Promise<void> => {
     if (!addressForm.label.trim() || !addressForm.address.trim()) {
       alert("عنوان و آدرس را وارد کنید");
       return;
@@ -172,7 +183,7 @@ export default function AccountPage() {
     }
   };
 
-  const handleDeleteAddress = async (id: number) => {
+  const handleDeleteAddress = async (id: number): Promise<void> => {
     if (!confirm("آدرس حذف شود؟")) return;
     try {
       const csrfToken = await getCsrfToken();
@@ -194,13 +205,13 @@ export default function AccountPage() {
     }
   };
 
-  const handleEditAddress = (addr: SavedAddress) => {
+  const handleEditAddress = (addr: SavedAddress): void => {
     setEditingAddress(addr);
     setAddressForm({ label: addr.label, address: addr.address });
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (): void => {
     setEditingAddress(null);
     setAddressForm({ label: "", address: "" });
   };
@@ -327,7 +338,7 @@ export default function AccountPage() {
           <p className="text-zinc-500 mb-6">هنوز آدرسی ذخیره نشده است.</p>
         ) : (
           <div className="space-y-3 mb-8">
-            {profile.savedAddresses.map((addr) => (
+            {profile.savedAddresses.map((addr: SavedAddress) => (
               <div
                 key={addr.id}
                 className="

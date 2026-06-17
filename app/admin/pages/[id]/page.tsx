@@ -16,19 +16,31 @@ interface Page {
   status: string;
 }
 
+interface FormData {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string | null;
+  image: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  status: string;
+}
+
 export default function EditPagePage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<Page | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData | null>(null);
 
-  const fetchPage = async () => {
+  const fetchPage = async (): Promise<void> => {
     try {
       const res = await fetch(`/api/pages?slug=${id}`);
-      const data = await res.json();
+      const data: Page = await res.json();
       if (data.id) {
         setFormData(data);
       } else {
@@ -46,12 +58,12 @@ export default function EditPagePage() {
     fetchPage();
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => prev ? { ...prev, [name]: value } : null);
   };
 
-  const generateSlug = () => {
+  const generateSlug = (): void => {
     if (!formData) return;
     const slug = formData.title
       .toLowerCase()
@@ -60,7 +72,7 @@ export default function EditPagePage() {
     setFormData({ ...formData, slug });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!formData) return;
 

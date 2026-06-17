@@ -26,33 +26,54 @@ interface Seller {
   };
 }
 
-const statusLabels: Record<string, string> = {
+interface StatusLabels {
+  [key: string]: string;
+}
+
+interface StatusColors {
+  [key: string]: string;
+}
+
+const statusLabels: StatusLabels = {
   PENDING: "در انتظار تأیید",
   APPROVED: "تأیید شده",
   REJECTED: "رد شده",
   SUSPENDED: "تعلیق شده",
 };
 
-const statusColors: Record<string, string> = {
+const statusColors: StatusColors = {
   PENDING: "bg-yellow-500/20 text-yellow-300",
   APPROVED: "bg-emerald-500/20 text-emerald-300",
   REJECTED: "bg-red-500/20 text-red-300",
   SUSPENDED: "bg-orange-500/20 text-orange-300",
 };
 
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+const filterOptions: FilterOption[] = [
+  { value: "ALL", label: "همه" },
+  { value: "PENDING", label: "در انتظار تأیید" },
+  { value: "APPROVED", label: "تأیید شده" },
+  { value: "REJECTED", label: "رد شده" },
+  { value: "SUSPENDED", label: "تعلیق شده" },
+];
+
 export default function SellersPage() {
   const [sellers, setSellers] = useState<Seller[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [filter, setFilter] = useState<string>("ALL");
+  const [search, setSearch] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchSellers = async () => {
+  const fetchSellers = async (): Promise<void> => {
     setLoading(true);
     const params = new URLSearchParams();
     if (filter !== "ALL") params.set("status", filter);
@@ -77,13 +98,13 @@ export default function SellersPage() {
     fetchSellers();
   }, [filter, search, page]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
     setSearch(searchInput);
     setPage(1);
   };
 
-  const handleStatusChange = async (sellerId: string, newStatus: string) => {
+  const handleStatusChange = async (sellerId: string, newStatus: string): Promise<void> => {
     setUpdatingId(sellerId);
     try {
       const res = await fetch(`/api/admin/sellers?id=${sellerId}`, {
@@ -105,7 +126,7 @@ export default function SellersPage() {
     }
   };
 
-  const handleDelete = async (sellerId: string) => {
+  const handleDelete = async (sellerId: string): Promise<void> => {
     if (!confirm("آیا از حذف این فروشنده مطمئن هستید؟")) return;
 
     setDeletingId(sellerId);
@@ -145,13 +166,7 @@ export default function SellersPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="flex gap-3">
-          {[
-            { value: "ALL", label: "همه" },
-            { value: "PENDING", label: "در انتظار تأیید" },
-            { value: "APPROVED", label: "تأیید شده" },
-            { value: "REJECTED", label: "رد شده" },
-            { value: "SUSPENDED", label: "تعلیق شده" },
-          ].map((opt) => (
+          {filterOptions.map((opt: FilterOption) => (
             <button
               key={opt.value}
               onClick={() => {
@@ -181,7 +196,7 @@ export default function SellersPage() {
           <input
             type="text"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
             placeholder="جستجو (نام فروشگاه، ایمیل)..."
             className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-zinc-600 outline-none focus:border-violet-500/50 w-64"
           />
@@ -197,7 +212,7 @@ export default function SellersPage() {
       {/* Sellers Table */}
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i: number) => (
             <div key={i} className="h-32 rounded-3xl border border-white/5 bg-white/[0.02] animate-pulse" />
           ))}
         </div>
@@ -207,7 +222,7 @@ export default function SellersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {sellers.map((seller) => (
+          {sellers.map((seller: Seller) => (
             <div
               key={seller.id}
               className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"
@@ -314,7 +329,7 @@ export default function SellersPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-3">
-          {Array.from({ length: totalPages }).map((_, i) => (
+          {Array.from({ length: totalPages }).map((_, i: number) => (
             <button
               key={i}
               onClick={() => setPage(i + 1)}

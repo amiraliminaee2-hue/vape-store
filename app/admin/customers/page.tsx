@@ -1,12 +1,35 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import BanUserButton from "@/components/admin/BanUserButton";
 
+interface UserProfile {
+  isBanned: boolean;
+  banExpiry: Date | null;
+}
+
+interface UserOrder {
+  id: number;
+  totalPrice: number;
+}
+
+interface User {
+  id: string;
+  name: string | null;
+  email: string | null;
+  createdAt: Date;
+  profile: UserProfile | null;
+  orders: UserOrder[];
+}
+
 export default async function AdminCustomersPage() {
-  const users = await prisma.user.findMany({
-    include: { profile: true, orders: { select: { id: true, totalPrice: true } } },
+  const prisma = await getPrisma();
+  
+  const users: User[] = await prisma.user.findMany({
+    include: { 
+      profile: true, 
+      orders: { 
+        select: { id: true, totalPrice: true } 
+      } 
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -27,13 +50,12 @@ export default async function AdminCustomersPage() {
             <span>عملیات</span>
           </div>
           <div className="divide-y divide-white/5">
-            {users.map(user => {
+            {users.map((user: User) => {
               const orderCount = user.orders.length;
-              const totalSpent = user.orders.reduce((s, o) => s + o.totalPrice, 0);
+              const totalSpent = user.orders.reduce((s: number, o: UserOrder) => s + o.totalPrice, 0);
               const isBanned = user.profile?.isBanned || false;
               const banExpiry = user.profile?.banExpiry?.toISOString() || null;
               
-              // ✅ اصلاح: مقدار پیش‌فرض برای email
               const userEmail = user.email || "—";
               const userName = user.name || userEmail || "کاربر مهمان";
 

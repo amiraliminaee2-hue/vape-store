@@ -73,7 +73,7 @@ function BarChart({
   formatLabel: (val: string) => string;
   formatValue: (val: number) => string;
 }) {
-  const values = data.map((d) => Number(d[valueKey]));
+  const values = data.map((d: Record<string, number | string>) => Number(d[valueKey]));
   const maxValue = Math.max(...values, 1);
 
   return (
@@ -82,7 +82,7 @@ function BarChart({
         className="flex items-end gap-1 min-w-0"
         style={{ minWidth: `${data.length * 28}px`, height: "220px" }}
       >
-        {data.map((item, index) => {
+        {data.map((item: Record<string, number | string>, index: number) => {
           const value = Number(item[valueKey]);
           const heightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
           const label = String(item[labelKey]);
@@ -136,7 +136,7 @@ function BarChart({
         className="flex gap-1 mt-2"
         style={{ minWidth: `${data.length * 28}px` }}
       >
-        {data.map((item, index) => {
+        {data.map((item: Record<string, number | string>, index: number) => {
           const label = String(item[labelKey]);
           const showLabel =
             data.length <= 14 || index % Math.ceil(data.length / 14) === 0;
@@ -172,7 +172,7 @@ function LineChart({
   formatLabel: (val: string) => string;
   formatValue: (val: number) => string;
 }) {
-  const values = data.map((d) => Number(d[valueKey]));
+  const values = data.map((d: Record<string, number | string>) => Number(d[valueKey]));
   const maxValue = Math.max(...values, 1);
   const minValue = 0;
   const range = maxValue - minValue || 1;
@@ -184,7 +184,7 @@ function LineChart({
   const chartWidth = width - paddingX * 2;
   const chartHeight = height - paddingY * 2;
 
-  const points = data.map((item, index) => {
+  const points = data.map((item: Record<string, number | string>, index: number) => {
     const x = paddingX + (index / Math.max(data.length - 1, 1)) * chartWidth;
     const value = Number(item[valueKey]);
     const y =
@@ -192,7 +192,7 @@ function LineChart({
     return { x, y, value, label: String(item[labelKey]) };
   });
 
-  const pathD = points.reduce((acc, point, index) => {
+  const pathD = points.reduce((acc: string, point: { x: number; y: number; value: number; label: string }, index: number) => {
     if (index === 0) return `M ${point.x} ${point.y}`;
     const prev = points[index - 1];
     const cpX = (prev.x + point.x) / 2;
@@ -211,7 +211,7 @@ function LineChart({
         style={{ minWidth: "320px" }}
       >
         {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio: number, i: number) => {
           const y = paddingY + chartHeight - ratio * chartHeight;
           const val = minValue + ratio * range;
           return (
@@ -266,7 +266,7 @@ function LineChart({
         )}
 
         {/* Points & tooltips */}
-        {points.map((point, index) => (
+        {points.map((point: { x: number; y: number; value: number; label: string }, index: number) => (
           <g key={index} className="group">
             {/* Invisible hover area */}
             <circle
@@ -331,7 +331,7 @@ function LineChart({
         ))}
 
         {/* X axis labels */}
-        {points.map((point, index) => {
+        {points.map((point: { x: number; y: number; value: number; label: string }, index: number) => {
           const showLabel =
             points.length <= 12 ||
             index % Math.ceil(points.length / 12) === 0;
@@ -363,13 +363,13 @@ function LineChart({
 // ---- Main Page ----
 export default function AdminReportsPage() {
   const [data, setData] = useState<ReportsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       try {
         setLoading(true);
         const res = await fetch("/api/admin/reports");
@@ -389,15 +389,15 @@ export default function AdminReportsPage() {
     fetchData();
   }, []);
 
-  const formatCurrency = (value: number) =>
+  const formatCurrency = (value: number): string =>
     `${value.toLocaleString("fa-IR")} تومان`;
 
-  const formatDailyLabel = (date: string) => {
+  const formatDailyLabel = (date: string): string => {
     const parts = date.split("-");
     return `${parts[2]}/${parts[1]}`;
   };
 
-  const formatMonthlyLabel = (month: string) => {
+  const formatMonthlyLabel = (month: string): string => {
     const parts = month.split("-");
     return persianMonths[parts[1]] ?? parts[1];
   };
@@ -435,13 +435,13 @@ export default function AdminReportsPage() {
 
   const { summary, dailySales, monthlySales, topProducts } = data;
 
-  const dailyChartData = dailySales.map((d) => ({
+  const dailyChartData = dailySales.map((d: DailySale) => ({
     date: d.date,
     revenue: d.revenue,
     count: d.count,
   })) as Record<string, number | string>[];
 
-  const monthlyChartData = monthlySales.map((m) => ({
+  const monthlyChartData = monthlySales.map((m: MonthlySale) => ({
     month: m.month,
     revenue: m.revenue,
     count: m.count,
@@ -613,7 +613,7 @@ export default function AdminReportsPage() {
                   <p className="text-zinc-500">بیشترین روز</p>
                   <p className="font-semibold text-emerald-400 mt-1">
                     {formatCurrency(
-                      Math.max(...dailySales.map((d) => d.revenue))
+                      Math.max(...dailySales.map((d: DailySale) => d.revenue))
                     )}
                   </p>
                 </div>
@@ -621,7 +621,7 @@ export default function AdminReportsPage() {
                   <p className="text-zinc-500">مجموع سفارشات</p>
                   <p className="font-semibold mt-1">
                     {dailySales
-                      .reduce((s, d) => s + d.count, 0)
+                      .reduce((s: number, d: DailySale) => s + d.count, 0)
                       .toLocaleString("fa-IR")}
                   </p>
                 </div>
@@ -676,8 +676,8 @@ export default function AdminReportsPage() {
                   <tbody className="divide-y divide-white/5">
                     {[...dailySales]
                       .reverse()
-                      .filter((d) => d.count > 0)
-                      .map((day, index) => (
+                      .filter((d: DailySale) => d.count > 0)
+                      .map((day: DailySale, index: number) => (
                         <tr
                           key={index}
                           className="hover:bg-white/[0.02] transition-colors"
@@ -704,7 +704,7 @@ export default function AdminReportsPage() {
                           </td>
                         </tr>
                       ))}
-                    {dailySales.filter((d) => d.count > 0).length === 0 && (
+                    {dailySales.filter((d: DailySale) => d.count > 0).length === 0 && (
                       <tr>
                         <td
                           colSpan={4}
@@ -734,7 +734,7 @@ export default function AdminReportsPage() {
                   <p className="text-zinc-500">بهترین ماه</p>
                   <p className="font-semibold text-emerald-400 mt-1">
                     {formatCurrency(
-                      Math.max(...monthlySales.map((m) => m.revenue))
+                      Math.max(...monthlySales.map((m: MonthlySale) => m.revenue))
                     )}
                   </p>
                 </div>
@@ -742,7 +742,7 @@ export default function AdminReportsPage() {
                   <p className="text-zinc-500">مجموع ۱۲ ماه</p>
                   <p className="font-semibold mt-1">
                     {monthlySales
-                      .reduce((s, m) => s + m.revenue, 0)
+                      .reduce((s: number, m: MonthlySale) => s + m.revenue, 0)
                       .toLocaleString("fa-IR")}{" "}
                     تومان
                   </p>
@@ -801,12 +801,12 @@ export default function AdminReportsPage() {
                   <tbody className="divide-y divide-white/5">
                     {(() => {
                       const totalAllMonths = monthlySales.reduce(
-                        (s, m) => s + m.revenue,
+                        (s: number, m: MonthlySale) => s + m.revenue,
                         0
                       );
                       return [...monthlySales]
                         .reverse()
-                        .map((month, index) => {
+                        .map((month: MonthlySale, index: number) => {
                           const sharePercent =
                             totalAllMonths > 0
                               ? ((month.revenue / totalAllMonths) * 100).toFixed(1)
@@ -879,7 +879,7 @@ export default function AdminReportsPage() {
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {topProducts.map((product, index) => (
+            {topProducts.map((product: TopProduct, index: number) => (
               <div
                 key={product.productId}
                 className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
