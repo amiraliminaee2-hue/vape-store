@@ -1,8 +1,5 @@
 import { Metadata } from "next";
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import Navbar from "../components/layout/Navbar";
 import GlobeHero from "../components/sections/GlobeHero";
 import Hero from "../components/sections/Hero";
@@ -10,6 +7,7 @@ import Footer from "../components/layout/Footer";
 import ProductSlider from "../components/sections/ProductSlider";
 
 async function getSettings() {
+  const prisma = await getPrisma();
   const settings = await prisma.setting.findMany();
   const settingsMap: Record<string, string> = {};
   settings.forEach((s) => {
@@ -19,6 +17,7 @@ async function getSettings() {
 }
 
 async function getProducts() {
+  const prisma = await getPrisma();
   const [
     discounted,
     bestSelling,
