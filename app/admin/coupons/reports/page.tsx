@@ -1,12 +1,41 @@
 import { getPrisma } from "@/lib/prisma";
-
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
 import Link from "next/link";
 
+interface CouponOrder {
+  id: number;
+  trackingNumber: string;
+  totalPrice: number;
+  discountAmount: number;
+  status: string;
+  createdAt: Date;
+}
+
+interface CouponUsage {
+  id: number;
+  usedAt: Date;
+  discount: number;
+}
+
+interface Coupon {
+  id: number;
+  code: string;
+  type: string;
+  value: number;
+  status: string;
+  usedCount: number;
+  usageLimit: number | null;
+  minPurchase: number | null;
+  endDate: Date | null;
+  createdAt: Date;
+  orders: CouponOrder[];
+  usages: CouponUsage[];
+}
+
 export default async function CouponReportsPage() {
+  const prisma = await getPrisma();
+  
   // دریافت همه کدهای تخفیف به همراه استفاده‌هاشون
-  const coupons = await prisma.coupon.findMany({
+  const coupons: Coupon[] = await prisma.coupon.findMany({
     include: {
       usages: {
         include: {
@@ -39,10 +68,10 @@ export default async function CouponReportsPage() {
 
   // محاسبه آمار کلی
   const totalCoupons = coupons.length;
-  const totalActiveCoupons = coupons.filter(c => c.status === "ACTIVE").length;
-  const totalUsedCount = coupons.reduce((sum, c) => sum + c.usedCount, 0);
-  const totalDiscountGiven = coupons.reduce((sum, c) => {
-    const discountFromOrders = c.orders.reduce((orderSum, order) => orderSum + (order.discountAmount || 0), 0);
+  const totalActiveCoupons = coupons.filter((c: Coupon) => c.status === "ACTIVE").length;
+  const totalUsedCount = coupons.reduce((sum: number, c: Coupon) => sum + c.usedCount, 0);
+  const totalDiscountGiven = coupons.reduce((sum: number, c: Coupon) => {
+    const discountFromOrders = c.orders.reduce((orderSum: number, order: CouponOrder) => orderSum + (order.discountAmount || 0), 0);
     return sum + discountFromOrders;
   }, 0);
 
@@ -82,8 +111,8 @@ export default async function CouponReportsPage() {
 
         {/* لیست کدها با آمار */}
         <div className="space-y-6">
-          {coupons.map((coupon) => {
-            const discountFromOrders = coupon.orders.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+          {coupons.map((coupon: Coupon) => {
+            const discountFromOrders = coupon.orders.reduce((sum: number, order: CouponOrder) => sum + (order.discountAmount || 0), 0);
             const isExpired = coupon.endDate && new Date(coupon.endDate) < new Date();
             const isActive = coupon.status === "ACTIVE" && !isExpired;
             
@@ -137,7 +166,7 @@ export default async function CouponReportsPage() {
                   <div className="mt-6">
                     <p className="text-sm text-zinc-500 mb-3">سفارش‌های استفاده کرده:</p>
                     <div className="space-y-2">
-                      {coupon.orders.slice(0, 10).map((order) => (
+                      {coupon.orders.slice(0, 10).map((order: CouponOrder) => (
                         <div key={order.id} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                           <Link href={`/admin/orders/${order.id}`} className="text-violet-400 hover:text-violet-300">
                             #{order.id} - {order.trackingNumber}
