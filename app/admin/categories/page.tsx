@@ -1,9 +1,18 @@
 import { getPrisma } from "@/lib/prisma";
 
+interface Category {
+  id: number;
+  name: string;
+  description: string | null;
+  _count: {
+    products: number;
+  };
+}
+
 export default async function CategoriesPage() {
   const prisma = await getPrisma();
   
-  const categories = await prisma.category.findMany({
+  const categories: Category[] = await prisma.category.findMany({
     include: {
       _count: {
         select: {
@@ -20,7 +29,7 @@ export default async function CategoriesPage() {
       </h1>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {categories.map((category) => (
+        {categories.map((category: Category) => (
           <div
             key={category.id}
             className="
