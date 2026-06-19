@@ -1,0 +1,131 @@
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.1s
+  Running TypeScript ...
+  Finished TypeScript in 9.6s ...
+  Collecting page data using 11 workers ...
+⚠ Using edge runtime on a page currently disables static generation for that page
+  Generating static pages using 11 workers (0/40) ...
+  Generating static pages using 11 workers (10/40) 
+  Generating static pages using 11 workers (20/40) 
+  Generating static pages using 11 workers (30/40) 
+✓ Generating static pages using 11 workers (40/40) in 1522ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /[slug]
+├ ƒ /about
+├ ƒ /account
+├ ƒ /account/orders
+├ ƒ /account/orders/[id]
+├ ƒ /account/wishlist
+├ ƒ /admin
+├ ƒ /admin/categories
+├ ƒ /admin/comments
+├ ƒ /admin/coupons
+├ ƒ /admin/coupons/reports
+├ ƒ /admin/customers
+├ ƒ /admin/orders
+├ ƒ /admin/orders/[id]
+├ ƒ /admin/pages/[id]
+├ ƒ /admin/pages/new
+├ ƒ /admin/payment
+├ ƒ /admin/products
+├ ƒ /admin/products/[id]
+├ ƒ /admin/products/import
+├ ƒ /admin/products/new
+├ ƒ /admin/reports
+├ ƒ /admin/sellers
+├ ƒ /admin/sellers/[id]
+├ ƒ /admin/sellers/new
+├ ƒ /admin/settings
+├ ƒ /admin/shipping
+├ ƒ /api/account/[id]
+├ ƒ /api/account/orders
+├ ƒ /api/account/orders/[id]
+├ ƒ /api/admin/comments
+├ ƒ /api/admin/comments/[id]
+├ ƒ /api/admin/orders/[id]/status
+├ ƒ /api/admin/payment-methods
+├ ƒ /api/admin/products/discount
+├ ƒ /api/admin/products/import
+├ ƒ /api/admin/products/slider
+├ ƒ /api/admin/reports
+├ ƒ /api/admin/reports/export
+├ ƒ /api/admin/sellers
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/shipping-methods
+├ ƒ /api/admin/shipping-methods/province-price
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]/ban
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/otp/send
+├ ƒ /api/auth/otp/verify
+├ ƒ /api/auth/signup
+├ ƒ /api/ban-status
+├ ƒ /api/cart
+├ ƒ /api/cart/[productId]
+├ ƒ /api/categories
+├ ƒ /api/comments
+├ ƒ /api/comments/[id]
+├ ƒ /api/coupons
+├ ƒ /api/create-admin
+├ ƒ /api/csrf
+├ ƒ /api/og/product/[id]
+├ ƒ /api/orders
+├ ƒ /api/orders/[id]
+├ ƒ /api/orders/[id]/invoice
+├ ƒ /api/pages
+├ ƒ /api/payment/request
+├ ƒ /api/payment/verify
+├ ƒ /api/products
+├ ƒ /api/products/[productId]
+├ ƒ /api/profile
+├ ƒ /api/profile/addresses
+├ ƒ /api/profile/addresses/[id]
+├ ƒ /api/sellers
+├ ƒ /api/settings
+├ ƒ /api/shipping/calculate
+├ ƒ /api/upload
+├ ƒ /api/uploadthing
+├ ƒ /api/user/ban-status
+├ ƒ /api/wishlist
+├ ƒ /api/wishlist/[productId]
+├ ƒ /auth/otp-verify
+├ ƒ /auth/phone-signin
+├ ƒ /auth/signin
+├ ƒ /auth/signup
+├ ƒ /banned
+├ ƒ /cart
+├ ƒ /checkout
+├ ƒ /comments
+├ ƒ /contact
+├ ƒ /dashboard
+├ ƒ /dashboard/notifications
+├ ƒ /dashboard/orders
+├ ƒ /dashboard/orders/[id]
+├ ƒ /dashboard/wishlist
+├ ƒ /faq
+├ ƒ /payment
+├ ƒ /payment/[id]
+├ ƒ /payment/[id]/error
+├ ƒ /payment/[id]/success
+├ ƒ /payment/failed
+├ ƒ /payment/result
+├ ƒ /payment/success
+├ ƒ /product/[slug]
+├ ○ /robots.txt
+├ ƒ /seller
+├ ƒ /shop
+├ ƒ /sign-in/[[...sign-in]]
+├ ƒ /sign-up/[[...sign-up]]
+└ ƒ /sitemap.xml
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
