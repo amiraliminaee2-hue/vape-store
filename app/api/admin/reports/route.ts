@@ -4,6 +4,16 @@ import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
+type TopProduct = {
+  productId: number;
+  _sum: {
+    quantity: number | null;
+  };
+  _count: {
+    id: number;
+  };
+};
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -39,18 +49,22 @@ export async function GET() {
       },
     });
 
-    // Build daily map for last 30 days
     const dailyMap: Record<string, { revenue: number; count: number }> = {};
 
     for (let i = 0; i < 30; i++) {
       const d = new Date();
       d.setDate(d.getDate() - (29 - i));
-      const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-      dailyMap[key] = { revenue: 0, count: 0 };
+      const key = d.toISOString().slice(0, 10);
+
+      dailyMap[key] = {
+        revenue: 0,
+        count: 0,
+      };
     }
 
     for (const order of dailyOrders) {
       const key = order.createdAt.toISOString().slice(0, 10);
+
       if (dailyMap[key]) {
         dailyMap[key].revenue += order.totalPrice;
         dailyMap[key].count += 1;
@@ -85,19 +99,30 @@ export async function GET() {
       },
     });
 
-    // Build monthly map for last 12 months
     const monthlyMap: Record<string, { revenue: number; count: number }> = {};
 
     for (let i = 0; i < 12; i++) {
       const d = new Date();
+
       d.setMonth(d.getMonth() - (11 - i));
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      monthlyMap[key] = { revenue: 0, count: 0 };
+
+      const key = `${d.getFullYear()}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}`;
+
+      monthlyMap[key] = {
+        revenue: 0,
+        count: 0,
+      };
     }
 
     for (const order of monthlyOrders) {
       const d = order.createdAt;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+      const key = `${d.getFullYear()}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}`;
+
       if (monthlyMap[key]) {
         monthlyMap[key].revenue += order.totalPrice;
         monthlyMap[key].count += 1;
@@ -114,7 +139,11 @@ export async function GET() {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
 
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
@@ -132,58 +161,111 @@ export async function GET() {
       topProducts,
     ] = await Promise.all([
       prisma.order.aggregate({
-        _sum: { totalPrice: true },
+        _sum: {
+          totalPrice: true,
+        },
       }),
 
       prisma.order.aggregate({
-        where: { createdAt: { gte: startOfToday } },
-        _sum: { totalPrice: true },
+        where: {
+          createdAt: {
+            gte: startOfToday,
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
       }),
 
       prisma.order.aggregate({
-        where: { createdAt: { gte: startOfWeek } },
-        _sum: { totalPrice: true },
+        where: {
+          createdAt: {
+            gte: startOfWeek,
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
       }),
 
       prisma.order.aggregate({
-        where: { createdAt: { gte: startOfMonth } },
-        _sum: { totalPrice: true },
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
       }),
 
       prisma.order.count(),
 
       prisma.order.count({
-        where: { createdAt: { gte: startOfToday } },
+        where: {
+          createdAt: {
+            gte: startOfToday,
+          },
+        },
       }),
 
       prisma.order.count({
-        where: { createdAt: { gte: startOfWeek } },
+        where: {
+          createdAt: {
+            gte: startOfWeek,
+          },
+        },
       }),
 
       prisma.order.count({
-        where: { createdAt: { gte: startOfMonth } },
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
       }),
 
       prisma.orderItem.groupBy({
         by: ["productId"],
-        _sum: { quantity: true },
-        _count: { id: true },
+        _sum: {
+          quantity: true,
+        },
+        _count: {
+          id: true,
+        },
         orderBy: {
-          _sum: { quantity: "desc" },
+          _sum: {
+            quantity: "desc",
+          },
         },
         take: 5,
       }),
     ]);
 
-    // Get product names for top products
-    const productIds = topProducts.map((p) => p.productId);
+    const typedTopProducts = topProducts as TopProduct[];
+
+    const productIds = typedTopProducts.map(
+      (p) => p.productId
+    );
+
     const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, title: true, price: true },
+      where: {
+        id: {
+          in: productIds,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        price: true,
+      },
     });
 
-    const topProductsWithNames = topProducts.map((tp) => {
-      const product = products.find((p) => p.id === tp.productId);
+    const topProductsWithNames = typedTopProducts.map((tp) => {
+      const product = products.find(
+        (p) => p.id === tp.productId
+      );
+
       return {
         productId: tp.productId,
         title: product?.title ?? "ناشناخته",
@@ -197,10 +279,14 @@ export async function GET() {
       dailySales,
       monthlySales,
       summary: {
-        totalRevenue: totalRevenueResult._sum.totalPrice ?? 0,
-        todayRevenue: todayRevenueResult._sum.totalPrice ?? 0,
-        weekRevenue: weekRevenueResult._sum.totalPrice ?? 0,
-        monthRevenue: monthRevenueResult._sum.totalPrice ?? 0,
+        totalRevenue:
+          totalRevenueResult._sum.totalPrice ?? 0,
+        todayRevenue:
+          todayRevenueResult._sum.totalPrice ?? 0,
+        weekRevenue:
+          weekRevenueResult._sum.totalPrice ?? 0,
+        monthRevenue:
+          monthRevenueResult._sum.totalPrice ?? 0,
         totalOrders: totalOrdersCount,
         todayOrders: todayOrdersCount,
         weekOrders: weekOrdersCount,
@@ -210,12 +296,17 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Reports API Error:", error);
+
     return NextResponse.json(
       {
         error:
-          error instanceof Error ? error.message : "خطای داخلی سرور",
+          error instanceof Error
+            ? error.message
+            : "خطای داخلی سرور",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
