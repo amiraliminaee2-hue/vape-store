@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       });
 
       const usersWithStats: UserExportData[] = await Promise.all(
-        users.map(async (user) => {
+        users.map(async (user: typeof users[number]) => {
           const ordersCount = await prisma.order.count({
             where: { userId: user.userId },
           });
