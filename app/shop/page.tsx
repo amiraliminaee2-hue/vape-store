@@ -71,7 +71,6 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState<number>(10000000);
   const [globalMinPrice, setGlobalMinPrice] = useState<number>(0);
   const [globalMaxPrice, setGlobalMaxPrice] = useState<number>(10000000);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [priceRangeLoaded, setPriceRangeLoaded] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +91,6 @@ export default function ShopPage() {
         const res = await fetch(`/api/products?limit=1000&admin=true`);
         const data = await res.json();
         if (isMounted.current && data.products) {
-          setAllProducts(data.products);
           const { min, max } = getPriceRange(data.products);
           setGlobalMinPrice(min);
           setGlobalMaxPrice(max);

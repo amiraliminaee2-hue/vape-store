@@ -15,7 +15,7 @@ const paramsSchema = z.object({
 });
 
 export async function PATCH(
-  request: Request,
+  _request: Request,
   {
     params,
   }: {
@@ -56,7 +56,7 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const body = await _request.json();
 
     // Validate body with Zod
     const bodyValidationResult = patchBodySchema.safeParse(body);
@@ -163,7 +163,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   {
     params,
   }: {

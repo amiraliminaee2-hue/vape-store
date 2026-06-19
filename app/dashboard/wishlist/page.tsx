@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -27,7 +27,7 @@ export default function WishlistPage() {
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<number | null>(null);
 
-  const loadWishlist = async () => {
+  const loadWishlist = useCallback(async () => {
     try {
       const res = await fetch("/api/wishlist");
       if (res.status === 401) {
@@ -41,11 +41,11 @@ export default function WishlistPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     loadWishlist();
-  }, []);
+  }, [loadWishlist]);
 
   const handleRemove = async (productId: number) => {
     try {

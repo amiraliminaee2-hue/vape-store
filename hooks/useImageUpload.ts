@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { compressMultipleImages, getReadableFileSize } from "@/lib/imageCompression";
+import { compressMultipleImages } from "@/lib/imageCompression";
 
 interface UseImageUploadProps {
   maxFiles?: number;

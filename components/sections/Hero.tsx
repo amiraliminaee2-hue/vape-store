@@ -17,12 +17,6 @@ export default function Hero() {
   const lineRef = useRef<HTMLDivElement>(null);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [smokeKey, setSmokeKey] = useState(0);
-
-  const triggerSmoke = () => {
-    window.dispatchEvent(new CustomEvent('trigger-smoke'));
-    setSmokeKey(prev => prev + 1);
-  };
 
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.2 });
@@ -294,7 +288,7 @@ export default function Hero() {
               transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)`,
             }}
           >
-            <ProductScene key={smokeKey} />
+            <ProductScene />
           </div>
 
         </div>

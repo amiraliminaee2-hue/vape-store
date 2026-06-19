@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 
 interface ImageUploaderDirectProps {
   onUploaded: (urls: string[]) => void;
@@ -111,16 +112,18 @@ export default function ImageUploaderDirect({
 
       <div className="grid grid-cols-4 gap-4">
         {images.map((image, index) => (
-          <div key={index} className="relative group">
-            <img
+          <div key={index} className="relative group aspect-square">
+            <Image
               src={image}
               alt={`تصویر ${index + 1}`}
-              className="h-32 w-full object-cover rounded-xl bg-white/5"
+              fill
+              className="object-cover rounded-xl bg-white/5"
+              sizes="(max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
             />
             <button
               type="button"
               onClick={() => handleRemove(index)}
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10"
             >
               ×
             </button>

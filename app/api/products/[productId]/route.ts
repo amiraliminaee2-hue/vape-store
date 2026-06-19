@@ -29,7 +29,7 @@ const putBodySchema = z.object({
 });
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
@@ -84,7 +84,7 @@ export async function GET(
 }
 
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
@@ -99,7 +99,7 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
+    const body = await _request.json();
     const bodyValidationResult = putBodySchema.safeParse(body);
     if (!bodyValidationResult.success) {
       return NextResponse.json(
@@ -156,7 +156,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {
   try {

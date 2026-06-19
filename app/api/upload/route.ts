@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    const extension = path.extname(file.name);
     const webpFileName = `${uuidv4()}.webp`;
     
     // مسیر ذخیره‌سازی
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
     // اطمینان از وجود پوشه
     try {
       await mkdir(uploadDir, { recursive: true });
-    } catch (err) {
+    } catch {
       // پوشه از قبل وجود دارد
     }
 

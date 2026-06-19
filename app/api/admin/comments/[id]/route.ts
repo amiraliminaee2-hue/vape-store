@@ -6,7 +6,7 @@ import { commentStatusSchema } from "@/lib/validations/schemas";
 import { getPrisma } from "@/lib/prisma";
 
 export async function PATCH(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -20,7 +20,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const body = await _request.json();
 
     // Zod validation
     const validationResult = commentStatusSchema.safeParse(body);
@@ -55,7 +55,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

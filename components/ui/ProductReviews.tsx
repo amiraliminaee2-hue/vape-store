@@ -14,7 +14,7 @@ interface Comment {
   createdAt: Date;
   user: {
     name: string | null;
-    email: string | null; // ✅ اصلاح: اضافه کردن nullable
+    email: string | null;
   };
 }
 
@@ -25,7 +25,7 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({ productId, initialComments, averageRating }: ProductReviewsProps) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [rating, setRating] = useState(0);

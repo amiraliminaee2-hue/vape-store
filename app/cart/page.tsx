@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -9,7 +9,6 @@ import {
   removeFromCart,
   increaseQuantity,
   decreaseQuantity,
-  clearCart,
 } from "@/lib/cart";
 
 interface SavedAddress {
@@ -72,9 +71,8 @@ export default function CartPage() {
   const [phone, setPhone] = useState("");
   const [customerNote, setCustomerNote] = useState("");
   const [adminNote, setAdminNote] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [paying, setPaying] = useState(false);
-  const [csrfToken, setCsrfToken] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
@@ -106,7 +104,7 @@ export default function CartPage() {
   });
 
   // محاسبه قیمت نهایی برای همه روش‌های ارسال (برای نمایش در لیست)
-  const calculateAllMethodPrices = async () => {
+  const calculateAllMethodPrices = useCallback(async () => {
     if (!province || shippingMethods.length === 0) return;
     
     const prices: Record<number, number> = {};
@@ -122,21 +120,18 @@ export default function CartPage() {
         const res = await fetch(`/api/shipping/calculate?${params.toString()}`);
         const data = await res.json();
         prices[method.id] = data.price || method.basePrice;
-      } catch (error) {
+      } catch {
         prices[method.id] = method.basePrice;
       }
     }
     setMethodPrices(prices);
-  };
+  }, [province, shippingMethods, items]);
 
   // محاسبه هزینه ارسال برای روش انتخاب شده
-  const calculateShippingPrice = async () => {
+  const calculateShippingPrice = useCallback(async () => {
     if (!selectedShippingMethod) return;
 
-    // استفاده از استان انتخاب شده توسط کاربر
     const selectedProvince = province;
-
-    // محاسبه وزن کل محصولات (فرض می‌کنیم هر محصول 200 گرم)
     const totalWeight = items.reduce((sum, item) => sum + (item.quantity * 200), 0);
 
     const params = new URLSearchParams();
@@ -151,19 +146,19 @@ export default function CartPage() {
     } catch (error) {
       console.error("Error calculating shipping:", error);
     }
-  };
+  }, [selectedShippingMethod, province, items]);
 
   // وقتی استان یا سبد خرید یا روش‌های ارسال تغییر می‌کند، قیمت همه روش‌ها را محاسبه کن
   useEffect(() => {
     calculateAllMethodPrices();
-  }, [province, items, shippingMethods]);
+  }, [calculateAllMethodPrices]);
 
   // وقتی روش ارسال انتخاب می‌شود، قیمت نهایی را محاسبه کن
   useEffect(() => {
     if (selectedShippingMethod && province) {
       calculateShippingPrice();
     }
-  }, [selectedShippingMethod, province, items]);
+  }, [selectedShippingMethod, province, calculateShippingPrice]);
 
   // اگر کاربر لاگین نیست، به صفحه ورود هدایت شود
   useEffect(() => {
@@ -223,7 +218,7 @@ export default function CartPage() {
         });
         const data = await res.json();
         if (data.token) {
-          setCsrfToken(data.token);
+          // token stored but not used in this component
         }
       } catch (error) {
         console.error("Failed to fetch CSRF token:", error);
@@ -256,7 +251,7 @@ export default function CartPage() {
     fetchSavedAddresses();
   }, [session?.user?.id]);
 
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       const data = await getCart();
@@ -264,7 +259,7 @@ export default function CartPage() {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [isAuthenticated]);
 
   // اصلاح: هر بار که وضعیت احراز هویت تغییر کرد، سبد خرید را بارگذاری کن
   useEffect(() => {
@@ -273,7 +268,7 @@ export default function CartPage() {
     } else {
       setItems([]);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadCart]);
 
   // محاسبه جمع سبد با در نظر گرفتن تخفیف محصولات
   const subtotal = items.reduce((sum, item) => {
@@ -300,8 +295,7 @@ export default function CartPage() {
       const res = await fetch(`/api/coupons?code=${encodeURIComponent(code)}&subtotal=${subtotal}&productIds=${productIds.join(",")}`);
       const data = await res.json();
       setCouponInfo(data);
-    } catch (error) {
-      console.error("Error validating coupon:", error);
+    } catch {
       setCouponInfo({ valid: false, error: "خطا در اعتبارسنجی کد تخفیف" });
     } finally {
       setCheckingCoupon(false);
@@ -397,7 +391,6 @@ export default function CartPage() {
       });
       const data = await res.json();
       if (data.token) {
-        setCsrfToken(data.token);
         return data.token;
       }
     } catch (error) {

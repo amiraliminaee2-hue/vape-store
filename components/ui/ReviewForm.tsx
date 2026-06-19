@@ -37,10 +37,10 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
         setContent("");
         router.refresh();
       } else {
-        const error = await res.json();
-        alert(error.error || "خطا در ثبت نظر");
+        const errorData = await res.json();
+        alert(errorData.error || "خطا در ثبت نظر");
       }
-    } catch (error) {
+    } catch {
       alert("خطا در ارتباط با سرور");
     } finally {
       setSubmitting(false);

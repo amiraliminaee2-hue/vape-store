@@ -15,7 +15,7 @@ const durationHours: Record<DurationKey, number> = {
 };
 
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -31,7 +31,7 @@ export async function POST(
 
     const prisma = await getPrisma();
     const { id } = await params;
-    const body = await req.json();
+    const body = await _req.json();
     const { duration, reason } = body;
 
     let banExpiry: Date | null = null;
@@ -71,7 +71,7 @@ export async function POST(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

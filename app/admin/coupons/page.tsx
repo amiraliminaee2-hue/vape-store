@@ -98,10 +98,10 @@ export default function AdminCouponsPage() {
           endDate: "",
         });
       } else {
-        const error = await res.json();
-        alert(error.error || "خطا در ذخیره کد تخفیف");
+        const errorData = await res.json();
+        alert(errorData.error || "خطا در ذخیره کد تخفیف");
       }
-    } catch (error) {
+    } catch {
       alert("خطا در ارتباط با سرور");
     }
   };
@@ -115,7 +115,7 @@ export default function AdminCouponsPage() {
       } else {
         alert("خطا در حذف کد تخفیف");
       }
-    } catch (error) {
+    } catch {
       alert("خطا در ارتباط با سرور");
     }
   };

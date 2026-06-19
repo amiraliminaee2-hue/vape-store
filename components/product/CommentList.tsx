@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
 interface Comment {
@@ -24,7 +24,7 @@ export default function CommentList({ productId, refreshTrigger = 0, onCommentDe
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { data: session } = useSession();
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const res = await fetch(`/api/comments?productId=${productId}`);
       const data = await res.json();
@@ -34,11 +34,11 @@ export default function CommentList({ productId, refreshTrigger = 0, onCommentDe
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
     fetchComments();
-  }, [productId, refreshTrigger]);
+  }, [fetchComments, refreshTrigger]);
 
   const handleDelete = async (commentId: number) => {
     if (!confirm("آیا از حذف این نظر مطمئن هستید؟")) return;

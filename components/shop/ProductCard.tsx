@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Tilt from "react-parallax-tilt";
 import { useState } from "react";
 
@@ -170,14 +171,12 @@ export default function ProductCard({
             />
 
             {productImage ? (
-              <img
+              <Image
                 src={productImage}
                 alt={title}
-                className="
-                  w-full h-full object-cover
-                  transition-transform duration-500
-                  group-hover:scale-110
-                "
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 onError={() => setImgError(true)}
               />
             ) : (

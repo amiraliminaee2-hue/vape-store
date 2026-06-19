@@ -4,34 +4,6 @@ import { Prisma } from "@prisma/client";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { productCreateSchema } from "@/lib/validations/schemas";
 
-// Define type for product with category, specs, and rating
-interface ProductWithRelations {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  price: number;
-  discountPercent: number;
-  stock: number;
-  images: string[];
-  isActive: boolean;
-  isFeatured: boolean;
-  categoryId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  category: {
-    name: string;
-    slug: string;
-  } | null;
-  specs: Array<{
-    key: string;
-    value: string;
-  }>;
-  relevance?: number;
-  averageRating?: number;
-  reviewCount?: number;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const prisma = await getPrisma();
@@ -88,13 +60,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get category ID if category slug is provided
-    let categoryId: number | null = null;
     if (category) {
       const cat = await prisma.category.findUnique({
         where: { slug: category },
       });
       if (cat) {
-        categoryId = cat.id;
         where.categoryId = cat.id;
       }
     }

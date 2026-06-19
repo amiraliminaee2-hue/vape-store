@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface WishlistItem {
   id: number;
@@ -19,7 +19,7 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
   const [mounted, setMounted] = useState(false);
 
   // بررسی اولیه: آیا محصول در علاقه‌مندی‌ها هست؟
-  const checkWishlistStatus = async () => {
+  const checkWishlistStatus = useCallback(async () => {
     try {
       console.log("🔍 Checking wishlist for product:", productId);
       const res = await fetch("/api/wishlist");
@@ -38,14 +38,14 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
     } catch (error) {
       console.error("❌ Error checking wishlist:", error);
     }
-  };
+  }, [productId]);
 
   // بعد از mount شدن در کلاینت
   useEffect(() => {
     console.log("🔄 Component mounted");
     setMounted(true);
     checkWishlistStatus();
-  }, [productId]);
+  }, [checkWishlistStatus]);
 
   const handleWishlist = async () => {
     if (loading) {

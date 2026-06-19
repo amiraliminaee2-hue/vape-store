@@ -16,7 +16,7 @@ const putBodySchema = z.object({
 });
 
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -44,7 +44,7 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
+    const body = await _request.json();
 
     // Validate body with Zod
     const bodyValidationResult = putBodySchema.safeParse(body);
@@ -83,7 +83,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

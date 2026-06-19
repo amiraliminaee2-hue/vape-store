@@ -133,11 +133,6 @@ export default function OtpVerifyPage() {
     }
   };
 
-  // ورود خودکار با کد توسعه (فقط در محیط توسعه)
-  const fillDevCode = (devCode: string) => {
-    setCode(devCode);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-10">
       <div className="max-w-md w-full rounded-3xl border border-white/10 p-6 sm:p-8 bg-white/[0.03]">

@@ -24,34 +24,6 @@ const statusLabels: Record<string, string> = {
   ERROR: "خطا در پرداخت",
 };
 
-interface OrderItem {
-  id: number;
-  quantity: number;
-  price: number;
-  product: {
-    id: number;
-    title: string;
-  };
-}
-
-interface Order {
-  id: number;
-  trackingNumber: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  address: string;
-  phone: string;
-  customerNote: string | null;
-  adminNote: string | null;
-  totalPrice: number;
-  couponCode: string | null;
-  discountAmount: number;
-  status: string;
-  createdAt: Date;
-  items: OrderItem[];
-}
-
 interface SearchParams {
   search?: string;
 }

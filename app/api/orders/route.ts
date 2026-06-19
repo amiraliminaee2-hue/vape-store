@@ -5,18 +5,6 @@ import { getPrisma } from "@/lib/prisma";
 import { orderCreateSchema } from "@/lib/validations/schemas";
 import { sendOrderConfirmationSMS, sendAdminNotificationSMS } from "@/lib/sms";
 
-// تابع ساده برای بررسی CSRF (بدون وابستگی به validateCsrfToken که ممکن است مشکل داشته باشد)
-async function verifyCsrfToken(userId: string, token: string): Promise<boolean> {
-  try {
-    // ذخیره توکن در کش یا دیتابیس در لاگین
-    // فعلاً برای رفع مشکل، true برگردان (در محیط توسعه)
-    // در تولید حتماً باید CSRF را به درستی پیاده‌سازی کنید
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,14 +18,6 @@ export async function POST(request: NextRequest) {
 
     const prisma = await getPrisma();
     const userId = session.user.id;
-
-    // CSRF Protection - موقتاً غیرفعال (برای تست)
-    // در تولید حتماً فعال کنید
-    const csrfToken = request.headers.get("X-CSRF-Token");
-    if (!csrfToken) {
-      // موقتاً اجازه بده
-      console.warn("CSRF token missing but continuing for development");
-    }
 
     // Get user info from our database
     const userProfile = await prisma.userProfile.findUnique({

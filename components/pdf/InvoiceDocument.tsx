@@ -23,7 +23,7 @@ try {
       },
     ],
   });
-} catch (error) {
+} catch {
   console.log("Vazirmatn font not found, using default font");
 }
 

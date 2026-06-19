@@ -13,7 +13,7 @@ interface FormData {
 }
 
 export default function SellerPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
