@@ -3,9 +3,20 @@ import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
 
-// GET - دریافت لیست فروشندگان یا یک فروشنده خاص
+// تعریف تایپ برای SellerStatus
+type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+
+// تعریف تایپ برای where
+interface SellerWhereInput {
+  status?: SellerStatus;
+  OR?: Array<{
+    storeName?: { contains: string; mode: "insensitive" };
+    slug?: { contains: string; mode: "insensitive" };
+    phone?: { contains: string; mode: "insensitive" };
+  }>;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -63,10 +74,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const where: Prisma.SellerWhereInput = {};
+    const where: SellerWhereInput = {};
 
     if (status && status !== "ALL") {
-      where.status = status as "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+      where.status = status as SellerStatus;
     }
 
     if (search) {
@@ -74,8 +85,6 @@ export async function GET(request: NextRequest) {
         { storeName: { contains: search, mode: "insensitive" } },
         { slug: { contains: search, mode: "insensitive" } },
         { phone: { contains: search, mode: "insensitive" } },
-        { user: { name: { contains: search, mode: "insensitive" } } },
-        { user: { email: { contains: search, mode: "insensitive" } } },
       ];
     }
 
