@@ -4,6 +4,22 @@ import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 import { cartItemSchema } from "@/lib/validations/schemas";
 
+interface CartItemWithProduct {
+  id: number;
+  quantity: number;
+  product: {
+    id: number;
+    title: string;
+    price: number;
+    discountPercent: number;
+    category: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  };
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -45,7 +61,7 @@ export async function GET() {
     }
 
     const items = cart.items.map(
-      (item) => ({
+      (item: CartItemWithProduct) => ({
         id: item.id,
         productId: item.product.id,
         title: item.product.title,
