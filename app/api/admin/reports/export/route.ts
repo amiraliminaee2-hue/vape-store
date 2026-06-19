@@ -108,10 +108,12 @@ export async function GET(request: NextRequest) {
 
       const productsWithStats: ProductExportData[] = products.map(
         (product: (typeof products)[number]) => {
+          // ✅ Fix 1: type annotation for map callback
           const ratings = product.comments.map((c: { rating: number }) => c.rating);
+          // ✅ Fix 2: type annotation for reduce callback
           const averageRating =
             ratings.length > 0
-              ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+              ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
               : 0;
 
           return {
@@ -145,8 +147,11 @@ export async function GET(request: NextRequest) {
 
       const ordersWithDetails: OrderExportData[] = orders.map(
         (order: (typeof orders)[number]) => {
+          // ✅ Fix 3: type annotation for items map callback
           const itemsList = order.items
-            .map((item) => `${item.product.title} (x${item.quantity})`)
+            .map((item: { product: { title: string }; quantity: number }) =>
+              `${item.product.title} (x${item.quantity})`
+            )
             .join(", ");
 
           return {
