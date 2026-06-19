@@ -32,12 +32,19 @@ export default function OtpVerifyPage() {
 
   // تایمر برای ارسال مجدد کد
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     } else {
       setCanResend(true);
     }
+    
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [countdown]);
 
   const handleResendCode = async () => {

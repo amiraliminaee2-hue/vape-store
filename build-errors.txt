@@ -1,17 +1,21 @@
+
+> vape-store@0.1.0 build
+> next build
+
 ▲ Next.js 16.2.7 (Turbopack)
 - Environments: .env
 
   Creating an optimized production build ...
-✓ Compiled successfully in 11.1s
+✓ Compiled successfully in 22.2s
   Running TypeScript ...
-  Finished TypeScript in 9.6s ...
+  Finished TypeScript in 16.2s ...
   Collecting page data using 11 workers ...
 ⚠ Using edge runtime on a page currently disables static generation for that page
   Generating static pages using 11 workers (0/40) ...
   Generating static pages using 11 workers (10/40) 
   Generating static pages using 11 workers (20/40) 
   Generating static pages using 11 workers (30/40) 
-✓ Generating static pages using 11 workers (40/40) in 1522ms
+✓ Generating static pages using 11 workers (40/40) in 2.2s
   Finalizing page optimization ...
 
 Route (app)
