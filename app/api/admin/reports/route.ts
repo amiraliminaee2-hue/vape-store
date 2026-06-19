@@ -14,6 +14,12 @@ type TopProduct = {
   };
 };
 
+type ProductType = {
+  id: number;
+  title: string;
+  price: number;
+};
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -245,7 +251,7 @@ export async function GET() {
     const typedTopProducts = topProducts as TopProduct[];
 
     const productIds = typedTopProducts.map(
-      (p) => p.productId
+      (p: TopProduct) => p.productId
     );
 
     const products = await prisma.product.findMany({
@@ -261,9 +267,9 @@ export async function GET() {
       },
     });
 
-    const topProductsWithNames = typedTopProducts.map((tp) => {
+    const topProductsWithNames = typedTopProducts.map((tp: TopProduct) => {
       const product = products.find(
-        (p) => p.id === tp.productId
+        (p: ProductType) => p.id === tp.productId
       );
 
       return {
