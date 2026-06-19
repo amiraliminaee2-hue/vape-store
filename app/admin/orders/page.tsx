@@ -3,7 +3,6 @@ import OrderStatusSelect from "./status-select";
 import { Suspense } from "react";
 import ExportButtons from "@/components/admin/ExportButtons";
 import AdminNoteEditor from "@/components/admin/AdminNoteEditor";
-import type { Prisma } from "@prisma/client";
 
 const statusColors: Record<string, string> = {
   REGISTERED: "bg-yellow-500/20 text-yellow-300",
@@ -25,8 +24,46 @@ const statusLabels: Record<string, string> = {
   ERROR: "خطا در پرداخت",
 };
 
+interface OrderItem {
+  id: number;
+  quantity: number;
+  price: number;
+  product: {
+    id: number;
+    title: string;
+  };
+}
+
+interface Order {
+  id: number;
+  trackingNumber: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  address: string;
+  phone: string;
+  customerNote: string | null;
+  adminNote: string | null;
+  totalPrice: number;
+  couponCode: string | null;
+  discountAmount: number;
+  status: string;
+  createdAt: Date;
+  items: OrderItem[];
+}
+
 interface SearchParams {
   search?: string;
+}
+
+// تایپ برای where condition
+interface OrderWhereInput {
+  OR?: Array<{
+    [key: string]: {
+      contains: string;
+      mode: "insensitive";
+    };
+  }>;
 }
 
 export default async function OrdersPage({
@@ -38,32 +75,32 @@ export default async function OrdersPage({
 
   const prisma = await getPrisma();
 
-  // ساخت where condition به صورت شرطی با استفاده از spread operator
-  const whereCondition: Prisma.OrderWhereInput = search
+  // ساخت where condition به صورت شرطی
+  const whereCondition: OrderWhereInput = search
     ? {
         OR: [
           {
             phone: {
               contains: search,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
           {
             userEmail: {
               contains: search,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
           {
             userName: {
               contains: search,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
           {
             trackingNumber: {
               contains: search,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
         ],
