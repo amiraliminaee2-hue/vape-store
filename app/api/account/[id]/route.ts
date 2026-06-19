@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -12,12 +14,8 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const { id } = await params;
-
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
-
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
@@ -28,11 +26,9 @@ export async function GET(
         },
       },
     });
-
     if (!user) {
       return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
     }
-
     return NextResponse.json(user);
   } catch (error) {
     console.error("Get user error:", error);
@@ -49,18 +45,13 @@ export async function PATCH(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const { id } = await params;
     const body = await request.json();
-
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
-
     const user = await prisma.user.update({
       where: { id },
       data: body,
     });
-
     return NextResponse.json(user);
   } catch (error) {
     console.error("Update user error:", error);

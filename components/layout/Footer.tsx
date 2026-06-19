@@ -1,27 +1,27 @@
-import { getPrisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-async function getSettings() {
-  // ✅ دریافت prisma از getPrisma
-  const prisma = await getPrisma();
-  const settings = await prisma.setting.findMany();
-  const settingsMap: Record<string, string> = {};
-  settings.forEach((s) => {
-    settingsMap[s.key] = s.value;
-  });
-  return settingsMap;
-}
+type Settings = Record<string, string>;
 
-export default async function Footer() {
-  const settings = await getSettings();
+export default function Footer() {
+  const [settings, setSettings] = useState<Settings>({});
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data))
+      .catch(() => {});
+  }, []);
 
   return (
     <footer className="border-t border-white/10 py-8 md:py-12 mt-10 md:mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* گرید ریسپانسیو */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 lg:gap-12 mb-8 md:mb-10 text-right">
-          
+
           {/* درباره ما */}
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
@@ -40,7 +40,7 @@ export default async function Footer() {
             <ul className="space-y-2 text-xs sm:text-sm text-zinc-500">
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>📞</span>
-                <span>{settings.site_phone || "۰۲۱-۱۲۳۴۵۶۷۸"}</span>
+                <span>{settings.site_phone || "۰۷۷-۳۲۳۵۹۶۷۸"}</span>
               </li>
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>✉️</span>
@@ -100,7 +100,7 @@ export default async function Footer() {
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-tr hover:from-pink-500 hover:to-orange-500 transition-all text-lg sm:text-xl hover:scale-110"
                   aria-label="اینستاگرام"
                 >
-                  📷
+                  📸
                 </a>
               )}
               {settings.telegram_url && (
@@ -122,7 +122,7 @@ export default async function Footer() {
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-purple-500/20 hover:text-purple-400 transition-all text-lg sm:text-xl hover:scale-110"
                   aria-label="روبیکا"
                 >
-                  🟣
+                  💬
                 </a>
               )}
               {settings.whatsapp_url && (
@@ -133,7 +133,7 @@ export default async function Footer() {
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-green-500/20 hover:text-green-400 transition-all text-lg sm:text-xl hover:scale-110"
                   aria-label="واتساپ"
                 >
-                  💬
+                  📱
                 </a>
               )}
             </div>
@@ -142,7 +142,7 @@ export default async function Footer() {
 
         {/* کپی‌رایت */}
         <div className="pt-6 md:pt-8 border-t border-white/10 text-center text-zinc-500 text-xs sm:text-sm">
-          {settings.footer_text || "© ۲۰۲۴ پاد بوشهر. تمامی حقوق محفوظ است."}
+          {settings.footer_text || "© ۱۴۰۳ پاد بوشهر. تمامی حقوق محفوظ است."}
         </div>
       </div>
     </footer>

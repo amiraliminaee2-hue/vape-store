@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   },
   // ✅ جلوگیری از اجرای Prisma در build
   output: 'standalone',
+  // ✅ فعال کردن Turbopack بدون webpack config
+  turbopack: {},
 };
 
 export default nextConfig;

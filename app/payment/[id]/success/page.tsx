@@ -1,11 +1,11 @@
-import { getPrisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
-const prisma = await getPrisma();
-const data = await prisma.user.findMany();
+import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
+
 interface Props {
   params: Promise<{
     id: string;
@@ -14,12 +14,13 @@ interface Props {
 
 export default async function SuccessPage({ params }: Props) {
   const session = await getServerSession(authOptions);
-
   if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
   const { id } = await params;
+
+  const prisma = await getPrisma();
 
   const order = await prisma.order.findUnique({
     where: {
@@ -58,15 +59,12 @@ export default async function SuccessPage({ params }: Props) {
         <h1 className="text-5xl font-bold text-green-400">
           پرداخت موفق
         </h1>
-
         <p className="mt-6 text-zinc-400">
           سفارش شما با موفقیت ثبت شد.
         </p>
-
         <p className="mt-2 text-zinc-500">
           شماره سفارش: {id}
         </p>
-
         <div className="mt-8">
           <a
             href={`/api/orders/${id}/invoice`}
@@ -83,7 +81,6 @@ export default async function SuccessPage({ params }: Props) {
             دانلود فاکتور PDF
           </a>
         </div>
-
         <Link
           href="/dashboard/orders"
           className="
@@ -98,7 +95,6 @@ export default async function SuccessPage({ params }: Props) {
         >
           مشاهده سفارشات
         </Link>
-
         <Link
           href="/"
           className="

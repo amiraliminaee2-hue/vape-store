@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { Metadata } from "next";
 import { getPrisma } from "@/lib/prisma";
 import Navbar from "../components/layout/Navbar";

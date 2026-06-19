@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getPrisma } from "@/lib/prisma";
 import Link from "next/link";
 

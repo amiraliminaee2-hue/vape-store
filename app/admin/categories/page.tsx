@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';  // 👈 این خط اضافه شد
+
 import { getPrisma } from "@/lib/prisma";
 
 interface Category {
