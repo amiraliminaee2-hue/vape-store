@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
-import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
+
+type UserStatus = "banned" | "active";
+
+interface UserWhereInput {
+  userId?: { contains: string; mode: "insensitive" };
+  firstName?: { contains: string; mode: "insensitive" };
+  lastName?: { contains: string; mode: "insensitive" };
+  phone?: { contains: string; mode: "insensitive" };
+  isBanned?: boolean;
+  OR?: Array<{
+    userId?: { contains: string; mode: "insensitive" };
+    firstName?: { contains: string; mode: "insensitive" };
+    lastName?: { contains: string; mode: "insensitive" };
+    phone?: { contains: string; mode: "insensitive" };
+  }>;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,11 +36,11 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search")?.trim();
-    const status = searchParams.get("status");
+    const status = searchParams.get("status") as UserStatus | null;
 
     const skip = (page - 1) * limit;
 
-    const where: Prisma.UserProfileWhereInput = {};
+    const where: UserWhereInput = {};
 
     if (search) {
       where.OR = [

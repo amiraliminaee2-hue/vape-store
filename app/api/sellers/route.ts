@@ -3,7 +3,18 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { getPrisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+
+// تعریف تایپ برای SellerStatus
+type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+
+// تعریف تایپ برای where
+interface SellerWhereInput {
+  status?: SellerStatus;
+  OR?: Array<{
+    storeName?: { contains: string; mode: "insensitive" };
+    slug?: { contains: string; mode: "insensitive" };
+  }>;
+}
 
 // POST - ثبت درخواست فروشندگی
 export async function POST(request: NextRequest) {
@@ -97,10 +108,10 @@ export async function GET(request: NextRequest) {
     }
 
     // ادمین: لیست تمام فروشندگان با فیلتر
-    const where: Prisma.SellerWhereInput = {};
+    const where: SellerWhereInput = {};
     
     if (statusParam && statusParam !== "ALL") {
-      where.status = statusParam as "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+      where.status = statusParam as SellerStatus;
     }
     if (search) {
       where.OR = [
@@ -158,13 +169,22 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const updateData: Prisma.SellerUpdateInput = {};
+    const updateData: {
+      storeName?: string;
+      slug?: string;
+      description?: string | null;
+      phone?: string | null;
+      address?: string | null;
+      status?: SellerStatus;
+      commission?: number;
+    } = {};
+    
     if (storeName) updateData.storeName = storeName;
     if (slug) updateData.slug = slug;
     if (description) updateData.description = description;
     if (phone) updateData.phone = phone;
     if (address !== undefined) updateData.address = address;
-    if (status) updateData.status = status;
+    if (status) updateData.status = status as SellerStatus;
     if (commission !== undefined) updateData.commission = commission;
 
     const seller = await prisma.seller.update({

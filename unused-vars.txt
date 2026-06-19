@@ -1,0 +1,1 @@
+node_modules/@react-pdf/renderer/lib/react-pdf.d.ts(25,1): error TS1203: Export assignment cannot be used when targeting ECMAScript modules. Consider using 'export default' or another module format instead.

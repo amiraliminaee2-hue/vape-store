@@ -1,0 +1,41 @@
+node_modules/@react-pdf/renderer/lib/react-pdf.d.ts(25,1): error TS1203: Export assignment cannot be used when targeting ECMAScript modules. Consider using 'export default' or another module format instead.
+node_modules/@react-pdf/types/primitive.d.ts(4,7): error TS18055: 'Primitive.G' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(5,9): error TS18055: 'Primitive.Svg' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(6,10): error TS18055: 'Primitive.View' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(7,10): error TS18055: 'Primitive.Text' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(8,10): error TS18055: 'Primitive.Link' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(9,10): error TS18055: 'Primitive.Page' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(10,10): error TS18055: 'Primitive.Note' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(11,10): error TS18055: 'Primitive.Path' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(12,10): error TS18055: 'Primitive.Rect' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(13,10): error TS18055: 'Primitive.Line' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(14,10): error TS18055: 'Primitive.Stop' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(15,10): error TS18055: 'Primitive.Defs' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(16,11): error TS18055: 'Primitive.Image' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(17,11): error TS18055: 'Primitive.Tspan' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(18,12): error TS18055: 'Primitive.Canvas' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(19,12): error TS18055: 'Primitive.Circle' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(20,13): error TS18055: 'Primitive.Ellipse' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(21,13): error TS18055: 'Primitive.Polygon' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(22,14): error TS18055: 'Primitive.Document' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(23,14): error TS18055: 'Primitive.Polyline' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(24,14): error TS18055: 'Primitive.ClipPath' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(25,18): error TS18055: 'Primitive.TextInstance' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(26,20): error TS18055: 'Primitive.LinearGradient' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-pdf/types/primitive.d.ts(27,20): error TS18055: 'Primitive.RadialGradient' has a string type, but must have syntactically recognizable string syntax when 'isolatedModules' is enabled.
+node_modules/@react-three/postprocessing/dist/effects/N8AO.d.ts(17,112): error TS2304: Cannot find name 'N8AOPostPass'.
+node_modules/@uploadthing/shared/dist/index.d.ts(7,21): error TS2307: Cannot find module 'solid-js/jsx-runtime' or its corresponding type declarations.
+node_modules/@uploadthing/shared/dist/index.d.ts(8,44): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+node_modules/next-auth/adapters.d.ts(2,47): error TS2307: Cannot find module '@auth/core/adapters' or its corresponding type declarations.
+node_modules/next-auth/core/types.d.ts(6,45): error TS7016: Could not find a declaration file for module 'cookie'. 'C:/Users/Asus/vape-store/node_modules/cookie/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/cookie` if it exists or add a new declaration (.d.ts) file containing `declare module 'cookie';`
+node_modules/next-auth/providers/email.d.ts(1,45): error TS2307: Cannot find module 'nodemailer' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(2,32): error TS2307: Cannot find module 'nodemailer/lib/json-transport/index.js' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(3,36): error TS2307: Cannot find module 'nodemailer/lib/sendmail-transport/index.js' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(4,31): error TS2307: Cannot find module 'nodemailer/lib/ses-transport/index.js' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(5,27): error TS2307: Cannot find module 'nodemailer/lib/smtp-pool/index.js' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(6,32): error TS2307: Cannot find module 'nodemailer/lib/smtp-transport/index.js' or its corresponding type declarations.
+node_modules/next-auth/providers/email.d.ts(7,34): error TS2307: Cannot find module 'nodemailer/lib/stream-transport/index.js' or its corresponding type declarations.
+node_modules/next-auth/react/index.d.ts(86,71): error TS2503: Cannot find namespace 'JSX'.
+node_modules/three-stdlib/libs/MotionControllers.d.ts(120,15): error TS2420: Class 'Component' incorrectly implements interface 'ComponentDescription'.
+node_modules/three-stdlib/lines/LineMaterial.d.ts(3,18): error TS2430: Interface 'LineMaterialParameters' incorrectly extends interface 'MaterialParameters'.
