@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
 
       const productsWithStats: ProductExportData[] = products.map(
         (product: (typeof products)[number]) => {
-          const ratings = product.comments.map((c) => c.rating);
+          const ratings = product.comments.map((c: { rating: number }) => c.rating);
           const averageRating =
             ratings.length > 0
               ? ratings.reduce((a, b) => a + b, 0) / ratings.length
