@@ -13,9 +13,7 @@ export async function POST(request: NextRequest) {
 
     const prisma = await getPrisma();
     const body = await request.json();
-    const { orderId, amount, description, mobile } = body;
-
-    console.log("📡 Payment request received:", { orderId, amount, description, mobile });
+    const { orderId, amount, mobile } = body;
 
     if (!orderId || !amount) {
       return NextResponse.json(
@@ -24,7 +22,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // بررسی وجود سفارش
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
@@ -33,20 +30,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (!order) {
-      console.error("❌ Order not found:", orderId);
       return NextResponse.json({ error: "سفارش یافت نشد" }, { status: 404 });
     }
 
-    // ساخت callback URL
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    // orderId و amount رو در callbackURL نگه میداریم چون POST body جداست
     const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}&amount=${amount}`;
-    
-    console.log("🔗 Callback URL:", callbackUrl);
 
-    // فراخوانی تابع createPaymentRequest
     const { redirectUrl } = await createPaymentRequest(amount, orderId, callbackUrl, mobile);
-
-    console.log("✅ Payment URL created:", redirectUrl);
 
     return NextResponse.json({ paymentUrl: redirectUrl });
   } catch (error) {

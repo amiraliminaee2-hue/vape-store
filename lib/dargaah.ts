@@ -1,44 +1,7 @@
 import axios, { AxiosError } from "axios";
 
-// استفاده از محیط سندباکس زرین‌پال برای تست
-const API_BASE_URL = "https://sandbox.zarinpal.com/pg/v4";
-const MERCHANT_ID = process.env.DARGAAGH_MERCHANT_ID;
-
-interface PaymentRequestPayload {
-  merchant_id: string;
-  amount: number;
-  description: string;
-  callback_url: string;
-  mobile?: string;
-}
-
-interface PaymentRequestResponse {
-  data: {
-    code: number;
-    message: string;
-    authority: string;
-    fee_type?: string;
-    fee?: number;
-  };
-}
-
-interface PaymentVerifyPayload {
-  merchant_id: string;
-  amount: number;
-  authority: string;
-}
-
-interface PaymentVerifyResponse {
-  data: {
-    code: number;
-    message: string;
-    ref_id: number;
-    card_pan?: string;
-    card_hash?: string;
-    fee_type?: string;
-    fee?: number;
-  };
-}
+const API_BASE_URL = "https://dargaah.com";
+const MERCHANT_ID = process.env.DARGAAH_MERCHANT_ID;
 
 export async function createPaymentRequest(
   amount: number,
@@ -46,65 +9,46 @@ export async function createPaymentRequest(
   callbackUrl: string,
   mobile?: string
 ): Promise<{ authority: string; redirectUrl: string }> {
-  console.log("=== Zarinpal Sandbox Create Payment ===");
-  console.log("API_BASE_URL:", API_BASE_URL);
-  console.log("MERCHANT_ID:", MERCHANT_ID);
-  console.log("amount:", amount);
-  console.log("orderId:", orderId);
-
   if (!MERCHANT_ID) {
-    throw new Error("DARGAAGH_MERCHANT_ID تنظیم نشده است");
+    throw new Error("DARGAAH_MERCHANT_ID تنظیم نشده است");
   }
 
-  const payload: PaymentRequestPayload = {
-    merchant_id: MERCHANT_ID,
+  const payload: Record<string, unknown> = {
+    merchantID: MERCHANT_ID,
     amount: amount,
+    callbackURL: callbackUrl,
+    orderId: String(orderId),
     description: `پرداخت سفارش شماره ${orderId}`,
-    callback_url: callbackUrl,
   };
 
   if (mobile) {
     payload.mobile = mobile;
   }
 
-  console.log("Payload:", payload);
-
   try {
-    const response = await axios.post<PaymentRequestResponse>(
-      `${API_BASE_URL}/payment/request.json`,
+    const response = await axios.post(
+      `${API_BASE_URL}/payment`,
       payload,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         timeout: 30000,
       }
     );
 
-    console.log("Response status:", response.status);
-    console.log("Response data:", JSON.stringify(response.data, null, 2));
+    const { status, authority } = response.data;
 
-    const { code, message, authority } = response.data.data;
-
-    if (code === 100) {
-      const redirectUrl = `https://sandbox.zarinpal.com/pg/StartPay/${authority}`;
+    if (status === 200 && authority) {
+      const redirectUrl = `${API_BASE_URL}/ird/startpay/${authority}`;
       return { authority, redirectUrl };
     } else {
-      throw new Error(message || `خطا در ایجاد پرداخت: کد ${code}`);
+      throw new Error(response.data.message || `خطا در ایجاد پرداخت: کد ${status}`);
     }
   } catch (error) {
-    console.error("Zarinpal create payment error:", error);
-
     if (error instanceof AxiosError) {
-      console.error("Axios error details:", {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      console.error("IranDargah create payment error:", error.response?.data);
+      throw new Error(error.response?.data?.message || "خطا در اتصال به درگاه پرداخت");
     }
-
-    throw new Error("خطا در اتصال به درگاه پرداخت");
+    throw error;
   }
 }
 
@@ -113,58 +57,41 @@ export async function verifyPayment(
   authority: string,
   amount: number
 ): Promise<{ refId: string; message: string }> {
-  console.log("=== Zarinpal Sandbox Verify Payment ===");
-  console.log("orderId:", orderId);
-  console.log("authority:", authority);
-  console.log("amount:", amount);
-
   if (!MERCHANT_ID) {
-    throw new Error("DARGAAGH_MERCHANT_ID تنظیم نشده است");
+    throw new Error("DARGAAH_MERCHANT_ID تنظیم نشده است");
   }
 
-  const payload: PaymentVerifyPayload = {
-    merchant_id: MERCHANT_ID,
-    amount: amount,
+  const payload = {
+    merchantID: MERCHANT_ID,
     authority: authority,
+    amount: amount,
+    orderId: String(orderId),
   };
 
-  console.log("Verify Payload:", payload);
-
   try {
-    const response = await axios.post<PaymentVerifyResponse>(
-      `${API_BASE_URL}/payment/verify.json`,
+    const response = await axios.post(
+      `${API_BASE_URL}/verification`,
       payload,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         timeout: 30000,
       }
     );
 
-    console.log("Verify Response:", JSON.stringify(response.data, null, 2));
+    const { status, refId, message } = response.data;
 
-    const { code, message, ref_id } = response.data.data;
-
-    if (code === 100) {
-      return { refId: String(ref_id), message: message || "پرداخت با موفقیت انجام شد" };
-    } else if (code === 101) {
-      return { refId: String(ref_id), message: "این تراکنش قبلاً تایید شده است" };
+    if (status === 100) {
+      return { refId: String(refId), message: message || "پرداخت با موفقیت انجام شد" };
+    } else if (status === 101) {
+      return { refId: String(refId), message: "این تراکنش قبلاً تایید شده است" };
     } else {
-      throw new Error(message || `خطا در تأیید پرداخت: کد ${code}`);
+      throw new Error(message || `خطا در تأیید پرداخت: کد ${status}`);
     }
   } catch (error) {
-    console.error("Zarinpal verify error:", error);
-
     if (error instanceof AxiosError) {
-      console.error("Axios error details:", {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      console.error("IranDargah verify error:", error.response?.data);
+      throw new Error(error.response?.data?.message || "خطا در تأیید پرداخت");
     }
-
-    throw new Error("خطا در تأیید پرداخت");
+    throw error;
   }
 }
