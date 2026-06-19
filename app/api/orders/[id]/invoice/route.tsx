@@ -2,6 +2,15 @@ import { getPrisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import InvoiceDocument from "@/components/pdf/InvoiceDocument";
 
+interface OrderItem {
+  id: number;
+  quantity: number;
+  price: number;
+  product: {
+    title: string;
+  };
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -48,7 +57,7 @@ export async function GET(
       discountAmount: order.discountAmount || 0,
       couponCode: order.couponCode || null,
       createdAt: order.createdAt.toISOString(),
-      items: order.items.map((item) => ({
+      items: order.items.map((item: OrderItem) => ({
         id: item.id,
         quantity: item.quantity,
         price: item.price,
