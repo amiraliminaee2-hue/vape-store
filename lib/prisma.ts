@@ -4,7 +4,9 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// ✅ همیشه یک PrismaClient بساز، حتی اگر DATABASE_URL وجود نداشته باشد
+// ✅ در Prisma 7.x گزینه datasources حذف شده
+// DATABASE_URL باید در .env یا environment variables سرور تنظیم شده باشد
+// Prisma 7 به صورت خودکار از متغیر محیطی DATABASE_URL استفاده می‌کند
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
