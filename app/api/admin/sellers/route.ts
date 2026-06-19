@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 // GET - دریافت لیست فروشندگان یا یک فروشنده خاص
 export async function GET(request: NextRequest) {
