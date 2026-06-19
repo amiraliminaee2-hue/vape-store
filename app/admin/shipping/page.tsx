@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface ShippingMethod {
   id: number;
@@ -37,7 +36,6 @@ const provinces: string[] = [
 ];
 
 export default function AdminShippingPage() {
-  const router = useRouter();
   const [methods, setMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);

@@ -81,8 +81,17 @@ export async function PUT(request: NextRequest) {
 
     const profile = await prisma.userProfile.upsert({
       where: { userId },
-      update: { firstName, lastName, phone },
-      create: { userId, firstName, lastName, phone },
+      update: {
+        firstName: firstName ?? null,
+        lastName: lastName ?? null,
+        phone: phone ?? null,
+      },
+      create: {
+        userId,
+        firstName: firstName ?? null,
+        lastName: lastName ?? null,
+        phone: phone ?? null,
+      },
     });
 
     return NextResponse.json(profile);

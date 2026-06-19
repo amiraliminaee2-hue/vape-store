@@ -231,7 +231,7 @@ export default function InvoiceDocument({ order }: { order: Order }) {
     day: "numeric",
   });
 
-  const logoSrc = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/logo.png`;
+  const logoSrc = `${process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"}/logo.png`;
 
   return (
     <Document>

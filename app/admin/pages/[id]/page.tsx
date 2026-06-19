@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -31,13 +31,13 @@ interface FormData {
 export default function EditPagePage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
+  const id = params?.["id"] as string;
 
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData | null>(null);
 
-  const fetchPage = async (): Promise<void> => {
+  const fetchPage = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch(`/api/pages?slug=${id}`);
       const data: Page = await res.json();
@@ -52,11 +52,11 @@ export default function EditPagePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
   useEffect(() => {
     fetchPage();
-  }, [id]);
+  }, [fetchPage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;

@@ -3,6 +3,7 @@ import OrderStatusSelect from "./status-select";
 import { Suspense } from "react";
 import ExportButtons from "@/components/admin/ExportButtons";
 import AdminNoteEditor from "@/components/admin/AdminNoteEditor";
+import type { Prisma } from "@prisma/client";
 
 const statusColors: Record<string, string> = {
   REGISTERED: "bg-yellow-500/20 text-yellow-300",
@@ -24,34 +25,6 @@ const statusLabels: Record<string, string> = {
   ERROR: "خطا در پرداخت",
 };
 
-interface OrderItem {
-  id: number;
-  quantity: number;
-  price: number;
-  product: {
-    id: number;
-    title: string;
-  };
-}
-
-interface Order {
-  id: number;
-  trackingNumber: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  address: string;
-  phone: string;
-  customerNote: string | null;
-  adminNote: string | null;
-  totalPrice: number;
-  couponCode: string | null;
-  discountAmount: number;
-  status: string;
-  createdAt: Date;
-  items: OrderItem[];
-}
-
 interface SearchParams {
   search?: string;
 }
@@ -65,42 +38,43 @@ export default async function OrdersPage({
 
   const prisma = await getPrisma();
 
-  const orders: Order[] = await prisma.order.findMany({
-    where: search
-      ? {
-          OR: [
-            {
-              phone: {
-                contains: search,
-                mode: "insensitive",
-              },
+  // ساخت where condition به صورت شرطی با استفاده از spread operator
+  const whereCondition: Prisma.OrderWhereInput = search
+    ? {
+        OR: [
+          {
+            phone: {
+              contains: search,
+              mode: "insensitive",
             },
-            {
-              userEmail: {
-                contains: search,
-                mode: "insensitive",
-              },
+          },
+          {
+            userEmail: {
+              contains: search,
+              mode: "insensitive",
             },
-            {
-              userName: {
-                contains: search,
-                mode: "insensitive",
-              },
+          },
+          {
+            userName: {
+              contains: search,
+              mode: "insensitive",
             },
-            {
-              trackingNumber: {
-                contains: search,
-                mode: "insensitive",
-              },
+          },
+          {
+            trackingNumber: {
+              contains: search,
+              mode: "insensitive",
             },
-          ],
-        }
-      : undefined,
+          },
+        ],
+      }
+    : {};
 
+  const orders = await prisma.order.findMany({
+    where: whereCondition,
     orderBy: {
       createdAt: "desc",
     },
-
     include: {
       items: {
         include: {
@@ -111,23 +85,23 @@ export default async function OrdersPage({
   });
 
   const registered: number = orders.filter(
-    (o: Order) => o.status === "REGISTERED"
+    (o) => o.status === "REGISTERED"
   ).length;
 
   const processing: number = orders.filter(
-    (o: Order) => o.status === "PROCESSING"
+    (o) => o.status === "PROCESSING"
   ).length;
 
   const shipping: number = orders.filter(
-    (o: Order) => o.status === "SHIPPING"
+    (o) => o.status === "SHIPPING"
   ).length;
 
   const shipped: number = orders.filter(
-    (o: Order) => o.status === "SHIPPED"
+    (o) => o.status === "SHIPPED"
   ).length;
 
   // محاسبه مجموع تخفیف‌ها
-  const totalDiscount: number = orders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
+  const totalDiscount: number = orders.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -207,7 +181,7 @@ export default async function OrdersPage({
       </div>
 
       <div className="space-y-5">
-        {orders.map((order: Order) => {
+        {orders.map((order) => {
           const originalTotal: number = order.totalPrice + (order.discountAmount || 0);
           const hasDiscount: boolean = (order.discountAmount || 0) > 0;
           
@@ -319,7 +293,7 @@ export default async function OrdersPage({
 
               <div className="mt-6 border-t border-white/10 pt-5">
                 <p className="text-sm text-zinc-500 mb-2">محصولات</p>
-                {order.items.map((item: OrderItem) => (
+                {order.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex justify-between py-2 text-sm"

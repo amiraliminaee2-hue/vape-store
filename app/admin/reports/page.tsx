@@ -195,13 +195,15 @@ function LineChart({
   const pathD = points.reduce((acc: string, point: { x: number; y: number; value: number; label: string }, index: number) => {
     if (index === 0) return `M ${point.x} ${point.y}`;
     const prev = points[index - 1];
+    if (!prev) return acc;
     const cpX = (prev.x + point.x) / 2;
     return `${acc} C ${cpX} ${prev.y} ${cpX} ${point.y} ${point.x} ${point.y}`;
   }, "");
 
+  const lastPoint = points[points.length - 1];
   const areaD =
     pathD +
-    ` L ${points[points.length - 1]?.x ?? paddingX} ${height - paddingY} L ${paddingX} ${height - paddingY} Z`;
+    ` L ${lastPoint?.x ?? paddingX} ${height - paddingY} L ${paddingX} ${height - paddingY} Z`;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -324,7 +326,7 @@ function LineChart({
                 fill="rgba(255,255,255,0.4)"
                 fontSize="7"
               >
-                {Number(data[index]["count"] ?? 0)} سفارش
+                {Number(data[index]?.["count"] ?? 0)} سفارش
               </text>
             </g>
           </g>
@@ -399,7 +401,8 @@ export default function AdminReportsPage() {
 
   const formatMonthlyLabel = (month: string): string => {
     const parts = month.split("-");
-    return persianMonths[parts[1]] ?? parts[1];
+    const monthKey = parts[1] ?? "";
+    return persianMonths[monthKey] ?? parts[1] ?? month;
   };
 
   if (loading) {

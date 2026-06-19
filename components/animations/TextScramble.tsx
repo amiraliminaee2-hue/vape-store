@@ -55,13 +55,15 @@ export default function TextScramble({
 
         for (let i = 0, n = queue.length; i < n; i++) {
           const item = queue[i];
+          if (!item) continue;
 
           if (frameRef.current >= item.end) {
             complete++;
             output += item.to;
           } else if (frameRef.current >= item.start) {
             if (!item.char || Math.random() < 0.28) {
-              item.char = CHARS[Math.floor(Math.random() * CHARS.length)];
+              const randomChar = CHARS[Math.floor(Math.random() * CHARS.length)];
+              item.char = randomChar || " ";
             }
             output += `<span style="opacity:0.4;color:#8b5cf6">${item.char}</span>`;
           } else {

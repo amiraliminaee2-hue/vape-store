@@ -98,12 +98,12 @@ async function getProducts() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://padbushehr.ir";
+  const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] || "https://padbushehr.ir";
 
   return {
-    title: settings.meta_title || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
-    description: settings.meta_description || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
-    keywords: settings.meta_keywords?.split(",") || [
+    title: settings["meta_title"] || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
+    description: settings["meta_description"] || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
+    keywords: settings["meta_keywords"]?.split(",") || [
       "ویپ", "پاد", "لیکوئید", "خرید ویپ", "پاد بوشهر",
     ],
     alternates: {
@@ -114,8 +114,8 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "fa_IR",
       url: baseUrl,
       siteName: "پاد بوشهر",
-      title: settings.meta_title || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
-      description: settings.meta_description || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
+      title: settings["meta_title"] || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
+      description: settings["meta_description"] || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
       images: [
         {
           url: "/og-image.png",
@@ -127,8 +127,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: settings.meta_title || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
-      description: settings.meta_description || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
+      title: settings["meta_title"] || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
+      description: settings["meta_description"] || "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب.",
       images: ["/og-image.png"],
     },
   };

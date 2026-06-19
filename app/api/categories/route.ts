@@ -49,7 +49,12 @@ export async function POST(request: Request) {
     const { name, slug, description, image } = bodyValidationResult.data;
 
     const category = await prisma.category.create({
-      data: { name, slug, description, image },
+      data: {
+        name,
+        slug,
+        description: description ?? null,
+        image: image ?? null,
+      },
     });
 
     return NextResponse.json(category, { status: 201 });

@@ -23,10 +23,9 @@ export default function ProductModel() {
     const positions = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-      // موقعیت اولیه دقیقاً در نوک دهانه پاد (Y = 2.45)
-      positions[i * 3]     = (Math.random() - 0.5) * 0.15;     // X: محدوده بسیار کوچک
-      positions[i * 3 + 1] = 2.35 + Math.random() * 0.15;      // Y: بین 2.35 تا 2.5 (دقیقاً روی دهانه)
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 0.15;     // Z: محدوده بسیار کوچک
+      positions[i * 3]     = (Math.random() - 0.5) * 0.15;
+      positions[i * 3 + 1] = 2.35 + Math.random() * 0.15;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 0.15;
     }
 
     const geometry = new THREE.BufferGeometry();
@@ -44,7 +43,6 @@ export default function ProductModel() {
     }, 2000);
   };
 
-  // گوش دادن به رویداد دکمه از ProductScene
   useEffect(() => {
     window.addEventListener("trigger-smoke", triggerSmoke);
     return () => window.removeEventListener("trigger-smoke", triggerSmoke);
@@ -122,35 +120,38 @@ export default function ProductModel() {
 
     // حرکت ذرات دود
     if (smokeGeometryRef.current && smokePointsRef.current) {
-      const positions = smokeGeometryRef.current.attributes.position.array as Float32Array;
-      const particleCount = 200;
+      const positionAttr = smokeGeometryRef.current.attributes["position"];
+      if (positionAttr) {
+        const positions = positionAttr.array as Float32Array;
+        const particleCount = 200;
 
-      if (smokePointsRef.current.material instanceof THREE.PointsMaterial) {
-        smokePointsRef.current.material.opacity = smokeOpacity * 0.4;
-      }
-
-      if (smokeOpacity > 0) {
-        for (let i = 0; i < particleCount; i++) {
-          const i3 = i * 3;
-          // حرکت به سمت بالا
-          positions[i3 + 1] += 0.04;
-          // حرکت افقی ملایم
-          positions[i3]     += (Math.sin(elapsedTime * 2 + i) * 0.006);
-          positions[i3 + 2] += (Math.cos(elapsedTime * 2 + i) * 0.006);
-
-          // ریست کردن ذرات - بازگشت به دهانه
-          if (positions[i3 + 1] > 3.5) {
-            positions[i3 + 1] = 2.4;
-            positions[i3]     = (Math.random() - 0.5) * 0.15;
-            positions[i3 + 2] = (Math.random() - 0.5) * 0.15;
-          }
-
-          // محدود کردن حرکت افقی
-          positions[i3]     = Math.max(-0.35, Math.min(0.35, positions[i3]));
-          positions[i3 + 2] = Math.max(-0.35, Math.min(0.35, positions[i3 + 2]));
+        if (smokePointsRef.current.material instanceof THREE.PointsMaterial) {
+          smokePointsRef.current.material.opacity = smokeOpacity * 0.4;
         }
 
-        smokeGeometryRef.current.attributes.position.needsUpdate = true;
+        if (smokeOpacity > 0) {
+          for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            // حرکت به سمت بالا
+            positions[i3 + 1] = (positions[i3 + 1] ?? 0) + 0.04;
+            // حرکت افقی ملایم
+            positions[i3] = (positions[i3] ?? 0) + (Math.sin(elapsedTime * 2 + i) * 0.006);
+            positions[i3 + 2] = (positions[i3 + 2] ?? 0) + (Math.cos(elapsedTime * 2 + i) * 0.006);
+
+            // ریست کردن ذرات - بازگشت به دهانه
+            if ((positions[i3 + 1] ?? 0) > 3.5) {
+              positions[i3 + 1] = 2.4;
+              positions[i3] = (Math.random() - 0.5) * 0.15;
+              positions[i3 + 2] = (Math.random() - 0.5) * 0.15;
+            }
+
+            // محدود کردن حرکت افقی
+            positions[i3] = Math.max(-0.35, Math.min(0.35, positions[i3] ?? 0));
+            positions[i3 + 2] = Math.max(-0.35, Math.min(0.35, positions[i3 + 2] ?? 0));
+          }
+
+          positionAttr.needsUpdate = true;
+        }
       }
     }
   });
@@ -273,7 +274,7 @@ export default function ProductModel() {
         />
       </mesh>
 
-      {/* ذرات دود - موقعیت پایین‌تر روی دهانه */}
+      {/* ذرات دود */}
       {smokeGeometry && (
         <points ref={smokePointsRef} position={[0, 0.5, 0]}>
           <primitive object={smokeGeometry} attach="geometry" />

@@ -10,7 +10,7 @@ interface ClientErrorBoundaryProps {
 
 interface ClientErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 export class ClientErrorBoundary extends Component<
@@ -19,7 +19,7 @@ export class ClientErrorBoundary extends Component<
 > {
   constructor(props: ClientErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ClientErrorBoundaryState {
@@ -35,7 +35,7 @@ export class ClientErrorBoundary extends Component<
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState({ hasError: false, error: null });
   };
 
   render() {

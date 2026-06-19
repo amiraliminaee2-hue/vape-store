@@ -43,7 +43,7 @@ interface FormData {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.["id"] as string;
 
   const [loading, setLoading] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(true);
@@ -103,7 +103,9 @@ export default function EditProductPage() {
       }
     };
 
-    fetchData();
+    if (id) {
+      fetchData();
+    }
   }, [id]);
 
   const handleChange = (
@@ -130,7 +132,9 @@ export default function EditProductPage() {
   const handleSpecChange = (index: number, field: "key" | "value", value: string): void => {
     setSpecs((prev) => {
       const updated = [...prev];
-      updated[index][field] = value;
+      if (updated[index]) {
+        updated[index][field] = value;
+      }
       return updated;
     });
   };

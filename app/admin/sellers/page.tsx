@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 interface Seller {
@@ -73,7 +73,7 @@ export default function SellersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchSellers = async (): Promise<void> => {
+  const fetchSellers = useCallback(async (): Promise<void> => {
     setLoading(true);
     const params = new URLSearchParams();
     if (filter !== "ALL") params.set("status", filter);
@@ -92,11 +92,11 @@ export default function SellersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, search, page]);
 
   useEffect(() => {
     fetchSellers();
-  }, [filter, search, page]);
+  }, [fetchSellers]);
 
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();

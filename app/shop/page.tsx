@@ -379,8 +379,8 @@ export default function ShopPage() {
                   stock={product.stock}
                   isFeatured={product.isFeatured}
                   images={product.images}
-                  averageRating={product.averageRating}
-                  reviewCount={product.reviewCount}
+                  averageRating={product.averageRating ?? 0}
+                  reviewCount={product.reviewCount ?? 0}
                 />
               </div>
             ))

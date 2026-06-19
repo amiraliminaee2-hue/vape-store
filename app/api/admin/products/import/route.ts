@@ -50,7 +50,13 @@ function getFileType(filename: string): "csv" | "excel" | "unknown" {
 function excelToJson(buffer: Buffer): ProductCSVRow[] {
   const workbook = XLSX.read(buffer, { type: "buffer" });
   const sheetName = workbook.SheetNames[0];
+  if (!sheetName) {
+    return [];
+  }
   const worksheet = workbook.Sheets[sheetName];
+  if (!worksheet) {
+    return [];
+  }
   const data = XLSX.utils.sheet_to_json<ProductCSVRow>(worksheet);
   return data;
 }
@@ -167,7 +173,9 @@ export async function POST(request: NextRequest) {
           for (const imgUrl of imageList) {
             if (imgUrl.startsWith("http")) {
               const savedUrl = await downloadAndSaveImage(imgUrl);
-              if (savedUrl) imageUrls.push(savedUrl);
+              if (savedUrl) {
+                imageUrls.push(savedUrl);
+              }
             } else {
               imageUrls.push(imgUrl);
             }

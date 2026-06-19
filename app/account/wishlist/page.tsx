@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 interface WishlistProduct {
@@ -22,7 +23,7 @@ interface WishlistItem {
 }
 
 export default function WishlistPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,7 @@ export default function WishlistPage() {
     }
   }, [status, router]);
 
-  const loadWishlist = async () => {
+  const loadWishlist = useCallback(async () => {
     try {
       const res = await fetch("/api/wishlist");
       if (res.status === 401) {
@@ -49,13 +50,13 @@ export default function WishlistPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     if (status === "authenticated") {
       loadWishlist();
     }
-  }, [status]);
+  }, [status, loadWishlist]);
 
   const handleRemove = async (productId: number) => {
     try {
@@ -142,11 +143,13 @@ export default function WishlistPage() {
             >
               <Link href={`/product/${item.product.slug || item.product.id}`}>
                 <div className="aspect-square relative bg-zinc-900/50">
-                  {item.product.images && item.product.images.length > 0 ? (
-                    <img
+                  {item.product.images && item.product.images.length > 0 && item.product.images[0] ? (
+                    <Image
                       src={item.product.images[0]}
                       alt={item.product.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-4xl text-zinc-600">

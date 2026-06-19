@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface Settings {
   site_phone: string;
@@ -54,7 +53,6 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
-  const router = useRouter();
 
   const fetchSettings = async (): Promise<void> => {
     try {

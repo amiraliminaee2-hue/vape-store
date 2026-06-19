@@ -69,7 +69,7 @@ export default function UserOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const orderId = params?.id as string;
+  const orderId = params?.["id"] as string;
 
   useEffect(() => {
     const fetchOrder = async () => {

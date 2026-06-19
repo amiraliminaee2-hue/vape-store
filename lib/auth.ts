@@ -40,8 +40,8 @@ export const authOptions: AuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          phone: user.phone,
-          name: user.name,
+          phone: user.phone ?? null,
+          name: user.name ?? null,
         };
       }
     })
@@ -53,14 +53,14 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.phone = user.phone;
+        token.phone = user.phone ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.phone = token.phone as string;
+        session.user.phone = token.phone as string ?? null;
       }
       return session;
     }
@@ -68,6 +68,6 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  secret: process.env["NEXTAUTH_SECRET"] || "",
+  debug: process.env["NODE_ENV"] === "development",
 };

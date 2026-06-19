@@ -162,9 +162,6 @@ export default async function AdminDashboardPage() {
   const monthTotal =
     monthRevenue._sum.totalPrice ?? 0;
 
-  // محاسبه مجموع تخفیف‌ها
-  const totalDiscount = latestOrders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">

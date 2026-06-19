@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -65,7 +65,7 @@ const statusColors: Record<string, string> = {
 export default function SellerDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
+  const id = params?.["id"] as string;
 
   const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -80,8 +80,8 @@ export default function SellerDetailsPage() {
     status: "PENDING",
   });
 
-  // تعریف fetchSeller قبل از useEffect
-  const fetchSeller = async (): Promise<void> => {
+  // تعریف fetchSeller با useCallback
+  const fetchSeller = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`);
       const data: Seller = await res.json();
@@ -99,11 +99,13 @@ export default function SellerDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    fetchSeller();
-  }, [id]);
+    if (id) {
+      fetchSeller();
+    }
+  }, [id, fetchSeller]);
 
   const handleEditChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InvoiceViewer from "@/components/invoice/InvoiceViewer";
@@ -87,9 +87,9 @@ export default function AdminOrderDetailPage() {
   const [adminNote, setAdminNote] = useState<string>("");
   const [savingNote, setSavingNote] = useState<boolean>(false);
 
-  const orderId = params?.id as string;
+  const orderId = params?.["id"] as string;
 
-  const fetchOrder = async (): Promise<void> => {
+  const fetchOrder = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`);
       if (!res.ok) {
@@ -106,13 +106,13 @@ export default function AdminOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId, router]);
 
   useEffect(() => {
     if (orderId) {
       fetchOrder();
     }
-  }, [orderId]);
+  }, [orderId, fetchOrder]);
 
   const handleStatusChange = async (newStatus: string): Promise<void> => {
     if (!order) return;

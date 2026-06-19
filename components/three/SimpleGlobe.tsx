@@ -20,7 +20,11 @@ function createLogoTexture() {
   canvas.height = 1024;
   const ctx = canvas.getContext("2d");
 
-  if (!ctx) return new THREE.CanvasTexture(canvas);
+  if (!ctx) {
+    const fallbackTexture = new THREE.CanvasTexture(canvas);
+    fallbackTexture.needsUpdate = true;
+    return fallbackTexture;
+  }
 
   // پس‌زمینه بنفش گرادیان
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -58,7 +62,9 @@ function createLogoTexture() {
   // نقاط طلایی (موقعیت‌های ثابت)
   ctx.fillStyle = "#fbbf24";
   for (let i = 0; i < GOLDEN_DOTS.length; i++) {
-    const angle = GOLDEN_DOTS[i] * (Math.PI * 2 / 100);
+    const dot = GOLDEN_DOTS[i];
+    if (dot === undefined) continue;
+    const angle = dot * (Math.PI * 2 / 100);
     const radius = canvas.width / 2.5;
     const x = canvas.width / 2 + Math.cos(angle) * radius;
     const y = canvas.height / 2 + Math.sin(angle) * radius;
@@ -156,15 +162,15 @@ export default function SimpleGlobe() {
     const updateDimensions = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setDimensions({ width: 220, height: 220 }); // موبایل کوچک
+        setDimensions({ width: 220, height: 220 });
       } else if (width < 768) {
-        setDimensions({ width: 280, height: 280 }); // موبایل بزرگ
+        setDimensions({ width: 280, height: 280 });
       } else if (width < 1024) {
-        setDimensions({ width: 380, height: 380 }); // تبلت
+        setDimensions({ width: 380, height: 380 });
       } else if (width < 1280) {
-        setDimensions({ width: 450, height: 450 }); // لپ‌تاپ
+        setDimensions({ width: 450, height: 450 });
       } else {
-        setDimensions({ width: 550, height: 550 }); // دسکتاپ بزرگ
+        setDimensions({ width: 550, height: 550 });
       }
     };
 

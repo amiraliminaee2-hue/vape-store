@@ -60,14 +60,21 @@ export function useImageUpload({ maxFiles = 5, maxSizeMB = 2, onUpload }: UseIma
 
   const removeFile = (index: number) => {
     // Revoke object URL to avoid memory leaks
-    URL.revokeObjectURL(previews[index]);
+    const previewUrl = previews[index];
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     
     setFiles(prev => prev.filter((_, i) => i !== index));
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const clearFiles = () => {
-    previews.forEach(url => URL.revokeObjectURL(url));
+    previews.forEach(url => {
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    });
     setFiles([]);
     setPreviews([]);
   };

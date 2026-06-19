@@ -4,11 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+interface FormData {
+  storeName: string;
+  slug: string;
+  description: string;
+  phone: string;
+  address: string;
+}
+
 export default function SellerPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     storeName: "",
     slug: "",
     description: "",
@@ -79,20 +87,20 @@ export default function SellerPage() {
     const newErrors: Record<string, string> = {};
     
     if (!formData.storeName.trim()) {
-      newErrors.storeName = "نام فروشگاه الزامی است";
+      newErrors["storeName"] = "نام فروشگاه الزامی است";
     }
     if (!formData.slug.trim()) {
-      newErrors.slug = "slug الزامی است";
+      newErrors["slug"] = "slug الزامی است";
     } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(formData.slug)) {
-      newErrors.slug = "slug نامعتبر است (فقط حروف کوچک انگلیسی، اعداد و خط تیره)";
+      newErrors["slug"] = "slug نامعتبر است (فقط حروف کوچک انگلیسی، اعداد و خط تیره)";
     }
     if (!formData.description.trim()) {
-      newErrors.description = "توضیحات فروشگاه الزامی است";
+      newErrors["description"] = "توضیحات فروشگاه الزامی است";
     }
     if (!formData.phone.trim()) {
-      newErrors.phone = "شماره تماس الزامی است";
+      newErrors["phone"] = "شماره تماس الزامی است";
     } else if (!/^09[0-9]{9}$/.test(formData.phone.trim())) {
-      newErrors.phone = "شماره تماس نامعتبر است (مثال: 09123456789)";
+      newErrors["phone"] = "شماره تماس نامعتبر است (مثال: 09123456789)";
     }
     
     setErrors(newErrors);
@@ -177,11 +185,11 @@ export default function SellerPage() {
                   focus:ring-2 focus:ring-violet-500/50
                   transition-all
                   text-sm sm:text-base
-                  ${errors.storeName ? "border-red-500" : "border-white/10 focus:border-violet-500"}
+                  ${errors["storeName"] ? "border-red-500" : "border-white/10 focus:border-violet-500"}
                 `}
               />
-              {errors.storeName && (
-                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.storeName}</p>
+              {errors["storeName"] && (
+                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors["storeName"]}</p>
               )}
             </div>
 
@@ -208,11 +216,11 @@ export default function SellerPage() {
                   focus:ring-2 focus:ring-violet-500/50
                   transition-all
                   font-mono text-sm sm:text-base
-                  ${errors.slug ? "border-red-500" : "border-white/10 focus:border-violet-500"}
+                  ${errors["slug"] ? "border-red-500" : "border-white/10 focus:border-violet-500"}
                 `}
               />
-              {errors.slug && (
-                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.slug}</p>
+              {errors["slug"] && (
+                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors["slug"]}</p>
               )}
               <p className="mt-1 text-xs text-zinc-500">
                 با تغییر نام فروشگاه، این قسمت به صورت خودکار پر می‌شود
@@ -239,11 +247,11 @@ export default function SellerPage() {
                   transition-all
                   resize-none
                   text-sm sm:text-base
-                  ${errors.description ? "border-red-500" : "border-white/10 focus:border-violet-500"}
+                  ${errors["description"] ? "border-red-500" : "border-white/10 focus:border-violet-500"}
                 `}
               />
-              {errors.description && (
-                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.description}</p>
+              {errors["description"] && (
+                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors["description"]}</p>
               )}
             </div>
 
@@ -266,11 +274,11 @@ export default function SellerPage() {
                   focus:ring-2 focus:ring-violet-500/50
                   transition-all
                   text-sm sm:text-base
-                  ${errors.phone ? "border-red-500" : "border-white/10 focus:border-violet-500"}
+                  ${errors["phone"] ? "border-red-500" : "border-white/10 focus:border-violet-500"}
                 `}
               />
-              {errors.phone && (
-                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.phone}</p>
+              {errors["phone"] && (
+                <p className="mt-1 text-xs sm:text-sm text-red-400">{errors["phone"]}</p>
               )}
               <p className="mt-1 text-xs text-zinc-500">
                 شماره تماس شما برای ارتباط با شما استفاده خواهد شد

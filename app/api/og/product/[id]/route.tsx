@@ -11,7 +11,7 @@ export async function GET(
     const { id } = await params;
     
     // Fetch product data from your API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000";
     const productRes = await fetch(`${baseUrl}/api/products/${id}`);
     
     if (!productRes.ok) {

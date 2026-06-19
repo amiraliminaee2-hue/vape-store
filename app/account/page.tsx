@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 interface SavedAddress {
@@ -67,7 +67,7 @@ export default function AccountPage() {
     }
   };
 
-  const loadProfile = async (): Promise<void> => {
+  const loadProfile = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch("/api/profile");
       if (res.status === 401) {
@@ -86,11 +86,11 @@ export default function AccountPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [loadProfile]);
 
   const handleSaveProfile = async (): Promise<void> => {
     try {

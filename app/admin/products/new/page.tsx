@@ -78,7 +78,9 @@ export default function NewProductPage() {
   const handleSpecChange = (index: number, field: "key" | "value", value: string): void => {
     setSpecs((prev) => {
       const updated = [...prev];
-      updated[index][field] = value;
+      if (updated[index]) {
+        updated[index][field] = value;
+      }
       return updated;
     });
   };

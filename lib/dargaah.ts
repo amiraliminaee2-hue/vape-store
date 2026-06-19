@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
 const API_BASE_URL = "https://dargaah.com";
-const MERCHANT_ID = process.env.DARGAAH_MERCHANT_ID;
+const MERCHANT_ID = process.env["DARGAAH_MERCHANT_ID"];
 
 export async function createPaymentRequest(
   amount: number,
@@ -22,7 +22,7 @@ export async function createPaymentRequest(
   };
 
   if (mobile) {
-    payload.mobile = mobile;
+    payload["mobile"] = mobile;
   }
 
   try {

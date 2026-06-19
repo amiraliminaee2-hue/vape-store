@@ -55,7 +55,6 @@ export default function NewPagePage() {
       });
 
       if (res.ok) {
-        const data = await res.json();
         router.push("/admin/pages");
       } else {
         const error = await res.json();

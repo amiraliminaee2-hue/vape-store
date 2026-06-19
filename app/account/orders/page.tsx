@@ -44,6 +44,11 @@ const statusLabels: Record<string, StatusInfo> = {
   ERROR: { label: "خطا", color: "bg-red-600/20 text-red-500" },
 };
 
+const defaultStatusInfo: StatusInfo = {
+  label: "نامشخص",
+  color: "bg-zinc-500/20 text-zinc-400",
+};
+
 export default function UserOrdersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -102,7 +107,7 @@ export default function UserOrdersPage() {
         ) : (
           <div className="space-y-6">
             {orders.map((order: Order) => {
-              const statusInfo: StatusInfo = statusLabels[order.status] || statusLabels.REGISTERED;
+              const statusInfo: StatusInfo = statusLabels[order.status] || defaultStatusInfo;
               const originalTotal: number = order.totalPrice + (order.discountAmount || 0);
               const hasDiscount: boolean = (order.discountAmount || 0) > 0;
 

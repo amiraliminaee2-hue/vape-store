@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         address: orderData.address,
         phone: orderData.phone,
-        customerNote: orderData.customerNote,
-        adminNote: orderData.adminNote,
-        shippingMethodId: orderData.shippingMethodId,
-        paymentMethodId: orderData.paymentMethodId,
+        customerNote: orderData.customerNote ?? null,
+        adminNote: orderData.adminNote ?? null,
+        shippingMethodId: orderData.shippingMethodId ?? null,
+        paymentMethodId: orderData.paymentMethodId ?? null,
         shippingPrice: orderData.shippingPrice || 0,
         items: {
           create: orderData.items.map((item) => ({

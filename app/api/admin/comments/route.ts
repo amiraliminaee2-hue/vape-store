@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,11 +21,15 @@ export async function GET(request: NextRequest) {
 
     const prisma = await getPrisma();
 
+    // ساخت where condition به صورت شرطی
+    const whereCondition: Prisma.CommentWhereInput = status !== "ALL"
+      ? {
+          status: status as "PENDING" | "APPROVED" | "REJECTED",
+        }
+      : {};
+
     const comments = await prisma.comment.findMany({
-      where:
-        status === "ALL"
-          ? undefined
-          : { status: status as "PENDING" | "APPROVED" | "REJECTED" },
+      where: whereCondition,
       orderBy: { createdAt: "desc" },
       include: {
         product: {

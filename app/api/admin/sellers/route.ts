@@ -7,6 +7,33 @@ import { getPrisma } from "@/lib/prisma";
 // تعریف تایپ برای SellerStatus
 type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
+// تعریف تایپ برای Seller با Products
+type SellerWithProducts = {
+  id: string;
+  userId: string;
+  storeName: string;
+  slug: string;
+  description: string | null;
+  logo: string | null;
+  coverImage: string | null;
+  phone: string | null;
+  address: string | null;
+  status: SellerStatus;
+  commission: number;
+  totalSales: number;
+  totalEarned: number;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    email: string | null;
+    name: string | null;
+  };
+  products: {
+    id: number;
+  }[];
+};
+
 // تعریف تایپ برای where
 interface SellerWhereInput {
   status?: SellerStatus;
@@ -88,31 +115,30 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const [sellers, total] = await Promise.all([
-      prisma.seller.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-          products: {
-            select: {
-              id: true,
-            },
+    const sellers = await prisma.seller.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
           },
         },
-      }),
-      prisma.seller.count({ where }),
-    ]);
+        products: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
 
-    const sellersWithProductCount = sellers.map((seller) => ({
+    const total = await prisma.seller.count({ where });
+
+    const sellersWithProductCount = sellers.map((seller: SellerWithProducts) => ({
       ...seller,
       productsCount: seller.products.length,
       products: undefined,

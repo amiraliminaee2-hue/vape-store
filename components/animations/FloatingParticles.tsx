@@ -41,15 +41,18 @@ export default function FloatingParticles() {
     ];
 
     // Initialize particles
-    particlesRef.current = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2.5 + 0.5,
-      speedX: (Math.random() - 0.5) * 0.4,
-      speedY: (Math.random() - 0.5) * 0.4,
-      opacity: Math.random() * 0.5 + 0.1,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    }));
+    particlesRef.current = Array.from({ length: 60 }, () => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2.5 + 0.5,
+        speedX: (Math.random() - 0.5) * 0.4,
+        speedY: (Math.random() - 0.5) * 0.4,
+        opacity: Math.random() * 0.5 + 0.1,
+        color: color || "#8b5cf6",
+      };
+    });
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

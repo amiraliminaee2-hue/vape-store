@@ -47,6 +47,8 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   ERROR: { label: "خطا", color: "bg-red-600/20 text-red-500" },
 };
 
+const defaultStatus = { label: "نامشخص", color: "bg-gray-500/20 text-gray-400" };
+
 export default function InvoiceViewer({ 
   data, 
   showPrintButton = true,
@@ -180,53 +182,25 @@ export default function InvoiceViewer({
   };
 
   const handleDownloadPDF = async () => {
-  try {
-    const response = await fetch(
-      `/api/orders/${data.id}/invoice`
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        "خطا در دریافت فاکتور"
-      );
+    try {
+      const response = await fetch(`/api/orders/${data.id}/invoice`);
+      if (!response.ok) {
+        throw new Error("خطا در دریافت فاکتور");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${data.trackingNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Invoice Download Error:", error);
+      alert("خطا در دانلود فاکتور");
     }
-
-    const blob =
-      await response.blob();
-
-    const url =
-      window.URL.createObjectURL(
-        blob
-      );
-
-    const a =
-      document.createElement("a");
-
-    a.href = url;
-
-    a.download =
-      `invoice-${data.trackingNumber}.pdf`;
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-    window.URL.revokeObjectURL(
-      url
-    );
-  } catch (error) {
-    console.error(
-      "Invoice Download Error:",
-      error
-    );
-
-    alert(
-      "خطا در دانلود فاکتور"
-    );
-  }
-};
+  };
 
   const persianDate = new Date(data.createdAt).toLocaleDateString("fa-IR", {
     year: "numeric",
@@ -236,7 +210,7 @@ export default function InvoiceViewer({
     minute: "2-digit",
   });
 
-  const statusInfo = statusLabels[data.status] || statusLabels.REGISTERED;
+  const statusInfo = statusLabels[data.status] || defaultStatus;
 
   const logoSrc = "/logo.png";
 

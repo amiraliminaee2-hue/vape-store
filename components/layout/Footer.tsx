@@ -28,7 +28,7 @@ export default function Footer() {
               درباره ما
             </h3>
             <p className="text-zinc-500 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto sm:mx-0">
-              {settings.about_us_text || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد"}
+              {settings["about_us_text"] || "پاد بوشهر | فروشگاه تخصصی ویپ و پاد"}
             </p>
           </div>
 
@@ -40,19 +40,19 @@ export default function Footer() {
             <ul className="space-y-2 text-xs sm:text-sm text-zinc-500">
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>📞</span>
-                <span>{settings.site_phone || "۰۷۷-۳۲۳۵۹۶۷۸"}</span>
+                <span>{settings["site_phone"] || "۰۷۷-۳۲۳۵۹۶۷۸"}</span>
               </li>
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>✉️</span>
-                <span className="break-all">{settings.site_email || "info@padbushehr.ir"}</span>
+                <span className="break-all">{settings["site_email"] || "info@padbushehr.ir"}</span>
               </li>
               <li className="flex items-start justify-center sm:justify-start gap-2">
                 <span>📍</span>
-                <span className="break-words">{settings.site_address || "بوشهر، خیابان انقلاب"}</span>
+                <span className="break-words">{settings["site_address"] || "بوشهر، خیابان انقلاب"}</span>
               </li>
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>🕒</span>
-                <span>{settings.working_hours || "شنبه تا پنجشنبه ۱۰ صبح تا ۸ شب"}</span>
+                <span>{settings["working_hours"] || "شنبه تا پنجشنبه ۱۰ صبح تا ۸ شب"}</span>
               </li>
             </ul>
           </div>
@@ -92,9 +92,9 @@ export default function Footer() {
               شبکه‌های اجتماعی
             </h3>
             <div className="flex justify-center sm:justify-start gap-3 flex-wrap">
-              {settings.instagram_url && (
+              {settings["instagram_url"] && (
                 <a
-                  href={settings.instagram_url}
+                  href={settings["instagram_url"]}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-tr hover:from-pink-500 hover:to-orange-500 transition-all text-lg sm:text-xl hover:scale-110"
@@ -103,9 +103,9 @@ export default function Footer() {
                   📸
                 </a>
               )}
-              {settings.telegram_url && (
+              {settings["telegram_url"] && (
                 <a
-                  href={settings.telegram_url}
+                  href={settings["telegram_url"]}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-blue-500/20 hover:text-blue-400 transition-all text-lg sm:text-xl hover:scale-110"
@@ -114,9 +114,9 @@ export default function Footer() {
                   ✈️
                 </a>
               )}
-              {settings.rubika_url && (
+              {settings["rubika_url"] && (
                 <a
-                  href={settings.rubika_url}
+                  href={settings["rubika_url"]}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-purple-500/20 hover:text-purple-400 transition-all text-lg sm:text-xl hover:scale-110"
@@ -125,9 +125,9 @@ export default function Footer() {
                   💬
                 </a>
               )}
-              {settings.whatsapp_url && (
+              {settings["whatsapp_url"] && (
                 <a
-                  href={settings.whatsapp_url}
+                  href={settings["whatsapp_url"]}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-green-500/20 hover:text-green-400 transition-all text-lg sm:text-xl hover:scale-110"
@@ -142,7 +142,7 @@ export default function Footer() {
 
         {/* کپی‌رایت */}
         <div className="pt-6 md:pt-8 border-t border-white/10 text-center text-zinc-500 text-xs sm:text-sm">
-          {settings.footer_text || "© ۱۴۰۳ پاد بوشهر. تمامی حقوق محفوظ است."}
+          {settings["footer_text"] || "© ۱۴۰۳ پاد بوشهر. تمامی حقوق محفوظ است."}
         </div>
       </div>
     </footer>

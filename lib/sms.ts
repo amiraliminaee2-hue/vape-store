@@ -6,19 +6,19 @@ interface SMSParams {
 }
 
 // تنظیمات سرویس پیامکی (ملی پیامک)
-const MELI_PAYAMAK_USERNAME = process.env.MELI_PAYAMAK_USERNAME;
-const MELI_PAYAMAK_PASSWORD = process.env.MELI_PAYAMAK_PASSWORD;
-const MELI_PAYAMAK_FROM = process.env.MELI_PAYAMAK_FROM; // شماره خط اختصاصی
+const MELI_PAYAMAK_USERNAME = process.env["MELI_PAYAMAK_USERNAME"];
+const MELI_PAYAMAK_PASSWORD = process.env["MELI_PAYAMAK_PASSWORD"];
+const MELI_PAYAMAK_FROM = process.env["MELI_PAYAMAK_FROM"]; // شماره خط اختصاصی
 
 // تنظیمات کاوه‌نگار
-const KAVENEGAR_API_KEY = process.env.KAVENEGAR_API_KEY;
-const KAVENEGAR_FROM = process.env.KAVENEGAR_FROM;
+const KAVENEGAR_API_KEY = process.env["KAVENEGAR_API_KEY"];
+const KAVENEGAR_FROM = process.env["KAVENEGAR_FROM"];
 
 export async function sendSMS(params: SMSParams): Promise<boolean> {
   const { to, message } = params;
   
   // انتخاب سرویس بر اساس متغیر محیطی
-  const provider = process.env.SMS_PROVIDER || "melipayamak";
+  const provider = process.env["SMS_PROVIDER"] || "melipayamak";
   
   try {
     if (provider === "melipayamak") {
@@ -90,7 +90,7 @@ export async function sendOrderStatusSMS(phone: string, orderId: number, status:
 
 // تابع کمکی برای ارسال پیامک به ادمین
 export async function sendAdminNotificationSMS(orderId: number, totalPrice: number, userName: string) {
-  const adminPhone = process.env.ADMIN_PHONE;
+  const adminPhone = process.env["ADMIN_PHONE"];
   if (!adminPhone) return false;
   
   const message = `🆕 سفارش جدید! \nشماره: ${orderId}\nمشتری: ${userName}\nمبلغ: ${totalPrice.toLocaleString("fa-IR")} تومان\nلطفاً برای بررسی وارد پنل ادمین شوید.`;
