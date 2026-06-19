@@ -20,6 +20,16 @@ interface UserWhereInput {
   }>;
 }
 
+interface UserProfile {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  isBanned: boolean;
+  createdAt: Date;
+  [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -70,7 +80,7 @@ export async function GET(request: NextRequest) {
     const total = await prisma.userProfile.count({ where });
 
     const usersWithStats = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: UserProfile) => {
         const ordersCount = await prisma.order.count({
           where: { userId: user.userId },
         });
