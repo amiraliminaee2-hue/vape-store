@@ -58,6 +58,24 @@ interface Product {
   }>;
 }
 
+// تعریف interface برای SimilarProduct
+interface SimilarProduct {
+  id: number;
+  title: string;
+  slug: string;
+  price: number;
+  discountPercent: number;
+  images: string[];
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const prisma = await getPrisma();
   const { slug } = await params;
@@ -164,7 +182,7 @@ export default async function ProductPage({ params }: PageProps) {
     include: {
       category: true,
     },
-  });
+  }) as SimilarProduct[];
 
   // تبدیل تصاویر به WebP
   const processImageUrl = (url: string) => {
@@ -343,7 +361,7 @@ export default async function ProductPage({ params }: PageProps) {
           <div>
             <h2 className="text-2xl font-bold mb-6">محصولات مشابه</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {similarProducts.map((similar) => {
+              {similarProducts.map((similar: SimilarProduct) => {
                 const similarDiscountedPrice = similar.discountPercent > 0
                   ? similar.price - (similar.price * similar.discountPercent / 100)
                   : similar.price;
