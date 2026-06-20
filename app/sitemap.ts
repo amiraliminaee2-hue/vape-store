@@ -3,6 +3,12 @@ import { MetadataRoute } from "next";
 
 export const dynamic = 'force-dynamic';
 
+// تعریف interface برای Product
+interface Product {
+  id: number;
+  updatedAt: Date;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://vapestore.ir";
 
@@ -14,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       id: true,
       updatedAt: true,
     },
-  });
+  }) as Product[];
 
   // صفحات استاتیک
   const staticPages = [
@@ -51,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // صفحات محصولات
-  const productPages = products.map((product) => ({
+  const productPages = products.map((product: Product) => ({
     url: `${baseUrl}/product/${product.id}`,
     lastModified: product.updatedAt,
     changeFrequency: "weekly" as const,
