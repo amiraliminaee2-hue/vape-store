@@ -7,11 +7,47 @@ import Hero from "../components/sections/Hero";
 import Footer from "../components/layout/Footer";
 import ProductSlider from "../components/sections/ProductSlider";
 
+// تعریف interface برای Setting
+interface Setting {
+  id: number;
+  key: string;
+  value: string;
+  type: string;
+  group: string;
+  label: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// تعریف interface برای Product با فیلدهای مورد نیاز
+interface Product {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  discountPercent: number;
+  stock: number;
+  images: string[];
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  showInBestSelling: boolean;
+  showInFeatured: boolean;
+  showInPermanent: boolean;
+  showInDisposable: boolean;
+  showInPacks: boolean;
+  showInGirls: boolean;
+  showInLiquids: boolean;
+}
+
 async function getSettings() {
   const prisma = await getPrisma();
-  const settings = await prisma.setting.findMany();
+  const settings = await prisma.setting.findMany() as Setting[];
   const settingsMap: Record<string, string> = {};
-  settings.forEach((s) => {
+  settings.forEach((s: Setting) => {
     settingsMap[s.key] = s.value;
   });
   return settingsMap;
@@ -34,7 +70,7 @@ async function getProducts() {
       where: { isActive: true, discountPercent: { gt: 0 } },
       take: 20,
       orderBy: { discountPercent: "desc" },
-    }),
+    }) as unknown as Product[],
     
     // ✅ پرفروش‌ترین محصولات (بر اساس تعداد سفارش) + مدیریت دستی
     prisma.product.findMany({
@@ -45,43 +81,43 @@ async function getProducts() {
           _count: "desc",
         },
       },
-    }),
+    }) as unknown as Product[],
     
     // ✅ بهترین‌های فروشگاه (مدیریت دستی در ادمین)
     prisma.product.findMany({
       where: { isActive: true, showInFeatured: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
     
     // ⚡ پاد دائمی (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInPermanent: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
     
     // 🔄 یکبار مصرف (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInDisposable: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
     
     // 📦 پک‌ها (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInPacks: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
     
     // 💖 محصولات دخترونه (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInGirls: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
     
     // 🧪 لیکوئیدها و سالت‌ها (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInLiquids: true },
       take: 20,
-    }),
+    }) as unknown as Product[],
   ]);
 
   return {
