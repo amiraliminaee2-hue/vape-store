@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
+// تعریف interface برای Setting
+interface Setting {
+  id: number;
+  key: string;
+  value: string;
+  type: string;
+  group: string;
+  label: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const prisma = await getPrisma();
@@ -12,11 +24,11 @@ export async function GET(req: NextRequest) {
     const settings = await prisma.setting.findMany({
       where,
       orderBy: { key: "asc" },
-    });
+    }) as Setting[];
 
     // تبدیل به فرمت key-value
     const settingsMap: Record<string, string> = {};
-    settings.forEach((s) => {
+    settings.forEach((s: Setting) => {
       settingsMap[s.key] = s.value;
     });
 
