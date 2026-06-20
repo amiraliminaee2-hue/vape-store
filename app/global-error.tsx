@@ -1,11 +1,13 @@
 "use client";
 
-export default function GlobalError({
-  reset,
-}: {
+interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}
+
+export default function GlobalError({
+  reset,
+}: GlobalErrorProps) {
   return (
     <html>
       <body>

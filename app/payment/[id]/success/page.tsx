@@ -12,6 +12,28 @@ interface Props {
   }>;
 }
 
+// تعریف interface برای Order
+interface Order {
+  id: number;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  address: string;
+  phone: string;
+  totalPrice: number;
+  status: string;
+  trackingNumber: string;
+  couponCode: string | null;
+  discountAmount: number;
+  shippingMethodId: number | null;
+  paymentMethodId: number | null;
+  shippingPrice: number;
+  customerNote: string | null;
+  adminNote: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default async function SuccessPage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -26,7 +48,7 @@ export default async function SuccessPage({ params }: Props) {
     where: {
       id: Number(id),
     },
-  });
+  }) as Order | null;
 
   if (!order) {
     redirect("/");

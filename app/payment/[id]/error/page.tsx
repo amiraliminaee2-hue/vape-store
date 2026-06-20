@@ -17,7 +17,6 @@ export default async function ErrorPage({
     where: {
       id: Number(id),
     },
-
     data: {
       status: "ERROR",
     },

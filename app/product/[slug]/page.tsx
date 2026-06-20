@@ -13,6 +13,51 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// تعریف interface برای Product
+interface Product {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  discountPercent: number;
+  stock: number;
+  images: string[];
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  specs: Array<{
+    id: number;
+    key: string;
+    value: string;
+    productId: number;
+  }>;
+  comments: Array<{
+    id: number;
+    userName: string;
+    rating: number;
+    content: string;
+    createdAt: Date;
+    userId: string;
+    productId: number;
+    status: string;
+    user: {
+      name: string | null;
+      email: string | null;
+    } | null;
+  }>;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const prisma = await getPrisma();
   const { slug } = await params;
@@ -76,7 +121,7 @@ export default async function ProductPage({ params }: PageProps) {
           },
         },
       },
-    });
+    }) as Product | null;
   } else {
     product = await prisma.product.findFirst({
       where: {
@@ -96,7 +141,7 @@ export default async function ProductPage({ params }: PageProps) {
           },
         },
       },
-    });
+    }) as Product | null;
   }
 
   if (!product) {

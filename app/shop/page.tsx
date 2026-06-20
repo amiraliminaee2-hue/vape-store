@@ -48,7 +48,7 @@ const CATEGORY_OPTIONS = [
 // Get min and max price from products
 const getPriceRange = (products: Product[]) => {
   if (products.length === 0) return { min: 0, max: 10000000 };
-  const prices = products.map(p => p.price);
+  const prices = products.map((p: Product) => p.price);
   return {
     min: Math.min(...prices),
     max: Math.max(...prices),
@@ -190,7 +190,7 @@ export default function ShopPage() {
     );
   }, [products, loading]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSearch(searchInput);
   };
@@ -233,7 +233,7 @@ export default function ShopPage() {
               <input
                 type="text"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
                 placeholder="جستجوی محصول..."
                 className="
                   flex-1 sm:flex-initial
@@ -297,7 +297,7 @@ export default function ShopPage() {
             {/* Sort - ریسپانسیو */}
             <select
               value={sort}
-              onChange={(e) => handleSortChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSortChange(e.target.value)}
               className="
                 px-4 sm:px-5 py-2.5 sm:py-3
                 rounded-full
@@ -367,7 +367,7 @@ export default function ShopPage() {
               </p>
             </div>
           ) : (
-            products.map((product) => (
+            products.map((product: Product) => (
               <div key={product.id} className="product-card-item">
                 <ProductCard
                   id={product.id}

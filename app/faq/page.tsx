@@ -58,7 +58,7 @@ export default function FAQPage() {
           </h1>
 
           <div className="space-y-4">
-            {faqs.map((faq, index) => (
+            {faqs.map((faq: FAQItem, index: number) => (
               <div
                 key={index}
                 className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden"

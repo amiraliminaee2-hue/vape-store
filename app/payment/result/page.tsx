@@ -63,7 +63,7 @@ export default function PaymentResultPage() {
                 <p className="text-sm text-zinc-500 mb-4">شماره تراکنش: {refId}</p>
               )}
               <Link
-                href={orderId ? `/account/orders/${orderId}` : "/account/orders"}
+                href={orderId ? `/dashboard/orders/${orderId}` : "/dashboard/orders"}
                 className="inline-block px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition-colors"
               >
                 مشاهده سفارش

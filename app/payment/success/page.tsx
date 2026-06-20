@@ -3,12 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function SuccessPage() {
-  const [loading, setLoading] =
-    useState(true);
+// تعریف interface برای CartItem
+interface CartItem {
+  productId?: number;
+  id: number;
+  quantity: number;
+}
 
-  const [orderId, setOrderId] =
-    useState<number | null>(null);
+export default function SuccessPage() {
+  const [loading, setLoading] = useState(true);
+  const [orderId, setOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     const createOrder = async () => {
@@ -17,7 +21,7 @@ export default function SuccessPage() {
           localStorage.getItem(
             "checkout-cart"
           ) || "[]"
-        );
+        ) as CartItem[];
 
         if (!cart.length) {
           setLoading(false);
@@ -28,29 +32,20 @@ export default function SuccessPage() {
           "/api/orders",
           {
             method: "POST",
-
             headers: {
               "Content-Type":
                 "application/json",
             },
-
             body: JSON.stringify({
               address:
                 "آدرس تستی مشتری",
-
               phone:
                 "09120000000",
-
               items: cart.map(
-                (item: {
-                  productId?: number;
-                  id: number;
-                  quantity: number;
-                }) => ({
+                (item: CartItem) => ({
                   productId:
                     item.productId ??
                     item.id,
-
                   quantity:
                     item.quantity,
                 })
@@ -84,7 +79,6 @@ export default function SuccessPage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-
         {loading ? (
           <>
             <h1 className="text-4xl font-bold">
@@ -123,7 +117,6 @@ export default function SuccessPage() {
             </Link>
           </>
         )}
-
       </div>
     </main>
   );

@@ -3,9 +3,7 @@ import Link from "next/link";
 export default function FailedPage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
-
       <div className="text-center">
-
         <h1 className="text-5xl font-bold text-red-400">
           پرداخت ناموفق
         </h1>
@@ -26,9 +24,7 @@ export default function FailedPage() {
         >
           بازگشت به سبد خرید
         </Link>
-
       </div>
-
     </main>
   );
 }
