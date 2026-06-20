@@ -3,6 +3,33 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
+// تعریف interface برای WishlistItem با Product
+interface WishlistItemWithProduct {
+  id: number;
+  userId: string;
+  productId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  product: {
+    id: number;
+    title: string;
+    price: number;
+    stock: number;
+    images: string[];
+    isFeatured: boolean;
+    slug: string;
+  };
+}
+
+// تعریف interface برای User
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -30,7 +57,7 @@ export async function GET() {
         },
       },
       orderBy: { createdAt: "desc" },
-    });
+    }) as WishlistItemWithProduct[];
 
     return NextResponse.json(items);
   } catch (error) {
@@ -59,7 +86,7 @@ export async function POST(request: NextRequest) {
     // ✅ بررسی وجود کاربر در دیتابیس
     let user = await prisma.user.findUnique({
       where: { id: userId },
-    });
+    }) as User | null;
 
     // اگر کاربر وجود نداشت، ایجادش کن
     if (!user) {
@@ -70,7 +97,7 @@ export async function POST(request: NextRequest) {
           email: sessionUser.email || `user-${userId}@temp.com`,
           name: sessionUser.name || "کاربر",
         },
-      });
+      }) as User;
       console.log("✅ User created in database:", user.id);
     }
 

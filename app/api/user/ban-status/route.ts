@@ -3,6 +3,22 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
+// تعریف interface برای UserProfile
+interface UserProfile {
+  id: number;
+  userId: string;
+  isBanned: boolean;
+  banExpiry: Date | null;
+  bannedAt: Date | null;
+  banReason: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  address: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -16,8 +32,12 @@ export async function GET() {
 
     const profile = await prisma.userProfile.findUnique({
       where: { userId: session.user.id },
-      select: { isBanned: true, banExpiry: true },
-    });
+      select: { 
+        isBanned: true, 
+        banExpiry: true 
+      },
+    }) as Pick<UserProfile, 'isBanned' | 'banExpiry'> | null;
+    
     console.log("Profile found:", profile);
 
     if (!profile) {
@@ -28,7 +48,12 @@ export async function GET() {
     if (profile.banExpiry && new Date(profile.banExpiry) <= new Date()) {
       await prisma.userProfile.update({
         where: { userId: session.user.id },
-        data: { isBanned: false, banExpiry: null, bannedAt: null, banReason: null },
+        data: { 
+          isBanned: false, 
+          banExpiry: null, 
+          bannedAt: null, 
+          banReason: null 
+        },
       });
       isBanned = false;
     }
