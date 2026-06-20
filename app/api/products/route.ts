@@ -35,6 +35,40 @@ interface ProductWhereInput {
   }>;
 }
 
+// تعریف interface برای Product با تمام فیلدهای مورد نیاز
+interface ProductWithComments {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  discountPercent: number | null;
+  stock: number;
+  images: string[];
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null;
+  specs: Array<{
+    id: number;
+    key: string;
+    value: string;
+    productId: number;
+  }>;
+  comments: Array<{
+    rating: number;
+  }>;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const prisma = await getPrisma();
@@ -127,15 +161,15 @@ export async function GET(request: NextRequest) {
           select: { rating: true },
         },
       },
-    });
+    }) as ProductWithComments[];
 
     const total = await prisma.product.count({ where });
 
     // Transform products to include average rating
-    const productsWithRating = products.map((product) => {
-      const ratings = product.comments.map((c) => c.rating);
+    const productsWithRating = products.map((product: ProductWithComments) => {
+      const ratings = product.comments.map((c: { rating: number }) => c.rating);
       const averageRating = ratings.length > 0
-        ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+        ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
         : 0;
       
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
