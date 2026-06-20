@@ -8,11 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
     "type-check": "tsc --noEmit --skipLibCheck false",
-    "type-check-fast": "tsc --noEmit | findstr /i \"error TS\"",
-    "type-check-save": "tsc --noEmit > errors.txt 2>&1",
-    "build-check": "npm run build 2>&1 | tee build-errors.txt"
+    "type-check-save": "tsc --noEmit > errors.txt 2>&1"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
