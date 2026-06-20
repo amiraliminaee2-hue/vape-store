@@ -5,6 +5,14 @@ import { getPrisma } from "@/lib/prisma";
 import { orderCreateSchema } from "@/lib/validations/schemas";
 import { sendOrderConfirmationSMS, sendAdminNotificationSMS } from "@/lib/sms";
 
+// تعریف interface برای Product در بالای فایل
+interface Product {
+  id: number;
+  title: string;
+  stock: number;
+  price: number;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -121,10 +129,10 @@ export async function POST(request: NextRequest) {
           in: items.map((i: { productId: number }) => i.productId),
         },
       },
-    });
+    }) as Product[];
 
     for (const item of items) {
-      const product = products.find((p) => p.id === item.productId);
+      const product = products.find((p: Product) => p.id === item.productId);
 
       if (!product) {
         return NextResponse.json(
@@ -222,7 +230,7 @@ export async function POST(request: NextRequest) {
         shippingPrice: shippingPrice || 0,
         items: {
           create: items.map((item: { productId: number; quantity: number }) => {
-            const product = products.find((p) => p.id === item.productId)!;
+            const product = products.find((p: Product) => p.id === item.productId)!;
             return {
               productId: product.id,
               quantity: item.quantity,
