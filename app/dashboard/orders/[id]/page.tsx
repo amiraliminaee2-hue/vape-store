@@ -57,7 +57,11 @@ interface Order {
   items: OrderItem[];
 }
 
-export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+interface PageParams {
+  params: Promise<{ id: string }>;
+}
+
+export default function OrderDetailsPage({ params }: PageParams) {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -213,7 +217,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         </div>
 
         <div className="divide-y divide-white/10">
-          {order.items.map((item) => (
+          {order.items.map((item: OrderItem) => (
             <div
               key={item.id}
               className="p-6 flex justify-between items-center"

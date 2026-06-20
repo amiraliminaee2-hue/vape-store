@@ -50,8 +50,12 @@ export default function WishlistPage() {
   const handleRemove = async (productId: number) => {
     try {
       setRemovingId(productId);
-      await fetch("/api/wishlist/" + productId, { method: "DELETE" });
-      await loadWishlist();
+      const res = await fetch(`/api/wishlist/${productId}`, { method: "DELETE" });
+      if (res.ok) {
+        await loadWishlist();
+      } else {
+        console.error("Failed to remove item");
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -122,7 +126,7 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {items.map((item) => (
+          {items.map((item: WishlistItem) => (
             <div
               key={item.id}
               className="
@@ -141,7 +145,7 @@ export default function WishlistPage() {
                   </span>
                 )}
 
-                <Link href={"/product/" + item.product.id}>
+                <Link href={`/product/${item.product.id}`}>
                   <h3 className="text-xl font-bold hover:text-violet-400 transition-colors">
                     {item.product.title}
                   </h3>

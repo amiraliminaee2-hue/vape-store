@@ -4,6 +4,40 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 
+// تعریف interface برای OrderItem
+interface OrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  quantity: number;
+  price: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// تعریف interface برای Order (بدون فیلدهای اضافی)
+interface Order {
+  id: number;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  address: string;
+  phone: string;
+  totalPrice: number;
+  status: string;
+  trackingNumber: string;
+  couponCode: string | null;
+  discountAmount: number;
+  shippingMethodId: number | null;
+  paymentMethodId: number | null;
+  shippingPrice: number;
+  customerNote: string | null;
+  adminNote: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  items: OrderItem[];
+}
+
 const statusLabels: Record<
   string,
   string
@@ -47,20 +81,17 @@ export default async function OrdersPage() {
 
   const userId = session.user.id;
 
-  const orders =
-    await prisma.order.findMany({
-      where: {
-        userId,
-      },
-
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      include: {
-        items: true,
-      },
-    });
+  const orders = await prisma.order.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      items: true,
+    },
+  }) as unknown as Order[];
 
   return (
     <div className="max-w-7xl mx-auto p-10">
@@ -89,7 +120,7 @@ export default async function OrdersPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {orders.map((order) => (
+          {orders.map((order: Order) => (
             <Link
               key={order.id}
               href={`/dashboard/orders/${order.id}`}

@@ -3,6 +3,15 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 
+// تعریف interface برای Order
+interface Order {
+  id: number;
+  trackingNumber: string;
+  status: string;
+  totalPrice: number;
+  createdAt: Date;
+}
+
 const statusLabels: Record<string, string> = {
   REGISTERED: "سفارش شما ثبت شد",
   PAYED: "پرداخت سفارش تأیید شد",
@@ -53,7 +62,7 @@ export default async function NotificationsPage() {
       totalPrice: true,
       createdAt: true,
     },
-  });
+  }) as Order[];
 
   return (
     <main className="max-w-4xl mx-auto p-10">
@@ -76,7 +85,7 @@ export default async function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => (
+          {orders.map((order: Order) => (
             <div
               key={order.id}
               className={
