@@ -6,16 +6,15 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "postinstall": "npx prisma generate",
-    "prisma:generate": "node_modules/.bin/prisma generate",
-    "prisma:migrate": "node_modules/.bin/prisma migrate deploy",
-    "type-check": "tsc --noEmit --skipLibCheck false",
-    "type-check-save": "tsc --noEmit > errors.txt 2>&1"
-  },
+  "dev": "next dev",
+  "build": "prisma generate && next build",
+  "start": "next start",
+  "lint": "eslint",
+  "prisma:generate": "node_modules/.bin/prisma generate",
+  "prisma:migrate": "node_modules/.bin/prisma migrate deploy",
+  "type-check": "tsc --noEmit --skipLibCheck false",
+  "type-check-save": "tsc --noEmit > errors.txt 2>&1"
+},
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@prisma/adapter-pg": "6.19.3",
