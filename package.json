@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "npx prisma generate",
     "prisma:generate": "node_modules/.bin/prisma generate",
     "prisma:migrate": "node_modules/.bin/prisma migrate deploy",
     "type-check": "tsc --noEmit --skipLibCheck false",
