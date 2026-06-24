@@ -2,12 +2,9 @@
   "name": "vape-store",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-  "node": ">=22.13.0"
-},
   "scripts": {
   "dev": "next dev",
-  "build": "prisma generate && next build",
+  "build": "next build",
   "start": "next start",
   "lint": "eslint",
   "prisma:generate": "node_modules/.bin/prisma generate",
