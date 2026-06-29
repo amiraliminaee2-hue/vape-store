@@ -4,8 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url از prisma.config.ts خوانده می‌شود - این خط فقط برای سازگاری با ابزارهایی مثل
-  // Prisma Studio در صورتی که prisma.config.ts را نخوانند باقی می‌ماند
   url      = env("DATABASE_URL")
 }
 
@@ -21,36 +19,34 @@ model Category {
 }
 
 model Product {
-  id              Int      @id @default(autoincrement())
-  title           String
-  slug            String   @unique
-  description     String
-  price           Int
-  discountPercent Int      @default(0) @map("discount_percent")
-  stock           Int      @default(0)
-  images          String[]
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  categoryId      Int
-  sellerId        String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  showInBestSelling Boolean @default(false) @map("show_in_best_selling")
-  showInFeatured    Boolean @default(false) @map("show_in_featured")
-  showInPermanent   Boolean @default(false) @map("show_in_permanent")
-  showInDisposable  Boolean @default(false) @map("show_in_disposable")
-  showInPacks       Boolean @default(false) @map("show_in_packs")
-  showInGirls       Boolean @default(false) @map("show_in_girls")
-  showInLiquids     Boolean @default(false) @map("show_in_liquids")
-
-  orderItems    OrderItem[]
-  category      Category       @relation(fields: [categoryId], references: [id])
-  specs         ProductSpec[]
-  cartItems     CartItem[]
-  wishlistItems WishlistItem[]
-  comments      Comment[]
-  seller        Seller?        @relation(fields: [sellerId], references: [id])
+  id                Int            @id @default(autoincrement())
+  title             String
+  slug              String         @unique
+  description       String
+  price             Int
+  stock             Int            @default(0)
+  images            String[]
+  isActive          Boolean        @default(true)
+  isFeatured        Boolean        @default(false)
+  categoryId        Int
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  discountPercent   Int            @default(0) @map("discount_percent")
+  sellerId          String?
+  showInBestSelling Boolean        @default(false) @map("show_in_best_selling")
+  showInDisposable  Boolean        @default(false) @map("show_in_disposable")
+  showInFeatured    Boolean        @default(false) @map("show_in_featured")
+  showInGirls       Boolean        @default(false) @map("show_in_girls")
+  showInLiquids     Boolean        @default(false) @map("show_in_liquids")
+  showInPacks       Boolean        @default(false) @map("show_in_packs")
+  showInPermanent   Boolean        @default(false) @map("show_in_permanent")
+  cartItems         CartItem[]
+  comments          Comment[]
+  orderItems        OrderItem[]
+  category          Category       @relation(fields: [categoryId], references: [id])
+  seller            Seller?        @relation(fields: [sellerId], references: [id])
+  specs             ProductSpec[]
+  wishlistItems     WishlistItem[]
 }
 
 model ProductSpec {
@@ -61,12 +57,6 @@ model ProductSpec {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-enum CommentStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
@@ -75,16 +65,6 @@ model OrderItem {
   price     Int
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
-}
-
-enum OrderStatus {
-  REGISTERED
-  PAYED
-  ERROR
-  PROCESSING
-  SHIPPING
-  SHIPPED
-  CANCELLED
 }
 
 model Cart {
@@ -119,50 +99,46 @@ model Setting {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String?  @unique
-  phone     String?  @unique
+  id        String         @id @default(cuid())
+  email     String?        @unique
   password  String?
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orders   Order[]        @relation("UserOrders")
-  comments Comment[]      @relation("UserComments")
-  wishlist WishlistItem[] @relation("UserWishlist")
-  profile  UserProfile?   @relation("UserProfile")
-  seller   Seller?
-  pages    Page[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  phone     String?        @unique
+  comments  Comment[]      @relation("UserComments")
+  orders    Order[]        @relation("UserOrders")
+  seller    Seller?
+  profile   UserProfile?   @relation("UserProfile")
+  wishlist  WishlistItem[] @relation("UserWishlist")
+  pages     Page[]
 }
 
 model Order {
-  id             Int         @id @default(autoincrement())
-  trackingNumber String      @unique
-  transactionId  String?
-  userId         String
-  userName       String
-  userEmail      String
-  address        String
-  phone          String
-  customerNote   String?
-  adminNote      String?
-  totalPrice     Int
-  status         OrderStatus @default(REGISTERED)
-  createdAt      DateTime    @default(now())
-
-  couponId       Int?    @map("coupon_id")
-  couponCode     String? @map("coupon_code")
-  discountAmount Int     @default(0) @map("discount_amount")
-
-  shippingMethodId Int?
+  id               Int             @id @default(autoincrement())
+  trackingNumber   String          @unique
+  transactionId    String?
+  userId           String
+  userName         String
+  userEmail        String
+  address          String
+  phone            String
+  customerNote     String?
+  adminNote        String?
+  totalPrice       Int
+  status           OrderStatus     @default(REGISTERED)
+  createdAt        DateTime        @default(now())
+  couponId         Int?            @map("coupon_id")
+  couponCode       String?         @map("coupon_code")
+  discountAmount   Int             @default(0) @map("discount_amount")
   paymentMethodId  Int?
-  shippingPrice    Int @default(0)
-
-  items          OrderItem[]
-  user           User            @relation("UserOrders", fields: [userId], references: [id])
-  coupon         Coupon?         @relation(fields: [couponId], references: [id])
-  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
-  paymentMethod  PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  shippingMethodId Int?
+  shippingPrice    Int             @default(0)
+  coupon           Coupon?         @relation(fields: [couponId], references: [id])
+  paymentMethod    PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  shippingMethod   ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+  user             User            @relation("UserOrders", fields: [userId], references: [id])
+  items            OrderItem[]
 
   @@map("Order")
 }
@@ -193,18 +169,17 @@ model WishlistItem {
 }
 
 model UserProfile {
-  id        Int       @id @default(autoincrement())
-  userId    String    @unique
-  firstName String?
-  lastName  String?
-  phone     String?
-  isBanned  Boolean   @default(false)
-  banReason String?
-  bannedAt  DateTime?
-  banExpiry DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
+  id             Int            @id @default(autoincrement())
+  userId         String         @unique
+  firstName      String?
+  lastName       String?
+  phone          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  banReason      String?
+  isBanned       Boolean        @default(false)
+  banExpiry      DateTime?
+  bannedAt       DateTime?
   savedAddresses SavedAddress[]
   user           User           @relation("UserProfile", fields: [userId], references: [id])
 }
@@ -217,13 +192,6 @@ model SavedAddress {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   profile   UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
-}
-
-enum SellerStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
 }
 
 model Seller {
@@ -242,12 +210,137 @@ model Seller {
   totalEarned Int          @default(0)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-
-  user     User      @relation(fields: [userId], references: [id])
-  products Product[]
+  products    Product[]
+  user        User         @relation(fields: [userId], references: [id])
 
   @@index([slug])
   @@index([status])
+}
+
+model Coupon {
+  id                   Int           @id @default(autoincrement())
+  code                 String        @unique
+  type                 CouponType    @default(FIXED)
+  value                Int
+  minPurchase          Int?          @map("min_purchase")
+  maxDiscount          Int?          @map("max_discount")
+  usageLimit           Int?          @map("usage_limit")
+  usedCount            Int           @default(0) @map("used_count")
+  perUserLimit         Int?          @map("per_user_limit")
+  startDate            DateTime?     @map("start_date")
+  endDate              DateTime?     @map("end_date")
+  status               CouponStatus  @default(ACTIVE)
+  applicableProducts   Int[]         @map("applicable_products")
+  applicableCategories Int[]         @map("applicable_categories")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  orders               Order[]
+  usages               CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id       Int      @id @default(autoincrement())
+  couponId Int      @map("coupon_id")
+  orderId  Int      @map("order_id")
+  userId   String   @map("user_id")
+  discount Int
+  usedAt   DateTime @default(now()) @map("used_at")
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, orderId])
+  @@map("coupon_usages")
+}
+
+model Page {
+  id              Int        @id @default(autoincrement())
+  title           String
+  slug            String     @unique
+  content         String
+  excerpt         String?
+  image           String?
+  metaTitle       String?    @map("meta_title")
+  metaDescription String?    @map("meta_description")
+  status          PageStatus @default(DRAFT)
+  publishedAt     DateTime?  @map("published_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  authorId        String?    @map("author_id")
+  author          User?      @relation(fields: [authorId], references: [id])
+
+  @@map("pages")
+}
+
+model ShippingMethod {
+  id             Int                     @id @default(autoincrement())
+  name           String
+  code           String                  @unique
+  basePrice      Int
+  pricePerKg     Int?
+  estimatedDays  String?
+  isActive       Boolean                 @default(true)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  orders         Order[]
+  provincePrices ProvinceShippingPrice[]
+}
+
+model ProvinceShippingPrice {
+  id               Int            @id @default(autoincrement())
+  province         String
+  shippingMethodId Int
+  price            Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  shippingMethod   ShippingMethod @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
+
+  @@unique([province, shippingMethodId])
+}
+
+model PaymentMethod {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique
+  isActive  Boolean  @default(true)
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  REGISTERED
+  PAYED
+  ERROR
+  PROCESSING
+  SHIPPING
+  SHIPPED
+  CANCELLED
+}
+
+enum SellerStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
 }
 
 enum CouponType {
@@ -262,117 +355,8 @@ enum CouponStatus {
   DISABLED
 }
 
-model Coupon {
-  id                   Int          @id @default(autoincrement())
-  code                 String       @unique
-  type                 CouponType   @default(FIXED)
-  value                Int
-  minPurchase          Int?         @map("min_purchase")
-  maxDiscount          Int?         @map("max_discount")
-  usageLimit           Int?         @map("usage_limit")
-  usedCount            Int          @default(0) @map("used_count")
-  perUserLimit         Int?         @map("per_user_limit")
-  startDate            DateTime?    @map("start_date")
-  endDate              DateTime?    @map("end_date")
-  status               CouponStatus @default(ACTIVE)
-  applicableProducts   Int[]        @map("applicable_products")
-  applicableCategories Int[]        @map("applicable_categories")
-  createdAt            DateTime     @default(now()) @map("created_at")
-  updatedAt            DateTime     @updatedAt @map("updated_at")
-
-  usages CouponUsage[]
-  orders Order[]
-
-  @@map("coupons")
-}
-
-model CouponUsage {
-  id       Int      @id @default(autoincrement())
-  couponId Int      @map("coupon_id")
-  orderId  Int      @map("order_id")
-  userId   String   @map("user_id")
-  discount Int
-  usedAt   DateTime @default(now()) @map("used_at")
-
-  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
-
-  @@unique([couponId, orderId])
-  @@map("coupon_usages")
-}
-
-model Page {
-  id              Int        @id @default(autoincrement())
-  title           String
-  slug            String     @unique
-  content         String     @db.Text
-  excerpt         String?
-  image           String?
-  metaTitle       String?    @map("meta_title")
-  metaDescription String?    @map("meta_description")
-  status          PageStatus @default(DRAFT)
-  publishedAt     DateTime?  @map("published_at")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-  authorId        String?    @map("author_id")
-
-  author User? @relation(fields: [authorId], references: [id])
-
-  @@map("pages")
-}
-
 enum PageStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
-}
-
-model ShippingMethod {
-  id            Int      @id @default(autoincrement())
-  name          String
-  code          String   @unique
-  basePrice     Int
-  pricePerKg    Int?
-  estimatedDays String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  provincePrices ProvinceShippingPrice[]
-  orders         Order[]
-}
-
-model ProvinceShippingPrice {
-  id               Int      @id @default(autoincrement())
-  province         String
-  shippingMethodId Int
-  price            Int
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  shippingMethod ShippingMethod @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
-
-  @@unique([province, shippingMethodId])
-}
-
-model PaymentMethod {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  isActive  Boolean  @default(true)
-  settings  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orders Order[]
-}
-
-model Otp {
-  id        Int      @id @default(autoincrement())
-  phone     String
-  code      String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([phone])
-  @@index([expiresAt])
 }

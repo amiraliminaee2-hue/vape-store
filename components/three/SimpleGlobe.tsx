@@ -162,15 +162,15 @@ export default function SimpleGlobe() {
     const updateDimensions = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setDimensions({ width: 220, height: 220 });
+        setDimensions({ width: 320, height: 320 });
       } else if (width < 768) {
-        setDimensions({ width: 280, height: 280 });
+        setDimensions({ width: 360, height: 360 });
       } else if (width < 1024) {
-        setDimensions({ width: 380, height: 380 });
+        setDimensions({ width: 420, height: 420 });
       } else if (width < 1280) {
-        setDimensions({ width: 450, height: 450 });
+        setDimensions({ width: 500, height: 500 });
       } else {
-        setDimensions({ width: 550, height: 550 });
+        setDimensions({ width: 600, height: 600 });
       }
     };
 

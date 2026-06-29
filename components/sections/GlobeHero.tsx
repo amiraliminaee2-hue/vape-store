@@ -82,8 +82,8 @@ export default function GlobeHero() {
 
       {/* کره سه‌بعدی - ریسپانسیو */}
       <div ref={globeRef} className="relative z-0 w-full flex justify-center px-4">
-        <div className="scale-75 sm:scale-90 md:scale-100">
-          <SimpleGlobe />
+        <div className="scale-95 sm:scale-100">
+            <SimpleGlobe />
         </div>
       </div>
 

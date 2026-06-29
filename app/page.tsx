@@ -4,7 +4,6 @@ import { getPrisma } from "@/lib/prisma";
 import Navbar from "../components/layout/Navbar";
 import GlobeHero from "../components/sections/GlobeHero";
 import Hero from "../components/sections/Hero";
-import Footer from "../components/layout/Footer";
 import ProductSlider from "../components/sections/ProductSlider";
 
 // تعریف interface برای Setting
@@ -195,7 +194,6 @@ export default async function Home() {
         <ProductSlider title="💖 محصولات دخترونه" products={products.girls} />
       </div>
 
-      <Footer />
     </>
   );
 }
