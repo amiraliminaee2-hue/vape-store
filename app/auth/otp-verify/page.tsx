@@ -109,10 +109,12 @@ export default function OtpVerifyPage() {
       }
 
       // ورود با استفاده از next-auth (credentials)
-      const signInRes = await signIn("credentials", {
+      const signInRes = await signIn("phone-otp", {
         phone: data.user.phone,
         redirect: false,
       });
+
+console.log(signInRes);
 
       if (signInRes?.error) {
         setError("خطا در ورود به حساب کاربری");
