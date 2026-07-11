@@ -1,69 +1,93 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
-// تابع تولید کد تصادفی ۶ رقمی
+// تولید کد ۶ رقمی
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// تابع ارسال پیامک (با استفاده از سرویس پیامکی - فعلاً شبیه‌سازی)
+// ارسال پیامک با ملی پیامک
 async function sendSMS(phone: string, code: string): Promise<boolean> {
-  // در محیط توسعه، فقط در کنسول لاگ کن
-  if (process.env.NODE_ENV === "development") {
-    console.log(`📱 SMS to ${phone}: کد تأیید شما: ${code}`);
-    return true;
-  }
-
-  // برای محیط تولید، از سرویس پیامکی واقعی استفاده کن
-  // می‌توانی از Kavenegar، FarazSMS یا هر سرویس دیگری استفاده کنی
-  
-  // مثال با Kavenegar (نیاز به نصب پکیج و تنظیم API Key)
-  /*
   try {
-    const Kavenegar = require('kavenegar');
-    const api = Kavenegar.KavenegarApi({ apikey: process.env.KAVENEGAR_API_KEY });
-    
-    return new Promise((resolve) => {
-      api.Send({
-        message: `کد تأیید شما: ${code}`,
-        sender: process.env.SMS_SENDER_NUMBER,
-        receptor: phone,
-      }, function(response: any, status: any) {
-        if (status === 200) {
-          console.log("SMS sent successfully:", response);
-          resolve(true);
-        } else {
-          console.error("SMS sending failed:", response);
-          resolve(false);
-        }
-      });
-    });
+    const response = await fetch(
+      "https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: process.env.SMS_USERNAME,
+          // این مقدار باید API Key باشد
+          password: process.env.SMS_PASSWORD,
+          text: code,
+          to: phone,
+          bodyId: Number(process.env.SMS_BODY_ID),
+        }),
+      }
+    );
+
+    const raw = await response.text();
+
+    console.log("========== SMS RESPONSE ==========");
+    console.log(raw);
+    console.log("==================================");
+
+    // اگر پاسخ JSON بود
+    try {
+      const result = JSON.parse(raw);
+
+      if (result.RetStatus === 1) {
+        return true;
+      }
+
+      console.error("Payamak Error:", result);
+      return false;
+    } catch {
+      // اگر پاسخ XML بود
+      if (raw.includes(">15<")) return false;
+
+      if (raw.includes("-110")) {
+        console.error("خطا: API Key به درستی ارسال نشده است.");
+      } else if (raw.includes("-109")) {
+        console.error("خطا: IP مجاز تنظیم نشده است.");
+      } else if (raw.includes("-4")) {
+        console.error("خطا: BodyId صحیح نیست یا تایید نشده است.");
+      } else if (raw.includes("-1")) {
+        console.error("خطا: دسترسی وب سرویس غیرفعال است.");
+      } else {
+        console.error("Unknown Response:", raw);
+      }
+
+      return false;
+    }
   } catch (error) {
-    console.error("SMS service error:", error);
+    console.error("SMS Error:", error);
     return false;
   }
-  */
-
-  // موقتاً true برگردان (برای تست)
-  return true;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const prisma = await getPrisma();
+
     const body = await request.json();
     const { phone } = body;
 
-    // اعتبارسنجی شماره تلفن
-    const phoneRegex = /^09[0-9]{9}$/;
+    const phoneRegex = /^09\d{9}$/;
+
     if (!phone || !phoneRegex.test(phone)) {
       return NextResponse.json(
-        { error: "شماره تلفن نامعتبر است" },
-        { status: 400 }
+        {
+          error: "شماره تلفن نامعتبر است",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    // حذف کدهای قبلی منقضی شده برای این شماره
+    // حذف OTP های منقضی شده
     await prisma.otp.deleteMany({
       where: {
         phone,
@@ -73,7 +97,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // بررسی وجود کد فعال قبلی برای این شماره
+    // بررسی OTP فعال
     const existingOtp = await prisma.otp.findFirst({
       where: {
         phone,
@@ -84,20 +108,25 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingOtp) {
-      // اگر کد فعال وجود دارد، زمان انقضای آن را بگو
-      const remainingSeconds = Math.ceil((existingOtp.expiresAt.getTime() - Date.now()) / 1000);
+      const remainingSeconds = Math.ceil(
+        (existingOtp.expiresAt.getTime() - Date.now()) / 1000
+      );
+
       return NextResponse.json(
-        { 
-          error: `کد فعال قبلی仍有 ${remainingSeconds} ثانیه اعتبار دارد. لطفاً پس از انقضا مجدداً تلاش کنید`,
-          remainingSeconds 
+        {
+          error: `کد قبلی هنوز معتبر است. ${remainingSeconds} ثانیه دیگر تلاش کنید.`,
+          remainingSeconds,
         },
-        { status: 429 }
+        {
+          status: 429,
+        }
       );
     }
 
-    // تولید کد جدید
+    // تولید کد
     const otpCode = generateOTP();
-    const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 دقیقه اعتبار
+
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
 
     // ذخیره در دیتابیس
     await prisma.otp.create({
@@ -111,24 +140,34 @@ export async function POST(request: NextRequest) {
     // ارسال پیامک
     const smsSent = await sendSMS(phone, otpCode);
 
-    if (!smsSent && process.env.NODE_ENV !== "development") {
+    if (!smsSent) {
       return NextResponse.json(
-        { error: "خطا در ارسال پیامک. لطفاً مجدداً تلاش کنید" },
-        { status: 500 }
+        {
+          error: "ارسال پیامک با خطا مواجه شد.",
+        },
+        {
+          status: 500,
+        }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "کد تأیید با موفقیت ارسال شد",
-      // در محیط توسعه، کد رو برگردون (برای تست)
-      ...(process.env.NODE_ENV === "development" && { devCode: otpCode }),
+      message: "کد تایید با موفقیت ارسال شد.",
+      ...(process.env.NODE_ENV === "development" && {
+        devCode: otpCode,
+      }),
     });
   } catch (error) {
-    console.error("OTP send error:", error);
+    console.error("OTP Error:", error);
+
     return NextResponse.json(
-      { error: "خطا در ارسال کد تأیید" },
-      { status: 500 }
+      {
+        error: "خطا در ارسال کد تایید",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
