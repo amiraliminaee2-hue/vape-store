@@ -6,6 +6,7 @@ import { commentCreateSchema } from "@/lib/validations/schemas";
 import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  console.log("🔥 POST /api/comments reached");
   try {
     const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);

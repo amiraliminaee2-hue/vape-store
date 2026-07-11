@@ -21,7 +21,22 @@ export async function GET() {
       include: { savedAddresses: true },
     });
 
-    return NextResponse.json(profile ?? { userId, firstName: "", lastName: "", phone: "", savedAddresses: [] });
+    const response = NextResponse.json(
+  profile ?? {
+    userId,
+    firstName: "",
+    lastName: "",
+    phone: "",
+    savedAddresses: []
+  }
+);
+
+response.headers.set(
+  "Cache-Control",
+  "no-store, no-cache, must-revalidate"
+);
+
+return response;
   } catch (error) {
     console.error("Get profile error:", error);
     return NextResponse.json({ error: "خطا در دریافت پروفایل" }, { status: 500 });
