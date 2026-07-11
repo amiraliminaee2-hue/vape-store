@@ -6,7 +6,6 @@ import BackgroundGrid from "../components/layout/BackgroundGrid";
 import ClientLayoutWrapper from "../components/layout/ClientLayoutWrapper";
 import AuthProvider from "./providers/AuthProviders";
 import BanCheck from "@/components/auth/BanCheck";
-import Footer from "@/components/layout/Footer"; // ✅ اضافه کردن Footer
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
@@ -81,7 +80,6 @@ export default function RootLayout({
             <ClientLayoutWrapper />
             {children}
           </BanCheck>
-          <Footer /> {/* ✅ اضافه کردن Footer در layout */}
         </AuthProvider>
       </body>
     </html>

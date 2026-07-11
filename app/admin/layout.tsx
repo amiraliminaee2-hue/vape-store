@@ -24,30 +24,54 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      <div className="flex">
-        <aside
-          className="
-            w-64
-            min-h-screen
-            border-l border-white/10
-            bg-black/40
-            backdrop-blur-xl
-            fixed
-            right-0
-            top-0
-            flex
-            flex-col
-            z-50
-          "
-        >
-          <div className="p-6 border-b border-white/10">
+      <div className="flex flex-col lg:flex-row">
+            <aside
+                className="
+                  w-full
+                  lg:w-64
+                
+                  lg:min-h-screen
+                
+                  border-b
+                  lg:border-b-0
+                  lg:border-l
+                  border-white/10
+                
+                  bg-black/40
+                  backdrop-blur-xl
+                
+                  lg:fixed
+                  lg:right-0
+                  lg:top-0
+                
+                  flex
+                  flex-col
+                
+                  z-50
+                "
+                >         
+                    <div className="p-6 border-b border-white/10">
             <p className="text-xs text-zinc-500 uppercase tracking-widest">
               پنل مدیریت
             </p>
             <h2 className="mt-1 text-xl font-bold">پاد بوشهر</h2>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav
+            className="
+              flex
+              lg:flex-col
+
+              overflow-x-auto
+              lg:overflow-y-auto
+
+              gap-2
+
+              p-4
+
+              whitespace-nowrap
+            "
+            >
             <Link
               href="/admin"
               className="
@@ -349,7 +373,19 @@ export default async function AdminLayout({
           </div>
         </aside>
 
-        <main className="flex-1 mr-64 p-8 min-h-screen">{children}</main>
+        <main
+  className="
+    flex-1
+
+    lg:mr-64
+
+    p-4
+    sm:p-6
+    lg:p-8
+
+    min-h-screen
+  "
+>{children}</main>
       </div>
     </div>
   );
