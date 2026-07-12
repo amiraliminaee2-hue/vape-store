@@ -1,3 +1,4 @@
+// app/api/admin/users/[id]/ban/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -14,8 +15,9 @@ const durationHours: Record<DurationKey, number> = {
   "1m": 720,
 };
 
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -31,76 +33,83 @@ export async function POST(
 
     const prisma = await getPrisma();
     const { id } = await params;
-    const body = await _req.json();
-    const { duration, reason } = body;
+    const body = await req.json();
+    const { action, ...data } = body;
 
-    let banExpiry: Date | null = null;
+    // ============================================
+    // 1️⃣ بن کردن کاربر (BAN)
+    // ============================================
+    if (action === "ban") {
+      const { duration, reason } = data;
 
-    if (duration !== "permanent") {
-      const now = new Date();
-      const hours = durationHours[duration as DurationKey];
-      if (hours) {
-        banExpiry = new Date(now.getTime() + hours * 60 * 60 * 1000);
-      } else {
-        banExpiry = new Date(now.getTime() + 24 * 60 * 60 * 1000); // default 24h
+      let banExpiry: Date | null = null;
+
+      if (duration !== "permanent") {
+        const now = new Date();
+        const hours = durationHours[duration as DurationKey];
+        if (hours) {
+          banExpiry = new Date(now.getTime() + hours * 60 * 60 * 1000);
+        } else {
+          banExpiry = new Date(now.getTime() + 24 * 60 * 60 * 1000); // default 24h
+        }
       }
+
+      await prisma.userProfile.upsert({
+        where: { userId: id },
+        update: {
+          isBanned: true,
+          banReason: reason || "توسط ادمین",
+          bannedAt: new Date(),
+          banExpiry,
+        },
+        create: {
+          userId: id,
+          isBanned: true,
+          banReason: reason || "توسط ادمین",
+          bannedAt: new Date(),
+          banExpiry,
+        },
+      });
+
+      return NextResponse.json({ 
+        success: true, 
+        message: "کاربر با موفقیت بن شد",
+        banExpiry 
+      });
     }
 
-    await prisma.userProfile.upsert({
-      where: { userId: id },
-      update: {
-        isBanned: true,
-        banReason: reason || "توسط ادمین",
-        bannedAt: new Date(),
-        banExpiry,
-      },
-      create: {
-        userId: id,
-        isBanned: true,
-        banReason: reason || "توسط ادمین",
-        bannedAt: new Date(),
-        banExpiry,
-      },
-    });
+    // ============================================
+    // 2️⃣ لغو بن کاربر (UNBAN)
+    // ============================================
+    if (action === "unban") {
+      await prisma.userProfile.update({
+        where: { userId: id },
+        data: {
+          isBanned: false,
+          banReason: null,
+          bannedAt: null,
+          banExpiry: null,
+        },
+      });
 
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ 
+        success: true, 
+        message: "بن کاربر با موفقیت لغو شد" 
+      });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: ban, unban" },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error("Ban error:", error);
-    return NextResponse.json({ error: "خطا در بن کردن کاربر" }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const isAdminUser = await isAdmin(session.user.id);
-    if (!isAdminUser) {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    }
-
-    const prisma = await getPrisma();
-    const { id } = await params;
-
-    await prisma.userProfile.update({
-      where: { userId: id },
-      data: {
-        isBanned: false,
-        banReason: null,
-        bannedAt: null,
-        banExpiry: null,
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Unban error:", error);
-    return NextResponse.json({ error: "خطا در لغو بن" }, { status: 500 });
+    console.error("Ban/Unban error:", error);
+    return NextResponse.json(
+      { error: "خطا در عملیات بن" },
+      { status: 500 }
+    );
   }
 }

@@ -1,3 +1,4 @@
+// app/api/admin/shipping-methods/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -19,7 +20,7 @@ export async function GET() {
   }
 }
 
-// POST - ایجاد روش ارسال جدید
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -29,78 +30,101 @@ export async function POST(req: NextRequest) {
 
     const prisma = await getPrisma();
     const body = await req.json();
-    const { name, code, basePrice, pricePerKg, estimatedDays } = body;
+    const { action, ...data } = body;
 
-    if (!name || !code || basePrice === undefined) {
-      return NextResponse.json({ error: "نام، کد و قیمت پایه الزامی است" }, { status: 400 });
+    // ============================================
+    // 1️⃣ ایجاد روش ارسال جدید (CREATE)
+    // ============================================
+    if (action === "create") {
+      const { name, code, basePrice, pricePerKg, estimatedDays } = data;
+
+      if (!name || !code || basePrice === undefined) {
+        return NextResponse.json(
+          { error: "نام، کد و قیمت پایه الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      const method = await prisma.shippingMethod.create({
+        data: {
+          name,
+          code,
+          basePrice,
+          pricePerKg: pricePerKg || null,
+          estimatedDays: estimatedDays || null,
+        },
+      });
+
+      return NextResponse.json(method, { status: 201 });
     }
 
-    const method = await prisma.shippingMethod.create({
-      data: {
-        name,
-        code,
-        basePrice,
-        pricePerKg: pricePerKg || null,
-        estimatedDays: estimatedDays || null,
-      },
-    });
+    // ============================================
+    // 2️⃣ ویرایش روش ارسال (UPDATE)
+    // ============================================
+    if (action === "update") {
+      const { id, name, code, basePrice, pricePerKg, estimatedDays, isActive } = data;
 
-    return NextResponse.json(method, { status: 201 });
+      if (!id) {
+        return NextResponse.json(
+          { error: "آیدی الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      const method = await prisma.shippingMethod.update({
+        where: { id },
+        data: {
+          name,
+          code,
+          basePrice,
+          pricePerKg: pricePerKg || null,
+          estimatedDays: estimatedDays || null,
+          isActive,
+        },
+      });
+
+      return NextResponse.json(method);
+    }
+
+    // ============================================
+    // 3️⃣ حذف روش ارسال (DELETE)
+    // ============================================
+    if (action === "delete") {
+      // ابتدا از body دریافت کن
+      let { id } = data;
+      
+      // اگر در body نبود، از query params دریافت کن (برای سازگاری با کد قدیمی)
+      if (!id) {
+        const { searchParams } = new URL(req.url);
+        id = parseInt(searchParams.get("id")!);
+      }
+
+      if (!id) {
+        return NextResponse.json(
+          { error: "آیدی الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.shippingMethod.delete({
+        where: { id: parseInt(id.toString()) },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: create, update, delete" },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error("Error creating shipping method:", error);
-    return NextResponse.json({ error: "خطا در ایجاد روش ارسال" }, { status: 500 });
-  }
-}
-
-// PUT - ویرایش روش ارسال
-export async function PUT(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const prisma = await getPrisma();
-    const body = await req.json();
-    const { id, name, code, basePrice, pricePerKg, estimatedDays, isActive } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "آیدی الزامی است" }, { status: 400 });
-    }
-
-    const method = await prisma.shippingMethod.update({
-      where: { id },
-      data: { name, code, basePrice, pricePerKg, estimatedDays, isActive },
-    });
-
-    return NextResponse.json(method);
-  } catch (error) {
-    console.error("Error updating shipping method:", error);
-    return NextResponse.json({ error: "خطا در ویرایش روش ارسال" }, { status: 500 });
-  }
-}
-
-// DELETE - حذف روش ارسال
-export async function DELETE(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(req.url);
-    const id = parseInt(searchParams.get("id")!);
-
-    if (!id) {
-      return NextResponse.json({ error: "آیدی الزامی است" }, { status: 400 });
-    }
-
-    await prisma.shippingMethod.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting shipping method:", error);
-    return NextResponse.json({ error: "خطا در حذف روش ارسال" }, { status: 500 });
+    console.error("Error in shipping method operation:", error);
+    return NextResponse.json(
+      { error: "خطا در عملیات روش ارسال" },
+      { status: 500 }
+    );
   }
 }

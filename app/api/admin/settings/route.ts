@@ -1,3 +1,4 @@
+// app/api/admin/sellers/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { isAdmin } from "@/lib/isAdmin";
@@ -160,7 +161,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - ایجاد فروشنده جدید
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -174,162 +175,142 @@ export async function POST(request: NextRequest) {
 
     const prisma = await getPrisma();
     const body = await request.json();
-    const { userId, storeName, slug, description, logo, coverImage, phone, address, commission, status } = body;
+    const { action, ...data } = body;
 
-    if (!userId || !storeName || !slug) {
-      return NextResponse.json(
-        { error: "اطلاعات فروشنده ناقص است" },
-        { status: 400 }
-      );
-    }
+    // ============================================
+    // 1️⃣ ایجاد فروشنده جدید (CREATE)
+    // ============================================
+    if (action === "create") {
+      const { userId, storeName, slug, description, logo, coverImage, phone, address, commission, status } = data;
 
-    // بررسی تکراری نبودن slug
-    const existingSlug = await prisma.seller.findUnique({
-      where: { slug },
-    });
+      if (!userId || !storeName || !slug) {
+        return NextResponse.json(
+          { error: "اطلاعات فروشنده ناقص است" },
+          { status: 400 }
+        );
+      }
 
-    if (existingSlug) {
-      return NextResponse.json(
-        { error: "این slug قبلاً استفاده شده است" },
-        { status: 400 }
-      );
-    }
+      // بررسی تکراری نبودن slug
+      const existingSlug = await prisma.seller.findUnique({
+        where: { slug },
+      });
 
-    // بررسی وجود کاربر
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+      if (existingSlug) {
+        return NextResponse.json(
+          { error: "این slug قبلاً استفاده شده است" },
+          { status: 400 }
+        );
+      }
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "کاربر یافت نشد" },
-        { status: 404 }
-      );
-    }
+      // بررسی وجود کاربر
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
 
-    const seller = await prisma.seller.create({
-      data: {
-        userId,
-        storeName,
-        slug,
-        description,
-        logo,
-        coverImage,
-        phone,
-        address,
-        commission: commission || 10,
-        status: status || "PENDING",
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
+      if (!user) {
+        return NextResponse.json(
+          { error: "کاربر یافت نشد" },
+          { status: 404 }
+        );
+      }
+
+      const seller = await prisma.seller.create({
+        data: {
+          userId,
+          storeName,
+          slug,
+          description,
+          logo,
+          coverImage,
+          phone,
+          address,
+          commission: commission || 10,
+          status: status || "PENDING",
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(seller, { status: 201 });
+      return NextResponse.json(seller, { status: 201 });
+    }
+
+    // ============================================
+    // 2️⃣ بروزرسانی فروشنده (UPDATE)
+    // ============================================
+    if (action === "update") {
+      // دریافت id از body یا از query params
+      const { id, status, commission, storeName, description, phone, address } = data;
+
+      if (!id) {
+        return NextResponse.json(
+          { error: "شناسه فروشنده الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      const seller = await prisma.seller.update({
+        where: { id },
+        data: {
+          ...(status && { status }),
+          ...(commission !== undefined && { commission }),
+          ...(storeName && { storeName }),
+          ...(description !== undefined && { description }),
+          ...(phone !== undefined && { phone }),
+          ...(address !== undefined && { address }),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      return NextResponse.json(seller);
+    }
+
+    // ============================================
+    // 3️⃣ حذف فروشنده (DELETE)
+    // ============================================
+    if (action === "delete") {
+      // دریافت id از body یا از query params
+      const { id } = data;
+
+      if (!id) {
+        return NextResponse.json(
+          { error: "شناسه فروشنده الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.seller.delete({
+        where: { id },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: create, update, delete" },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("POST seller error:", error);
     return NextResponse.json(
-      { error: "خطا در ایجاد فروشنده" },
-      { status: 500 }
-    );
-  }
-}
-
-// PATCH - بروزرسانی فروشنده
-export async function PATCH(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json(
-        { error: "دسترسی غیرمجاز" },
-        { status: 403 }
-      );
-    }
-
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "شناسه فروشنده الزامی است" },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.json();
-    const { status, commission, storeName, description, phone, address } = body;
-
-    const seller = await prisma.seller.update({
-      where: { id },
-      data: {
-        ...(status && { status }),
-        ...(commission !== undefined && { commission }),
-        ...(storeName && { storeName }),
-        ...(description !== undefined && { description }),
-        ...(phone !== undefined && { phone }),
-        ...(address !== undefined && { address }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(seller);
-  } catch (error) {
-    console.error("PATCH seller error:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی فروشنده" },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE - حذف فروشنده
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json(
-        { error: "دسترسی غیرمجاز" },
-        { status: 403 }
-      );
-    }
-
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "شناسه فروشنده الزامی است" },
-        { status: 400 }
-      );
-    }
-
-    await prisma.seller.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("DELETE seller error:", error);
-    return NextResponse.json(
-      { error: "خطا در حذف فروشنده" },
+      { error: "خطا در عملیات فروشنده" },
       { status: 500 }
     );
   }

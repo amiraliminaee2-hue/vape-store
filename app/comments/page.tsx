@@ -55,7 +55,7 @@ export default function AdminCommentsPage() {
   ) => {
     try {
       const res = await fetch(`/api/admin/comments/${commentId}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -76,7 +76,7 @@ export default function AdminCommentsPage() {
 
     try {
       const res = await fetch(`/api/admin/comments/${commentId}`, {
-        method: "DELETE",
+        method: "POST",
       });
 
       if (res.ok) {

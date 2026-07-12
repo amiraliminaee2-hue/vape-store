@@ -36,7 +36,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {

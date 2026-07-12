@@ -119,7 +119,7 @@ export default function AdminOrderDetailPage() {
     setUpdatingStatus(true);
     try {
       const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -141,7 +141,7 @@ export default function AdminOrderDetailPage() {
     setSavingNote(true);
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote }),
       });

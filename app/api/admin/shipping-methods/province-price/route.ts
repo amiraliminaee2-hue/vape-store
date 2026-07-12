@@ -1,10 +1,11 @@
+// app/api/admin/province-prices/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { getPrisma } from "@/lib/prisma";
 
-// POST - ایجاد یا ویرایش قیمت استان
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,51 +15,67 @@ export async function POST(req: NextRequest) {
 
     const prisma = await getPrisma();
     const body = await req.json();
-    const { province, shippingMethodId, price } = body;
+    const { action, ...data } = body;
 
-    if (!province || !shippingMethodId || price === undefined) {
-      return NextResponse.json({ error: "استان، روش ارسال و قیمت الزامی است" }, { status: 400 });
-    }
+    // ============================================
+    // 1️⃣ ایجاد یا ویرایش قیمت استان (CREATE/UPDATE)
+    // ============================================
+    if (action === "set" || action === "create" || action === "update") {
+      const { province, shippingMethodId, price } = data;
 
-    const provincePrice = await prisma.provinceShippingPrice.upsert({
-      where: {
-        province_shippingMethodId: {
-          province,
-          shippingMethodId,
+      if (!province || !shippingMethodId || price === undefined) {
+        return NextResponse.json(
+          { error: "استان، روش ارسال و قیمت الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      const provincePrice = await prisma.provinceShippingPrice.upsert({
+        where: {
+          province_shippingMethodId: {
+            province,
+            shippingMethodId,
+          },
         },
-      },
-      update: { price },
-      create: { province, shippingMethodId, price },
-    });
+        update: { price },
+        create: { province, shippingMethodId, price },
+      });
 
-    return NextResponse.json(provincePrice);
-  } catch (error) {
-    console.error("Error setting province price:", error);
-    return NextResponse.json({ error: "خطا در تنظیم قیمت استان" }, { status: 500 });
-  }
-}
-
-// DELETE - حذف قیمت استان
-export async function DELETE(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(provincePrice);
     }
 
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(req.url);
-    const id = parseInt(searchParams.get("id")!);
+    // ============================================
+    // 2️⃣ حذف قیمت استان (DELETE)
+    // ============================================
+    if (action === "delete") {
+      const { id } = data;
 
-    if (!id) {
-      return NextResponse.json({ error: "آیدی الزامی است" }, { status: 400 });
+      if (!id) {
+        return NextResponse.json(
+          { error: "آیدی الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.provinceShippingPrice.delete({
+        where: { id: parseInt(id.toString()) },
+      });
+
+      return NextResponse.json({ success: true });
     }
 
-    await prisma.provinceShippingPrice.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: set, create, update, delete" },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error("Error deleting province price:", error);
-    return NextResponse.json({ error: "خطا در حذف قیمت استان" }, { status: 500 });
+    console.error("Error in province price operation:", error);
+    return NextResponse.json(
+      { error: "خطا در عملیات قیمت استان" },
+      { status: 500 }
+    );
   }
 }

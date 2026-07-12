@@ -10,7 +10,7 @@ const paramsSchema = z.object({
   id: z.string().regex(/^\d+$/, "id باید عدد باشد"),
 });
 
-export async function DELETE(
+export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {

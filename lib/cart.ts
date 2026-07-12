@@ -50,7 +50,7 @@ export async function removeFromCart(
   const res = await fetch(
     `/api/cart/${productId}`,
     {
-      method: "DELETE",
+      method: "POST",
     }
   );
 
@@ -67,7 +67,7 @@ export async function increaseQuantity(
   const res = await fetch(
     `/api/cart/${productId}`,
     {
-      method: "PATCH",
+      method: "POST",
 
       headers: {
         "Content-Type":
@@ -93,7 +93,7 @@ export async function decreaseQuantity(
   const res = await fetch(
     `/api/cart/${productId}`,
     {
-      method: "PATCH",
+      method: "POST",
 
       headers: {
         "Content-Type":
@@ -117,7 +117,7 @@ export async function clearCart() {
   const res = await fetch(
     "/api/cart",
     {
-      method: "DELETE",
+      method: "POST",
     }
   );
 

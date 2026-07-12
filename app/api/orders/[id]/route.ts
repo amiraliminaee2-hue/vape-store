@@ -16,7 +16,7 @@ const patchBodySchema = z.object({
   status: z.enum(["REGISTERED", "PAYED", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED", "ERROR"]),
 });
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   {
     params,

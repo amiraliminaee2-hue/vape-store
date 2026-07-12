@@ -109,7 +109,7 @@ export default function AdminCouponsPage() {
   const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این کد تخفیف اطمینان دارید؟")) return;
     try {
-      const res = await fetch(`/api/coupons?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/coupons?id=${id}`, { method: "POST" });
       if (res.ok) {
         fetchCoupons();
       } else {

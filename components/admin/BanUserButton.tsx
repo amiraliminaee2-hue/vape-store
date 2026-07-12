@@ -57,7 +57,7 @@ export default function BanUserButton({ userId, userName, isBanned, banExpiry }:
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/users/${userId}/ban`, {
-        method: "DELETE",
+        method: "POST",
       });
       
       if (res.ok) {

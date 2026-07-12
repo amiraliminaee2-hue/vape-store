@@ -122,7 +122,7 @@ export default function AdminShippingPage() {
   const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این روش ارسال مطمئن هستید؟")) return;
     try {
-      const res = await fetch(`/api/admin/shipping-methods?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/shipping-methods?id=${id}`, { method: "POST" });
       if (res.ok) {
         fetchMethods();
       } else {

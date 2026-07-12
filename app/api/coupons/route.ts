@@ -1,3 +1,4 @@
+// app/api/admin/coupons/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - ایجاد کد تخفیف جدید (فقط ادمین)
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -108,118 +109,137 @@ export async function POST(request: NextRequest) {
 
     const prisma = await getPrisma();
     const body = await request.json();
-    const {
-      code,
-      type,
-      value,
-      minPurchase,
-      maxDiscount,
-      usageLimit,
-      perUserLimit,
-      startDate,
-      endDate,
-      applicableProducts,
-      applicableCategories,
-    } = body;
+    const { action, ...data } = body;
 
-    if (!code || !value || value <= 0) {
-      return NextResponse.json({ error: "کد تخفیف و مقدار تخفیف الزامی است" }, { status: 400 });
-    }
-
-    // بررسی تکراری نبودن کد
-    const existing = await prisma.coupon.findUnique({
-      where: { code: code.toUpperCase() },
-    });
-    if (existing) {
-      return NextResponse.json({ error: "این کد تخفیف قبلاً ثبت شده است" }, { status: 400 });
-    }
-
-    const coupon = await prisma.coupon.create({
-      data: {
-        code: code.toUpperCase(),
-        type: type || "FIXED",
+    // ============================================
+    // 1️⃣ ایجاد کد تخفیف جدید (CREATE)
+    // ============================================
+    if (action === "create") {
+      const {
+        code,
+        type,
         value,
-        minPurchase: minPurchase || null,
-        maxDiscount: maxDiscount || null,
-        usageLimit: usageLimit || null,
-        perUserLimit: perUserLimit || null,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
-        applicableProducts: applicableProducts || [],
-        applicableCategories: applicableCategories || [],
-        status: "ACTIVE",
-      },
-    });
+        minPurchase,
+        maxDiscount,
+        usageLimit,
+        perUserLimit,
+        startDate,
+        endDate,
+        applicableProducts,
+        applicableCategories,
+      } = data;
 
-    return NextResponse.json({ success: true, coupon });
+      if (!code || !value || value <= 0) {
+        return NextResponse.json(
+          { error: "کد تخفیف و مقدار تخفیف الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      // بررسی تکراری نبودن کد
+      const existing = await prisma.coupon.findUnique({
+        where: { code: code.toUpperCase() },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { error: "این کد تخفیف قبلاً ثبت شده است" },
+          { status: 400 }
+        );
+      }
+
+      const coupon = await prisma.coupon.create({
+        data: {
+          code: code.toUpperCase(),
+          type: type || "FIXED",
+          value,
+          minPurchase: minPurchase || null,
+          maxDiscount: maxDiscount || null,
+          usageLimit: usageLimit || null,
+          perUserLimit: perUserLimit || null,
+          startDate: startDate ? new Date(startDate) : null,
+          endDate: endDate ? new Date(endDate) : null,
+          applicableProducts: applicableProducts || [],
+          applicableCategories: applicableCategories || [],
+          status: "ACTIVE",
+        },
+      });
+
+      return NextResponse.json({ success: true, coupon });
+    }
+
+    // ============================================
+    // 2️⃣ بروزرسانی کد تخفیف (UPDATE)
+    // ============================================
+    if (action === "update") {
+      const { id, ...updateData } = data;
+
+      if (!id) {
+        return NextResponse.json(
+          { error: "شناسه کد تخفیف الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      const coupon = await prisma.coupon.update({
+        where: { id },
+        data: {
+          ...(updateData.code && { code: updateData.code.toUpperCase() }),
+          ...(updateData.type && { type: updateData.type }),
+          ...(updateData.value && { value: updateData.value }),
+          ...(updateData.minPurchase !== undefined && { minPurchase: updateData.minPurchase || null }),
+          ...(updateData.maxDiscount !== undefined && { maxDiscount: updateData.maxDiscount || null }),
+          ...(updateData.usageLimit !== undefined && { usageLimit: updateData.usageLimit || null }),
+          ...(updateData.perUserLimit !== undefined && { perUserLimit: updateData.perUserLimit || null }),
+          ...(updateData.startDate !== undefined && { startDate: updateData.startDate ? new Date(updateData.startDate) : null }),
+          ...(updateData.endDate !== undefined && { endDate: updateData.endDate ? new Date(updateData.endDate) : null }),
+          ...(updateData.status && { status: updateData.status }),
+          ...(updateData.applicableProducts && { applicableProducts: updateData.applicableProducts }),
+          ...(updateData.applicableCategories && { applicableCategories: updateData.applicableCategories }),
+        },
+      });
+
+      return NextResponse.json({ success: true, coupon });
+    }
+
+    // ============================================
+    // 3️⃣ حذف کد تخفیف (DELETE)
+    // ============================================
+    if (action === "delete") {
+      // ابتدا از body دریافت کن
+      let { id } = data;
+      
+      // اگر در body نبود، از query params دریافت کن (برای سازگاری با کد قدیمی)
+      if (!id) {
+        const { searchParams } = new URL(request.url);
+        id = parseInt(searchParams.get("id") || "0");
+      }
+
+      if (!id) {
+        return NextResponse.json(
+          { error: "شناسه کد تخفیف الزامی است" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.coupon.delete({
+        where: { id: parseInt(id.toString()) },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: create, update, delete" },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Coupons POST error:", error);
-    return NextResponse.json({ error: "خطا در ایجاد کد تخفیف" }, { status: 500 });
-  }
-}
-
-// PUT - بروزرسانی کد تخفیف (فقط ادمین)
-export async function PUT(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    }
-
-    const prisma = await getPrisma();
-    const body = await request.json();
-    const { id, ...data } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "شناسه کد تخفیف الزامی است" }, { status: 400 });
-    }
-
-    const coupon = await prisma.coupon.update({
-      where: { id },
-      data: {
-        ...(data.code && { code: data.code.toUpperCase() }),
-        ...(data.type && { type: data.type }),
-        ...(data.value && { value: data.value }),
-        ...(data.minPurchase !== undefined && { minPurchase: data.minPurchase || null }),
-        ...(data.maxDiscount !== undefined && { maxDiscount: data.maxDiscount || null }),
-        ...(data.usageLimit !== undefined && { usageLimit: data.usageLimit || null }),
-        ...(data.perUserLimit !== undefined && { perUserLimit: data.perUserLimit || null }),
-        ...(data.startDate !== undefined && { startDate: data.startDate ? new Date(data.startDate) : null }),
-        ...(data.endDate !== undefined && { endDate: data.endDate ? new Date(data.endDate) : null }),
-        ...(data.status && { status: data.status }),
-        ...(data.applicableProducts && { applicableProducts: data.applicableProducts }),
-        ...(data.applicableCategories && { applicableCategories: data.applicableCategories }),
-      },
-    });
-
-    return NextResponse.json({ success: true, coupon });
-  } catch (error) {
-    console.error("Coupons PUT error:", error);
-    return NextResponse.json({ error: "خطا در بروزرسانی کد تخفیف" }, { status: 500 });
-  }
-}
-
-// DELETE - حذف کد تخفیف (فقط ادمین)
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    }
-
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(request.url);
-    const id = parseInt(searchParams.get("id") || "0");
-
-    if (!id) {
-      return NextResponse.json({ error: "شناسه کد تخفیف الزامی است" }, { status: 400 });
-    }
-
-    await prisma.coupon.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Coupons DELETE error:", error);
-    return NextResponse.json({ error: "خطا در حذف کد تخفیف" }, { status: 500 });
+    return NextResponse.json(
+      { error: "خطا در عملیات کد تخفیف" },
+      { status: 500 }
+    );
   }
 }

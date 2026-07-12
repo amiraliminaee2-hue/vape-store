@@ -50,7 +50,7 @@ export default function CommentList({ productId, refreshTrigger = 0, onCommentDe
       const { token } = await csrfRes.json();
 
       const res = await fetch(`/api/comments/${commentId}`, {
-        method: "DELETE",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": token,

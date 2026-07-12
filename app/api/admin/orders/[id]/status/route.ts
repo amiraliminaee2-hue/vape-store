@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {

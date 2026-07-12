@@ -1,3 +1,4 @@
+// app/api/cart/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -42,7 +43,6 @@ export async function GET() {
       where: {
         userId,
       },
-
       include: {
         items: {
           include: {
@@ -74,7 +74,6 @@ export async function GET() {
     return NextResponse.json(items);
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
       {
         error: "خطا در دریافت سبد",
@@ -86,6 +85,7 @@ export async function GET() {
   }
 }
 
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -104,39 +104,43 @@ export async function POST(request: Request) {
     const prisma = await getPrisma();
     const userId = session.user.id;
     const body = await request.json();
+    const { action, ...data } = body;
 
-    // Zod validation
-    const validationResult = cartItemSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: "ورودی نامعتبر",
-          details: validationResult.error.issues,
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    // ============================================
+    // 1️⃣ افزودن محصول به سبد (ADD)
+    // ============================================
+    if (action === "add") {
+      // Zod validation
+      const validationResult = cartItemSchema.safeParse(data);
+      if (!validationResult.success) {
+        return NextResponse.json(
+          {
+            error: "ورودی نامعتبر",
+            details: validationResult.error.issues,
+          },
+          {
+            status: 400,
+          }
+        );
+      }
 
-    const { productId, quantity = 1 } = validationResult.data;
+      const { productId, quantity = 1 } = validationResult.data;
 
-    let cart = await prisma.cart.findUnique({
-      where: {
-        userId,
-      },
-    });
-
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: {
+      let cart = await prisma.cart.findUnique({
+        where: {
           userId,
         },
       });
-    }
 
-    const existing =
-      await prisma.cartItem.findUnique({
+      if (!cart) {
+        cart = await prisma.cart.create({
+          data: {
+            userId,
+          },
+        });
+      }
+
+      const existing = await prisma.cartItem.findUnique({
         where: {
           cartId_productId: {
             cartId: cart.id,
@@ -145,86 +149,73 @@ export async function POST(request: Request) {
         },
       });
 
-    if (existing) {
-      await prisma.cartItem.update({
-        where: {
-          id: existing.id,
-        },
-
-        data: {
-          quantity: {
-            increment: quantity,
+      if (existing) {
+        await prisma.cartItem.update({
+          where: {
+            id: existing.id,
           },
-        },
-      });
-    } else {
-      await prisma.cartItem.create({
-        data: {
-          cartId: cart.id,
-          productId,
-          quantity,
-        },
+          data: {
+            quantity: {
+              increment: quantity,
+            },
+          },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId,
+            quantity,
+          },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "محصول به سبد خرید اضافه شد",
       });
     }
 
-    return NextResponse.json({
-      success: true,
-    });
-  } catch (error) {
-    console.error(error);
+    // ============================================
+    // 2️⃣ پاکسازی کامل سبد (CLEAR)
+    // ============================================
+    if (action === "clear") {
+      const cart = await prisma.cart.findUnique({
+        where: {
+          userId,
+        },
+      });
 
+      if (cart) {
+        await prisma.cartItem.deleteMany({
+          where: {
+            cartId: cart.id,
+          },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "سبد خرید با موفقیت پاکسازی شد",
+      });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
     return NextResponse.json(
       {
-        error: "خطا در افزودن محصول",
+        error: "اکشن نامعتبر. گزینه‌های مجاز: add, clear",
       },
       {
-        status: 500,
+        status: 400,
       }
     );
-  }
-}
-
-export async function DELETE() {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
-      );
-    }
-
-    const prisma = await getPrisma();
-    const userId = session.user.id;
-
-    const cart = await prisma.cart.findUnique({
-      where: {
-        userId,
-      },
-    });
-
-    if (cart) {
-      await prisma.cartItem.deleteMany({
-        where: {
-          cartId: cart.id,
-        },
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-    });
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
       {
-        error: "خطا در پاکسازی سبد",
+        error: "خطا در عملیات سبد خرید",
       },
       {
         status: 500,

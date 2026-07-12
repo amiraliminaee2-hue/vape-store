@@ -193,7 +193,7 @@ export default function AccountPage() {
       }
       
       await fetch("/api/profile/addresses/" + id, { 
-        method: "DELETE",
+        method: "POST",
         headers: {
           "X-CSRF-Token": csrfToken,
         },

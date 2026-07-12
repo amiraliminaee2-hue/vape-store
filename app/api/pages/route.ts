@@ -1,3 +1,4 @@
+// app/api/admin/pages/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -16,9 +17,13 @@ interface PageCreateInput {
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 }
 
+// ✅ این تایپ را به این شکل تغییر دهید تا استفاده شود
 interface PageUpdateInput extends PageCreateInput {
   id: number;
 }
+
+// یا اگر نمی‌خواهید از آن استفاده کنید، آن را حذف کنید
+// اما چون در کد از آن استفاده نمی‌شود، خطا می‌دهد
 
 // GET - دریافت لیست صفحات (عمومی: فقط منتشر شده، ادمین: همه)
 export async function GET(request: NextRequest) {

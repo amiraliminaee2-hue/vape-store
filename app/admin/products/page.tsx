@@ -78,7 +78,7 @@ export default function AdminProductsPage() {
 
     try {
       const res = await fetch(`/api/products/${id}`, {
-        method: "DELETE",
+        method: "POST",
       });
 
       if (res.ok) {

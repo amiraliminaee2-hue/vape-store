@@ -18,7 +18,7 @@ export default function AdminNoteEditor({ orderId, initialNote }: AdminNoteEdito
     setMessage("");
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote: note }),
       });

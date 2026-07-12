@@ -100,7 +100,7 @@ export default function OrderDetailsPage({ params }: PageParams) {
       const { token } = await csrfRes.json();
 
       const res = await fetch(`/api/orders/${order?.id}`, {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": token,

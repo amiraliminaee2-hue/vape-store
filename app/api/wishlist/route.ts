@@ -1,3 +1,4 @@
+// app/api/wishlist/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -66,6 +67,7 @@ export async function GET() {
   }
 }
 
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -77,51 +79,46 @@ export async function POST(request: NextRequest) {
     const prisma = await getPrisma();
     const userId = session.user.id;
     const body = await request.json();
-    const { productId } = body;
+    const { action, ...data } = body;
 
-    if (!productId) {
-      return NextResponse.json({ error: "productId الزامی است" }, { status: 400 });
-    }
+    // ============================================
+    // 1️⃣ افزودن/حذف (Toggle) - اگر وجود داشت حذف کن، اگر نبود اضافه کن
+    // ============================================
+    if (action === "toggle") {
+      const { productId } = data;
 
-    // ✅ بررسی وجود کاربر در دیتابیس
-    let user = await prisma.user.findUnique({
-      where: { id: userId },
-    }) as User | null;
+      if (!productId) {
+        return NextResponse.json({ error: "productId الزامی است" }, { status: 400 });
+      }
 
-    // اگر کاربر وجود نداشت، ایجادش کن
-    if (!user) {
-      const sessionUser = session.user;
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          email: sessionUser.email || `user-${userId}@temp.com`,
-          name: sessionUser.name || "کاربر",
-        },
-      }) as User;
-      console.log("✅ User created in database:", user.id);
-    }
+      // ✅ بررسی وجود کاربر در دیتابیس
+      let user = await prisma.user.findUnique({
+        where: { id: userId },
+      }) as User | null;
 
-    // بررسی وجود محصول
-    const product = await prisma.product.findUnique({
-      where: { id: Number(productId) },
-    });
+      // اگر کاربر وجود نداشت، ایجادش کن
+      if (!user) {
+        const sessionUser = session.user;
+        user = await prisma.user.create({
+          data: {
+            id: userId,
+            email: sessionUser.email || `user-${userId}@temp.com`,
+            name: sessionUser.name || "کاربر",
+          },
+        }) as User;
+        console.log("✅ User created in database:", user.id);
+      }
 
-    if (!product) {
-      return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
-    }
+      // بررسی وجود محصول
+      const product = await prisma.product.findUnique({
+        where: { id: Number(productId) },
+      });
 
-    const existing = await prisma.wishlistItem.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-          productId: Number(productId),
-        },
-      },
-    });
+      if (!product) {
+        return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
+      }
 
-    if (existing) {
-      // اگر قبلاً اضافه شده، حذف کن (toggle)
-      await prisma.wishlistItem.delete({
+      const existing = await prisma.wishlistItem.findUnique({
         where: {
           userId_productId: {
             userId,
@@ -129,53 +126,76 @@ export async function POST(request: NextRequest) {
           },
         },
       });
-      return NextResponse.json({ added: false });
+
+      if (existing) {
+        // اگر قبلاً اضافه شده، حذف کن (toggle)
+        await prisma.wishlistItem.delete({
+          where: {
+            userId_productId: {
+              userId,
+              productId: Number(productId),
+            },
+          },
+        });
+        return NextResponse.json({ added: false, message: "از علاقه‌مندی‌ها حذف شد" });
+      }
+
+      const item = await prisma.wishlistItem.create({
+        data: {
+          userId,
+          productId: Number(productId),
+        },
+      });
+
+      return NextResponse.json({ added: true, item, message: "به علاقه‌مندی‌ها اضافه شد" }, { status: 201 });
     }
 
-    const item = await prisma.wishlistItem.create({
-      data: {
-        userId,
-        productId: Number(productId),
-      },
-    });
+    // ============================================
+    // 2️⃣ حذف مستقیم از علاقه‌مندی‌ها (DELETE)
+    // ============================================
+    if (action === "delete") {
+      // دریافت productId از body
+      let { productId } = data;
+      
+      // اگر در body نبود، از query params یا path دریافت کن (برای سازگاری با کد قدیمی)
+      if (!productId) {
+        const url = new URL(request.url);
+        // تلاش برای دریافت از searchParams
+        productId = url.searchParams.get("productId");
+        
+        // اگر در searchParams نبود، از path دریافت کن (آخرین بخش)
+        if (!productId) {
+          const pathParts = url.pathname.split("/");
+          productId = pathParts[pathParts.length - 1];
+        }
+      }
 
-    return NextResponse.json({ added: true, item }, { status: 201 });
-  } catch (error) {
-    console.error("Toggle wishlist error:", error);
+      if (!productId || isNaN(Number(productId))) {
+        return NextResponse.json({ error: "productId معتبر الزامی است" }, { status: 400 });
+      }
+
+      await prisma.wishlistItem.deleteMany({
+        where: {
+          userId,
+          productId: Number(productId),
+        },
+      });
+
+      return NextResponse.json({ success: true, message: "با موفقیت حذف شد" });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "خطا در ویرایش علاقه‌مندی‌ها" },
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: toggle, delete" },
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error("Wishlist operation error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "خطا در عملیات علاقه‌مندی‌ها" },
       { status: 500 }
     );
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const prisma = await getPrisma();
-    const userId = session.user.id;
-    const url = new URL(request.url);
-    const productId = url.pathname.split("/").pop();
-
-    if (!productId || isNaN(Number(productId))) {
-      return NextResponse.json({ error: "productId نامعتبر است" }, { status: 400 });
-    }
-
-    await prisma.wishlistItem.deleteMany({
-      where: {
-        userId,
-        productId: Number(productId),
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Delete wishlist error:", error);
-    return NextResponse.json({ error: "خطا در حذف از علاقه‌مندی‌ها" }, { status: 500 });
   }
 }

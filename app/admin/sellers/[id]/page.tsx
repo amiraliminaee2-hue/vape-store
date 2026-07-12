@@ -118,7 +118,7 @@ export default function SellerDetailsPage() {
     setUpdating(true);
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
       });
@@ -143,7 +143,7 @@ export default function SellerDetailsPage() {
     setUpdating(true);
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });

@@ -39,7 +39,7 @@ export default function OrderStatusSelect({
       setStatus(value);
 
       const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

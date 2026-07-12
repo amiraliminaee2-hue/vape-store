@@ -14,7 +14,7 @@ const paramsSchema = z.object({
   productId: z.string().regex(/^\d+$/, "productId باید عدد باشد"),
 });
 
-export async function PATCH(
+export async function POST(
   _request: Request,
   {
     params,

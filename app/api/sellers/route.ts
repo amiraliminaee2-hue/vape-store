@@ -1,3 +1,4 @@
+// app/api/sellers/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -14,74 +15,6 @@ interface SellerWhereInput {
     storeName?: { contains: string; mode: "insensitive" };
     slug?: { contains: string; mode: "insensitive" };
   }>;
-}
-
-// POST - ثبت درخواست فروشندگی
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "ابتدا وارد حساب کاربری خود شوید" }, { status: 401 });
-    }
-
-    const prisma = await getPrisma();
-    const body = await request.json();
-    const { storeName, slug, description, phone, address } = body;
-
-    // اعتبارسنجی
-    if (!storeName?.trim()) {
-      return NextResponse.json({ error: "نام فروشگاه الزامی است" }, { status: 400 });
-    }
-    if (!slug?.trim()) {
-      return NextResponse.json({ error: "slug الزامی است" }, { status: 400 });
-    }
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      return NextResponse.json({ error: "slug نامعتبر است" }, { status: 400 });
-    }
-    if (!description?.trim()) {
-      return NextResponse.json({ error: "توضیحات فروشگاه الزامی است" }, { status: 400 });
-    }
-    if (!phone?.trim()) {
-      return NextResponse.json({ error: "شماره تماس الزامی است" }, { status: 400 });
-    }
-    if (!/^09[0-9]{9}$/.test(phone.trim())) {
-      return NextResponse.json({ error: "شماره تماس نامعتبر است" }, { status: 400 });
-    }
-
-    // بررسی تکراری نبودن slug
-    const existingSeller = await prisma.seller.findUnique({
-      where: { slug },
-    });
-    if (existingSeller) {
-      return NextResponse.json({ error: "این slug قبلاً استفاده شده است" }, { status: 400 });
-    }
-
-    // بررسی اینکه کاربر قبلاً درخواست فروشندگی نداده باشد
-    const existingUserSeller = await prisma.seller.findUnique({
-      where: { userId: session.user.id },
-    });
-    if (existingUserSeller) {
-      return NextResponse.json({ error: "شما قبلاً درخواست فروشندگی ثبت کرده‌اید" }, { status: 400 });
-    }
-
-    // ایجاد فروشنده
-    const seller = await prisma.seller.create({
-      data: {
-        userId: session.user.id,
-        storeName: storeName.trim(),
-        slug: slug.trim(),
-        description: description.trim(),
-        phone: phone.trim(),
-        address: address?.trim() || null,
-        status: "PENDING",
-      },
-    });
-
-    return NextResponse.json({ success: true, seller });
-  } catch (error) {
-    console.error("Create seller error:", error);
-    return NextResponse.json({ error: "خطا در ثبت درخواست" }, { status: 500 });
-  }
 }
 
 // GET - دریافت لیست فروشندگان (ادمین: همه، کاربر عادی: فقط وضعیت خودش)
@@ -140,86 +73,164 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - بروزرسانی فروشنده (فقط ادمین)
-export async function PUT(request: NextRequest) {
+// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    }
-
     const prisma = await getPrisma();
     const body = await request.json();
-    const { id, storeName, slug, description, phone, address, status, commission } = body;
+    const { action, ...data } = body;
 
-    if (!id) {
-      return NextResponse.json({ error: "شناسه فروشنده الزامی است" }, { status: 400 });
-    }
+    // ============================================
+    // 1️⃣ ثبت درخواست فروشندگی (CREATE)
+    // ============================================
+    if (action === "create" || action === "request") {
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "ابتدا وارد حساب کاربری خود شوید" }, { status: 401 });
+      }
 
-    // بررسی تکراری نبودن slug در صورت تغییر
-    if (slug) {
-      const existing = await prisma.seller.findFirst({
-        where: {
-          slug,
-          id: { not: id },
-        },
+      const { storeName, slug, description, phone, address } = data;
+
+      // اعتبارسنجی
+      if (!storeName?.trim()) {
+        return NextResponse.json({ error: "نام فروشگاه الزامی است" }, { status: 400 });
+      }
+      if (!slug?.trim()) {
+        return NextResponse.json({ error: "slug الزامی است" }, { status: 400 });
+      }
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+        return NextResponse.json({ error: "slug نامعتبر است" }, { status: 400 });
+      }
+      if (!description?.trim()) {
+        return NextResponse.json({ error: "توضیحات فروشگاه الزامی است" }, { status: 400 });
+      }
+      if (!phone?.trim()) {
+        return NextResponse.json({ error: "شماره تماس الزامی است" }, { status: 400 });
+      }
+      if (!/^09[0-9]{9}$/.test(phone.trim())) {
+        return NextResponse.json({ error: "شماره تماس نامعتبر است" }, { status: 400 });
+      }
+
+      // بررسی تکراری نبودن slug
+      const existingSeller = await prisma.seller.findUnique({
+        where: { slug },
       });
-      if (existing) {
+      if (existingSeller) {
         return NextResponse.json({ error: "این slug قبلاً استفاده شده است" }, { status: 400 });
       }
+
+      // بررسی اینکه کاربر قبلاً درخواست فروشندگی نداده باشد
+      const existingUserSeller = await prisma.seller.findUnique({
+        where: { userId: session.user.id },
+      });
+      if (existingUserSeller) {
+        return NextResponse.json({ error: "شما قبلاً درخواست فروشندگی ثبت کرده‌اید" }, { status: 400 });
+      }
+
+      // ایجاد فروشنده
+      const seller = await prisma.seller.create({
+        data: {
+          userId: session.user.id,
+          storeName: storeName.trim(),
+          slug: slug.trim(),
+          description: description.trim(),
+          phone: phone.trim(),
+          address: address?.trim() || null,
+          status: "PENDING",
+        },
+      });
+
+      return NextResponse.json({ success: true, seller });
     }
 
-    const updateData: {
-      storeName?: string;
-      slug?: string;
-      description?: string | null;
-      phone?: string | null;
-      address?: string | null;
-      status?: SellerStatus;
-      commission?: number;
-    } = {};
-    
-    if (storeName) updateData.storeName = storeName;
-    if (slug) updateData.slug = slug;
-    if (description) updateData.description = description;
-    if (phone) updateData.phone = phone;
-    if (address !== undefined) updateData.address = address;
-    if (status) updateData.status = status as SellerStatus;
-    if (commission !== undefined) updateData.commission = commission;
+    // ============================================
+    // 2️⃣ بروزرسانی فروشنده (UPDATE) - فقط ادمین
+    // ============================================
+    if (action === "update") {
+      if (!session?.user?.id || !(await isAdmin(session.user.id))) {
+        return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+      }
 
-    const seller = await prisma.seller.update({
-      where: { id },
-      data: updateData,
-    });
+      const { id, storeName, slug, description, phone, address, status, commission } = data;
 
-    return NextResponse.json({ success: true, seller });
+      if (!id) {
+        return NextResponse.json({ error: "شناسه فروشنده الزامی است" }, { status: 400 });
+      }
+
+      // بررسی تکراری نبودن slug در صورت تغییر
+      if (slug) {
+        const existing = await prisma.seller.findFirst({
+          where: {
+            slug,
+            id: { not: id },
+          },
+        });
+        if (existing) {
+          return NextResponse.json({ error: "این slug قبلاً استفاده شده است" }, { status: 400 });
+        }
+      }
+
+      const updateData: {
+        storeName?: string;
+        slug?: string;
+        description?: string | null;
+        phone?: string | null;
+        address?: string | null;
+        status?: SellerStatus;
+        commission?: number;
+      } = {};
+      
+      if (storeName) updateData.storeName = storeName;
+      if (slug) updateData.slug = slug;
+      if (description) updateData.description = description;
+      if (phone) updateData.phone = phone;
+      if (address !== undefined) updateData.address = address;
+      if (status) updateData.status = status as SellerStatus;
+      if (commission !== undefined) updateData.commission = commission;
+
+      const seller = await prisma.seller.update({
+        where: { id },
+        data: updateData,
+      });
+
+      return NextResponse.json({ success: true, seller });
+    }
+
+    // ============================================
+    // 3️⃣ حذف فروشنده (DELETE) - فقط ادمین
+    // ============================================
+    if (action === "delete") {
+      if (!session?.user?.id || !(await isAdmin(session.user.id))) {
+        return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+      }
+
+      // ابتدا از body دریافت کن
+      let { id } = data;
+      
+      // اگر در body نبود، از query params دریافت کن (برای سازگاری با کد قدیمی)
+      if (!id) {
+        const { searchParams } = new URL(request.url);
+        id = searchParams.get("id");
+      }
+
+      if (!id) {
+        return NextResponse.json({ error: "شناسه فروشنده الزامی است" }, { status: 400 });
+      }
+
+      await prisma.seller.delete({ where: { id } });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ============================================
+    // اگر action معتبر نبود
+    // ============================================
+    return NextResponse.json(
+      { error: "اکشن نامعتبر. گزینه‌های مجاز: create, request, update, delete" },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error("Update seller error:", error);
-    return NextResponse.json({ error: "خطا در بروزرسانی" }, { status: 500 });
-  }
-}
-
-// DELETE - حذف فروشنده (فقط ادمین)
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !(await isAdmin(session.user.id))) {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    }
-
-    const prisma = await getPrisma();
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json({ error: "شناسه فروشنده الزامی است" }, { status: 400 });
-    }
-
-    await prisma.seller.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Delete seller error:", error);
-    return NextResponse.json({ error: "خطا در حذف فروشنده" }, { status: 500 });
+    console.error("Seller operation error:", error);
+    return NextResponse.json({ error: "خطا در عملیات فروشنده" }, { status: 500 });
   }
 }

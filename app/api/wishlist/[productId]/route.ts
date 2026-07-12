@@ -9,7 +9,7 @@ const paramsSchema = z.object({
   productId: z.string().regex(/^\d+$/, "productId باید عدد باشد"),
 });
 
-export async function DELETE(
+export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {

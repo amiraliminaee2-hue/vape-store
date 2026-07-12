@@ -155,7 +155,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
 ) {
