@@ -2,34 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { verifyPayment } from "@/lib/dargaah";
 
-// ایران درگاه اطلاعات بازگشتی رو به صورت POST میفرسته
 export async function POST(request: NextRequest) {
   const prisma = await getPrisma();
   const resultPageUrl = `${process.env.NEXTAUTH_URL}/payment/result`;
 
-  // orderId و amount از query string میان (که موقع ساخت callbackURL گذاشتیم)
+  // فقط orderId از callback می‌آید
   const searchParams = request.nextUrl.searchParams;
   const orderIdParam = searchParams.get("orderId");
-  const amountParam = searchParams.get("amount");
 
-  // authority و code از POST body میان
+  // اطلاعات ارسالی از ایران‌درگاه
   const formData = await request.formData();
   const authority = formData.get("authority") as string;
   const code = formData.get("code") as string;
 
-  console.log("Verify called:", { authority, code, orderIdParam, amountParam });
+  console.log("Verify callback:", {
+    authority,
+    code,
+    orderId: orderIdParam,
+  });
 
-  if (!orderIdParam || !authority || !amountParam) {
+  if (!orderIdParam || !authority) {
     return NextResponse.redirect(
       `${resultPageUrl}?status=failed&error=اطلاعات پرداخت ناقص است`
     );
   }
 
-  const orderId = parseInt(orderIdParam, 10);
-  const amount = parseInt(amountParam, 10);
+  const orderId = Number(orderIdParam);
 
   const order = await prisma.order.findUnique({
-    where: { id: orderId },
+    where: {
+      id: orderId,
+    },
   });
 
   if (!order) {
@@ -38,46 +41,67 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // اگر قبلاً پرداخت شده باشد
   if (order.status === "PAYED") {
     return NextResponse.redirect(
-      `${resultPageUrl}?status=success&orderId=${orderId}&message=پرداخت قبلاً انجام شده است`
+      `${resultPageUrl}?status=success&orderId=${order.id}&message=پرداخت قبلاً انجام شده است`
     );
   }
 
-  // code === "-1" یعنی کاربر انصراف داده
+  // انصراف یا خطای اولیه
   if (code !== "200" && code !== "201") {
     await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "CANCELLED" },
-    });
-    return NextResponse.redirect(
-      `${resultPageUrl}?status=failed&orderId=${orderId}&error=پرداخت توسط کاربر لغو شد`
-    );
-  }
-
-  try {
-    const verificationResult = await verifyPayment(orderId, authority, amount);
-
-    await prisma.order.update({
-      where: { id: orderId },
+      where: {
+        id: order.id,
+      },
       data: {
-        status: "PAYED",
-        transactionId: verificationResult.refId,
-        adminNote: `شماره تراکنش: ${verificationResult.refId}`,
+        status: "CANCELLED",
       },
     });
 
     return NextResponse.redirect(
-      `${resultPageUrl}?status=success&orderId=${orderId}&refId=${verificationResult.refId}`
+      `${resultPageUrl}?status=failed&orderId=${order.id}&error=پرداخت توسط کاربر لغو شد`
+    );
+  }
+
+  // مبلغ واقعی سفارش از دیتابیس (تومان → ریال)
+  const amountInRial = Number(order.totalPrice) * 10;
+
+  try {
+    const verification = await verifyPayment(
+      order.id,
+      authority,
+      amountInRial
+    );
+
+    await prisma.order.update({
+      where: {
+        id: order.id,
+      },
+      data: {
+        status: "PAYED",
+        transactionId: verification.refId,
+        adminNote: `شماره تراکنش: ${verification.refId}`,
+      },
+    });
+
+    return NextResponse.redirect(
+      `${resultPageUrl}?status=success&orderId=${order.id}&refId=${verification.refId}`
     );
   } catch (error) {
-    console.error("Verification failed:", error);
+    console.error("Verification error:", error);
+
     await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "ERROR" },
+      where: {
+        id: order.id,
+      },
+      data: {
+        status: "ERROR",
+      },
     });
+
     return NextResponse.redirect(
-      `${resultPageUrl}?status=failed&orderId=${orderId}&error=خطا در تأیید پرداخت`
+      `${resultPageUrl}?status=failed&orderId=${order.id}&error=خطا در تأیید پرداخت`
     );
   }
 }

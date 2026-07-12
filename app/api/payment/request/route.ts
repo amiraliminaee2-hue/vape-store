@@ -35,9 +35,14 @@ export async function POST(request: NextRequest) {
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     // orderId و amount رو در callbackURL نگه میداریم چون POST body جداست
-    const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}&amount=${amount}`;
+    const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}`;
 
-    const { redirectUrl } = await createPaymentRequest(amount, orderId, callbackUrl, mobile);
+    const { redirectUrl } = await createPaymentRequest(
+      amount,
+      orderId,
+      callbackUrl,
+      mobile
+    );
 
     return NextResponse.json({ paymentUrl: redirectUrl });
   } catch (error) {
