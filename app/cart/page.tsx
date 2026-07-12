@@ -589,7 +589,7 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
 
               return (
                 <div
-                  key={item.id}
+                  key={item.productId}
                   className="
                     p-3 sm:p-4 md:p-5
                     border border-white/10
@@ -603,7 +603,7 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                   {/* کنترل تعداد */}
                   <div className="flex items-center gap-2 sm:gap-3 order-2 sm:order-1">
                     <button
-                      onClick={() => handleIncrease(item.id)}
+                      onClick={() => handleIncrease(item.productId)}
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-violet-600 hover:bg-violet-500"
                     >
                       +
@@ -612,7 +612,7 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => handleDecrease(item.id)}
+                      onClick={() => handleDecrease(item.productId)}
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700"
                     >
                       -
@@ -648,7 +648,7 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                       </p>
                     )}
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item.productId)}
                       className="mt-1 sm:mt-2 text-red-400 text-xs sm:text-sm"
                     >
                       حذف

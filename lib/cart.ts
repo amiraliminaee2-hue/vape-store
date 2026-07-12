@@ -1,3 +1,5 @@
+// lib/cart.ts
+
 export interface CartItem {
   id: number;
   productId: number;
@@ -25,12 +27,9 @@ export async function addToCart(
 ) {
   const res = await fetch("/api/cart", {
     method: "POST",
-
     headers: {
-      "Content-Type":
-        "application/json",
+      "Content-Type": "application/json",
     },
-
     body: JSON.stringify({
       productId,
       quantity,
@@ -51,6 +50,12 @@ export async function removeFromCart(
     `/api/cart/${productId}`,
     {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "delete", // ✅ اضافه شد
+      }),
     }
   );
 
@@ -68,12 +73,9 @@ export async function increaseQuantity(
     `/api/cart/${productId}`,
     {
       method: "POST",
-
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
-
       body: JSON.stringify({
         action: "increase",
       }),
@@ -94,12 +96,9 @@ export async function decreaseQuantity(
     `/api/cart/${productId}`,
     {
       method: "POST",
-
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
-
       body: JSON.stringify({
         action: "decrease",
       }),
@@ -118,6 +117,12 @@ export async function clearCart() {
     "/api/cart",
     {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "clear", // ✅ اضافه شد
+      }),
     }
   );
 
