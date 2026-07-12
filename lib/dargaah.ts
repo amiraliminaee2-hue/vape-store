@@ -4,14 +4,18 @@ import crypto from "crypto";
 const API_BASE_URL =
   process.env.IRANDARGAH_BASE_URL || "https://api.irandargah.com";
 
-const API_TOKEN = process.env.IRANDARGAH_API_TOKEN;
+function getApiToken() {
+  const token = process.env.IRANDARGAH_API_TOKEN;
 
-if (!API_TOKEN) {
-  throw new Error("IRANDARGAH_API_TOKEN تنظیم نشده است");
+  if (!token) {
+    throw new Error("IRANDARGAH_API_TOKEN تنظیم نشده است");
+  }
+
+  return token;
 }
 
 const createHeaders = () => ({
-  Authorization: `Bearer ${API_TOKEN}`,
+  Authorization: `Bearer ${getApiToken()}`,
   "Content-Type": "application/json",
   "Idempotency-Key": crypto.randomUUID(),
 });
