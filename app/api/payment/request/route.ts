@@ -1,3 +1,4 @@
+// app/api/payment/request/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -33,8 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "سفارش یافت نشد" }, { status: 404 });
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    // orderId و amount رو در callbackURL نگه میداریم چون POST body جداست
+    const baseUrl = process.env.NEXTAUTH_URL || "https://padbusher.ir";
     const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}`;
 
     const { redirectUrl } = await createPaymentRequest(

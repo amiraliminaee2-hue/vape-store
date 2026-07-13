@@ -2,21 +2,21 @@
 import axios, { AxiosError } from "axios";
 import crypto from "crypto";
 
-const API_BASE_URL =
-  process.env.IRANDARGAH_BASE_URL || "https://api.irandargah.com";
+const SANDBOX_MODE = process.env.IRANDARGAH_SANDBOX === "true";
+const API_BASE_URL = SANDBOX_MODE 
+  ? "https://sandbox.irandargah.com" 
+  : (process.env.IRANDARGAH_BASE_URL || "https://api.irandargah.com");
 
 function getApiToken() {
   const token = process.env.IRANDARGAH_API_KEY;
-
   if (!token) {
     throw new Error("IRANDARGAH_API_KEY تنظیم نشده است");
   }
-
   return token;
 }
 
 const createHeaders = () => ({
-  Authorization: `Bearer ${getApiToken()}`,
+  "Authorization": `Bearer ${getApiToken()}`,
   "Content-Type": "application/json",
   "Idempotency-Key": crypto.randomUUID(),
 });
@@ -44,13 +44,6 @@ export async function createPaymentRequest(
       payload.mobile = mobile;
     }
 
-    console.log("📤 Sending to IranDargah:", {
-      url: `${API_BASE_URL}/v2/payments`,
-      amount: toRial(amount),
-      orderId: String(orderId),
-      callbackUrl,
-    });
-
     const response = await axios.post(
       `${API_BASE_URL}/v2/payments`,
       payload,
@@ -61,36 +54,22 @@ export async function createPaymentRequest(
     );
 
     const data = response.data;
-    console.log("📥 IranDargah response:", JSON.stringify(data, null, 2));
 
-    if (
-      data?.success &&
-      data?.status_code === 200 &&
-      data?.data?.transaction
-    ) {
+    if (data.success && data.status_code === 200 && data.data?.transaction) {
       return {
         authority: data.data.transaction.authority,
         redirectUrl: data.data.transaction.gateway_url,
       };
     }
 
-    throw new Error(data?.message || "خطا در ایجاد تراکنش");
+    throw new Error(data.message || "خطا در ایجاد تراکنش");
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error(
-        "❌ IranDargah create payment error:",
-        error.response?.data || error.message
-      );
-      console.error("❌ Status:", error.response?.status);
-      console.error("❌ Headers:", error.response?.headers);
-
+      console.error("❌ IranDargah error:", error.response?.data || error.message);
       throw new Error(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "خطا در اتصال به ایران درگاه"
+        error.response?.data?.message || "خطا در اتصال به ایران درگاه"
       );
     }
-
     throw error;
   }
 }
@@ -119,32 +98,19 @@ export async function verifyPayment(
 
     const data = response.data;
 
-    if (
-      data?.success &&
-      data?.status_code === 200 &&
-      data?.data?.verification
-    ) {
+    if (data.success && data.status_code === 200 && data.data?.verification) {
       return {
         refId: String(data.data.verification.ref_id),
         message: data.message || "پرداخت با موفقیت تأیید شد",
       };
     }
 
-    throw new Error(data?.message || "تأیید پرداخت ناموفق بود");
+    throw new Error(data.message || "تأیید پرداخت ناموفق بود");
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error(
-        "❌ IranDargah verification error:",
-        error.response?.data || error.message
-      );
-
-      throw new Error(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "خطا در تأیید پرداخت"
-      );
+      console.error("❌ Verification error:", error.response?.data || error.message);
+      throw new Error("خطا در تأیید پرداخت");
     }
-
     throw error;
   }
 }
