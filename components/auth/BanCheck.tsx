@@ -5,13 +5,12 @@ import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
-// صفحاتی که کاربر بن شده می‌تواند ببیند
 const ALLOWED_PATHS_FOR_BANNED = [
   "/",
   "/shop",
   "/product",
   "/auth/signin",
-  "/auth/signup",
+  "/auth/phone-signin",
   "/banned",
   "/faq",
   "/contact",
@@ -44,7 +43,6 @@ export default function BanCheck({ children }: { children: React.ReactNode }) {
             pathname === path || pathname.startsWith(path + "/")
           );
 
-          // اگر بن هست و صفحه مجاز نیست، برو به صفحه بن
           if (data.isBanned && !isAllowedPath && pathname !== "/banned") {
             router.replace("/banned");
           }
@@ -70,7 +68,6 @@ export default function BanCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // اگر بن هست و صفحه مجاز نیست (fallback)
   if (isBanned && !ALLOWED_PATHS_FOR_BANNED.some(path => pathname === path || pathname.startsWith(path + "/"))) {
     return (
       <div className="min-h-screen flex items-center justify-center p-10">

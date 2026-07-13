@@ -77,7 +77,10 @@ export default function AdminCommentsPage() {
       const res = await fetch(`/api/admin/comments/${commentId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          action: "update",
+          status: newStatus 
+        }),
       });
 
       if (res.ok) {
@@ -97,6 +100,10 @@ export default function AdminCommentsPage() {
     try {
       const res = await fetch(`/api/admin/comments/${commentId}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "delete"
+        }),
       });
 
       if (res.ok) {

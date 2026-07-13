@@ -1,5 +1,6 @@
+
 import { redirect } from "next/navigation";
 
 export default function SignUpPage() {
-  redirect("/auth/signup");
+  redirect("/auth/phone-signin");
 }

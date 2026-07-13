@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
-import { orderCreateSchema } from "@/lib/validations/schemas";
-import { sendOrderConfirmationSMS, sendAdminNotificationSMS } from "@/lib/sms";
 
-// تعریف interface برای Product در بالای فایل
+interface OrderItemInput {
+  productId: number;
+  quantity: number;
+}
+
 interface Product {
   id: number;
   title: string;
@@ -16,7 +18,10 @@ interface Product {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("🔥 Orders API called");
+
     const session = await getServerSession(authOptions);
+    console.log("📋 Session:", session?.user?.id);
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -28,77 +33,8 @@ export async function POST(request: NextRequest) {
     const prisma = await getPrisma();
     const userId = session.user.id;
 
-    // Get user info from our database
-    const userProfile = await prisma.userProfile.findUnique({
-      where: { userId: userId },
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    // ✅ اصلاح: استفاده از phone به جای name
-    const userName = userProfile?.firstName 
-      ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
-      : user?.phone || "کاربر"; // ← استفاده از phone
-
-    // Check daily order limit for user (max 5 orders per day)
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-
-    const ordersToday = await prisma.order.count({
-      where: {
-        userId: userId,
-        createdAt: {
-          gte: todayStart,
-          lte: todayEnd,
-        },
-      },
-    });
-
-    if (ordersToday >= 5) {
-      return NextResponse.json(
-        { error: "شما امروز حداکثر مجاز ۵ سفارش را ثبت کرده‌اید. لطفاً فردا مجدداً تلاش کنید" },
-        { status: 429 }
-      );
-    }
-
     const body = await request.json();
-
-    // لاگ برای دیباگ
-    console.log("📦 Original body received:", JSON.stringify(body, null, 2));
-
-    // تبدیل null به undefined برای فیلدهای optional
-    const cleanedBody = {
-      address: body.address,
-      phone: body.phone,
-      items: body.items,
-      customerNote: body.customerNote === null ? undefined : body.customerNote,
-      adminNote: body.adminNote === null ? undefined : body.adminNote,
-      couponCode: body.couponCode === null ? undefined : body.couponCode,
-      discountAmount: body.discountAmount === null ? undefined : body.discountAmount,
-      shippingMethodId: body.shippingMethodId ? Number(body.shippingMethodId) : undefined,
-      paymentMethodId: body.paymentMethodId ? Number(body.paymentMethodId) : undefined,
-      shippingPrice: body.shippingPrice ? Number(body.shippingPrice) : 0,
-    };
-
-    // لاگ برای دیباگ
-    console.log("📦 Cleaned body:", JSON.stringify(cleanedBody, null, 2));
-
-    // Zod validation
-    const validationResult = orderCreateSchema.safeParse(cleanedBody);
-    if (!validationResult.success) {
-      console.error("Validation errors:", JSON.stringify(validationResult.error.issues, null, 2));
-      return NextResponse.json(
-        {
-          error: "ورودی نامعتبر",
-          details: validationResult.error.issues,
-        },
-        { status: 400 }
-      );
-    }
+    console.log("📦 Body received:", JSON.stringify(body, null, 2));
 
     const {
       address,
@@ -111,47 +47,49 @@ export async function POST(request: NextRequest) {
       shippingMethodId,
       paymentMethodId,
       shippingPrice,
-    } = validationResult.data;
+    } = body;
 
-    if (!items?.length) {
-      return NextResponse.json(
-        { error: "سبد خرید خالی است" },
-        { status: 400 }
-      );
+    if (!address) {
+      return NextResponse.json({ error: "آدرس الزامی است" }, { status: 400 });
+    }
+    if (!phone) {
+      return NextResponse.json({ error: "شماره تلفن الزامی است" }, { status: 400 });
+    }
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "سبد خرید خالی است" }, { status: 400 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    const userName = user?.phone || "کاربر";
+
     let totalPrice = 0;
+    const productIds = items.map((item: OrderItemInput) => item.productId);
 
     const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: items.map((i: { productId: number }) => i.productId),
-        },
-      },
+      where: { id: { in: productIds } },
     }) as Product[];
 
     for (const item of items) {
       const product = products.find((p: Product) => p.id === item.productId);
-
       if (!product) {
         return NextResponse.json(
-          { error: "محصول یافت نشد" },
+          { error: `محصول با شناسه ${item.productId} یافت نشد` },
           { status: 404 }
         );
       }
-
       if (product.stock < item.quantity) {
         return NextResponse.json(
           { error: `موجودی ${product.title} کافی نیست` },
           { status: 400 }
         );
       }
-
       totalPrice += product.price * item.quantity;
     }
 
-    // ==================== اعتبارسنجی کد تخفیف ====================
-    let finalDiscountAmount = discountAmount || 0;
+    let finalDiscount = discountAmount || 0;
     let appliedCouponId: number | null = null;
     let appliedCouponCode: string | null = null;
 
@@ -159,7 +97,6 @@ export async function POST(request: NextRequest) {
       const coupon = await prisma.coupon.findUnique({
         where: { code: couponCode.toUpperCase() },
       });
-
       if (coupon && coupon.status === "ACTIVE") {
         const now = new Date();
         const isDateValid = (!coupon.startDate || coupon.startDate <= now) &&
@@ -176,62 +113,54 @@ export async function POST(request: NextRequest) {
               calculatedDiscount = Math.min(calculatedDiscount, coupon.maxDiscount);
             }
           }
-
           if (!coupon.minPurchase || totalPrice >= coupon.minPurchase) {
-            finalDiscountAmount = calculatedDiscount;
+            finalDiscount = calculatedDiscount;
             appliedCouponId = coupon.id;
             appliedCouponCode = coupon.code;
-
-            await prisma.coupon.update({
-              where: { id: coupon.id },
-              data: { usedCount: { increment: 1 } },
-            });
-
-            await prisma.couponUsage.create({
-              data: {
-                couponId: coupon.id,
-                orderId: 0,
-                userId: userId,
-                discount: finalDiscountAmount,
-              },
-            });
           }
         }
       }
     }
 
-    const finalTotalPrice = totalPrice - finalDiscountAmount + (shippingPrice || 0);
+    const finalTotal = totalPrice - finalDiscount + (shippingPrice || 0);
+    const trackingNumber = `VS-${Date.now()}`;
 
-    const currentYear = new Date().getFullYear();
-    const lastOrder = await prisma.order.findFirst({
-      orderBy: { id: "desc" },
+    console.log("📝 Creating order with data:", {
+      userId,
+      trackingNumber,
+      userName,
+      address,
+      phone,
+      totalPrice: finalTotal,
+      discountAmount: finalDiscount,
+      shippingPrice: shippingPrice || 0,
+      itemsCount: items.length,
     });
-    const nextNumber = (lastOrder?.id ?? 0) + 1;
-    const trackingNumber = `VS-${currentYear}-${String(nextNumber).padStart(6, "0")}`;
 
     const order = await prisma.order.create({
       data: {
-        trackingNumber,
         userId,
-        userName: userName,
+        trackingNumber,
+        userName,
         address,
         phone,
-        customerNote: customerNote?.trim() || null,
-        adminNote: adminNote?.trim() || null,
-        totalPrice: finalTotalPrice,
+        customerNote: customerNote || null,
+        adminNote: adminNote || null,
+        totalPrice: finalTotal,
         couponId: appliedCouponId,
         couponCode: appliedCouponCode,
-        discountAmount: finalDiscountAmount,
+        discountAmount: finalDiscount,
         shippingMethodId: shippingMethodId || null,
         paymentMethodId: paymentMethodId || null,
         shippingPrice: shippingPrice || 0,
+        status: "REGISTERED",
         items: {
-          create: items.map((item: { productId: number; quantity: number }) => {
-            const product = products.find((p: Product) => p.id === item.productId)!;
+          create: items.map((item: OrderItemInput) => {
+            const product = products.find((p: Product) => p.id === item.productId);
             return {
-              productId: product.id,
+              productId: item.productId,
               quantity: item.quantity,
-              price: product.price,
+              price: product ? product.price : 0,
             };
           }),
         },
@@ -245,61 +174,26 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // آپدیت couponUsage با orderId واقعی
-    if (appliedCouponId) {
-      await prisma.couponUsage.updateMany({
-        where: {
-          couponId: appliedCouponId,
-          orderId: 0,
-          userId: userId,
-        },
-        data: {
-          orderId: order.id,
-        },
+    console.log("✅ Order created:", order.id);
+
+    for (const item of items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: item.quantity } },
       });
     }
 
-    // کاهش موجودی محصولات
-    await Promise.all(
-      items.map(async (item: { productId: number; quantity: number }) => {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity,
-            },
-          },
-        });
-      })
-    );
-
-    // حذف سبد خرید کاربر بعد از ثبت سفارش
     await prisma.cart.delete({
-      where: { userId: userId },
+      where: { userId },
     }).catch(() => {});
-
-    // ==================== ارسال پیامک ====================
-    if (phone) {
-      try {
-        await sendOrderConfirmationSMS(phone, order.id, finalTotalPrice);
-      } catch (smsError) {
-        console.error("SMS sending error (order confirmation):", smsError);
-      }
-    }
-
-    try {
-      await sendAdminNotificationSMS(order.id, finalTotalPrice, userName);
-    } catch (smsError) {
-      console.error("SMS sending error (admin notification):", smsError);
-    }
 
     return NextResponse.json(order);
   } catch (error) {
-    console.error("Create Order Error:", error);
-
+    console.error("❌ Create Order Error:", error);
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : String(error),
+      { 
+        error: "خطا در ثبت سفارش",
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );

@@ -106,16 +106,21 @@ export default function SellersPage() {
   const handleStatusChange = async (sellerId: string, newStatus: string): Promise<void> => {
     setUpdatingId(sellerId);
     try {
-      const res = await fetch(`/api/admin/sellers?id=${sellerId}`, {
+      const res = await fetch(`/api/admin/sellers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          action: "update",
+          id: sellerId,
+          status: newStatus 
+        }),
       });
 
       if (res.ok) {
         fetchSellers();
       } else {
-        alert("خطا در تغییر وضعیت");
+        const data = await res.json();
+        alert(data.error || "خطا در تغییر وضعیت");
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -130,8 +135,13 @@ export default function SellersPage() {
 
     setDeletingId(sellerId);
     try {
-      const res = await fetch(`/api/admin/sellers?id=${sellerId}`, {
+      const res = await fetch(`/api/admin/sellers`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "delete",
+          id: sellerId 
+        }),
       });
 
       if (res.ok) {

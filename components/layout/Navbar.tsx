@@ -85,7 +85,7 @@ export default function Navbar() {
                   ورود
                 </Link>
                 <Link
-                  href="/auth/signup"
+                  href="/auth/phone-signin"
                   className="px-4 xl:px-5 py-2 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white transition text-sm xl:text-base"
                 >
                   ثبت نام
@@ -220,7 +220,7 @@ export default function Navbar() {
                 ورود
               </Link>
               <Link
-                href="/auth/signup"
+                href="/auth/phone-signin"
                 onClick={closeMenu}
                 className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-base font-medium text-center transition"
               >

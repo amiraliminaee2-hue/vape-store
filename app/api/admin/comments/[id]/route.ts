@@ -6,7 +6,6 @@ import { isAdmin } from "@/lib/isAdmin";
 import { commentStatusSchema } from "@/lib/validations/schemas";
 import { getPrisma } from "@/lib/prisma";
 
-// ✅ فقط یک تابع POST که بر اساس action تصمیم‌گیری می‌کند
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -25,9 +24,7 @@ export async function POST(
     const body = await request.json();
     const { action, ...data } = body;
 
-    // ✅ بررسی action برای تصمیم‌گیری
     if (action === "update") {
-      // عملیات ویرایش وضعیت
       const validationResult = commentStatusSchema.safeParse(data);
       if (!validationResult.success) {
         return NextResponse.json(
@@ -51,7 +48,6 @@ export async function POST(
     } 
     
     else if (action === "delete") {
-      // عملیات حذف
       const prisma = await getPrisma();
 
       await prisma.comment.delete({
