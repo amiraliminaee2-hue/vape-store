@@ -87,8 +87,7 @@ export async function verifyPayment(
       `${API_BASE_URL}/v2/verifications`,
       {
         authority,
-        amount: toRial(amount),
-        order_id: String(orderId),
+        amount: amount,
       },
       {
         headers: createHeaders(),
