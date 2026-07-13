@@ -16,25 +16,43 @@ interface Product {
   price: number;
 }
 
+interface OrderCreateInput {
+  userId: string;
+  trackingNumber: string;
+  userName: string;
+  address: string;
+  phone: string;
+  totalPrice: number;
+  status: "REGISTERED";
+  customerNote?: string;
+  adminNote?: string;
+  couponId?: number | null;
+  couponCode?: string | null;
+  discountAmount?: number;
+  shippingMethodId?: number | null;
+  paymentMethodId?: number | null;
+  shippingPrice?: number;
+  items: {
+    create: {
+      productId: number;
+      quantity: number;
+      price: number;
+    }[];
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log("🔥 Orders API called");
 
     const session = await getServerSession(authOptions);
-    console.log("📋 Session:", session?.user?.id);
-
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "ابتدا وارد حساب کاربری شوید" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const prisma = await getPrisma();
     const userId = session.user.id;
-
     const body = await request.json();
-    console.log("📦 Body received:", JSON.stringify(body, null, 2));
 
     const {
       address,
@@ -67,7 +85,6 @@ export async function POST(request: NextRequest) {
 
     let totalPrice = 0;
     const productIds = items.map((item: OrderItemInput) => item.productId);
-
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
     }) as Product[];
@@ -89,7 +106,7 @@ export async function POST(request: NextRequest) {
       totalPrice += product.price * item.quantity;
     }
 
-    let finalDiscount = discountAmount || 0;
+    const finalDiscount = discountAmount || 0;
     let appliedCouponId: number | null = null;
     let appliedCouponCode: string | null = null;
 
@@ -104,17 +121,7 @@ export async function POST(request: NextRequest) {
         const isUsageValid = (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit);
 
         if (isDateValid && isUsageValid) {
-          let calculatedDiscount = 0;
-          if (coupon.type === "FIXED") {
-            calculatedDiscount = Math.min(coupon.value, totalPrice);
-          } else {
-            calculatedDiscount = Math.floor(totalPrice * coupon.value / 100);
-            if (coupon.maxDiscount) {
-              calculatedDiscount = Math.min(calculatedDiscount, coupon.maxDiscount);
-            }
-          }
           if (!coupon.minPurchase || totalPrice >= coupon.minPurchase) {
-            finalDiscount = calculatedDiscount;
             appliedCouponId = coupon.id;
             appliedCouponCode = coupon.code;
           }
@@ -125,46 +132,39 @@ export async function POST(request: NextRequest) {
     const finalTotal = totalPrice - finalDiscount + (shippingPrice || 0);
     const trackingNumber = `VS-${Date.now()}`;
 
-    console.log("📝 Creating order with data:", {
-      userId,
-      trackingNumber,
-      userName,
-      address,
-      phone,
+    const orderCreateData: OrderCreateInput = {
+      userId: userId,
+      trackingNumber: trackingNumber,
+      userName: userName,
+      address: address,
+      phone: phone,
       totalPrice: finalTotal,
-      discountAmount: finalDiscount,
-      shippingPrice: shippingPrice || 0,
-      itemsCount: items.length,
-    });
+      status: "REGISTERED",
+      items: {
+        create: items.map((item: OrderItemInput) => {
+          const product = products.find((p: Product) => p.id === item.productId);
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            price: product ? product.price : 0,
+          };
+        }),
+      },
+    };
+
+    if (customerNote) orderCreateData.customerNote = customerNote;
+    if (adminNote) orderCreateData.adminNote = adminNote;
+    if (appliedCouponId) orderCreateData.couponId = appliedCouponId;
+    if (appliedCouponCode) orderCreateData.couponCode = appliedCouponCode;
+    if (finalDiscount > 0) orderCreateData.discountAmount = finalDiscount;
+    if (shippingMethodId) orderCreateData.shippingMethodId = shippingMethodId;
+    if (paymentMethodId) orderCreateData.paymentMethodId = paymentMethodId;
+    if (shippingPrice) orderCreateData.shippingPrice = shippingPrice;
+
+    console.log("📤 Final order data:", JSON.stringify(orderCreateData, null, 2));
 
     const order = await prisma.order.create({
-      data: {
-        userId,
-        trackingNumber,
-        userName,
-        address,
-        phone,
-        customerNote: customerNote || null,
-        adminNote: adminNote || null,
-        totalPrice: finalTotal,
-        couponId: appliedCouponId,
-        couponCode: appliedCouponCode,
-        discountAmount: finalDiscount,
-        shippingMethodId: shippingMethodId || null,
-        paymentMethodId: paymentMethodId || null,
-        shippingPrice: shippingPrice || 0,
-        status: "REGISTERED",
-        items: {
-          create: items.map((item: OrderItemInput) => {
-            const product = products.find((p: Product) => p.id === item.productId);
-            return {
-              productId: item.productId,
-              quantity: item.quantity,
-              price: product ? product.price : 0,
-            };
-          }),
-        },
-      },
+      data: orderCreateData,
       include: {
         items: {
           include: {
