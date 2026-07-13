@@ -1,3 +1,4 @@
+// lib/dargaah.ts
 import axios, { AxiosError } from "axios";
 import crypto from "crypto";
 
@@ -5,10 +6,10 @@ const API_BASE_URL =
   process.env.IRANDARGAH_BASE_URL || "https://api.irandargah.com";
 
 function getApiToken() {
-  const token = process.env.IRANDARGAH_API_TOKEN;
+  const token = process.env.IRANDARGAH_API_KEY;
 
   if (!token) {
-    throw new Error("IRANDARGAH_API_TOKEN تنظیم نشده است");
+    throw new Error("IRANDARGAH_API_KEY تنظیم نشده است");
   }
 
   return token;
@@ -20,10 +21,6 @@ const createHeaders = () => ({
   "Idempotency-Key": crypto.randomUUID(),
 });
 
-/**
- * مبلغ پروژه به تومان است.
- * ایران درگاه مبلغ را به ریال دریافت می‌کند.
- */
 const toRial = (amount: number) => amount * 10;
 
 export async function createPaymentRequest(
@@ -47,6 +44,13 @@ export async function createPaymentRequest(
       payload.mobile = mobile;
     }
 
+    console.log("📤 Sending to IranDargah:", {
+      url: `${API_BASE_URL}/v2/payments`,
+      amount: toRial(amount),
+      orderId: String(orderId),
+      callbackUrl,
+    });
+
     const response = await axios.post(
       `${API_BASE_URL}/v2/payments`,
       payload,
@@ -57,6 +61,7 @@ export async function createPaymentRequest(
     );
 
     const data = response.data;
+    console.log("📥 IranDargah response:", JSON.stringify(data, null, 2));
 
     if (
       data?.success &&
@@ -73,9 +78,11 @@ export async function createPaymentRequest(
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error(
-        "IranDargah create payment:",
+        "❌ IranDargah create payment error:",
         error.response?.data || error.message
       );
+      console.error("❌ Status:", error.response?.status);
+      console.error("❌ Headers:", error.response?.headers);
 
       throw new Error(
         error.response?.data?.message ||
@@ -127,7 +134,7 @@ export async function verifyPayment(
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error(
-        "IranDargah verification:",
+        "❌ IranDargah verification error:",
         error.response?.data || error.message
       );
 
