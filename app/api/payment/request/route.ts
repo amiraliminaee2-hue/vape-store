@@ -37,18 +37,34 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXTAUTH_URL || "https://padbusher.ir";
     const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}`;
 
-    const { redirectUrl } = await createPaymentRequest(
-      amount,
-      orderId,
-      callbackUrl,
-      mobile
-    );
+    try {
+      const { redirectUrl } = await createPaymentRequest(
+        amount,
+        orderId,
+        callbackUrl,
+        mobile
+      );
 
-    return NextResponse.json({ paymentUrl: redirectUrl });
+      return NextResponse.json({ paymentUrl: redirectUrl });
+    } catch (paymentError) {
+      console.error("❌ Payment create error:", paymentError);
+      
+      // اگر خطا از سمت ایران درگاه باشه، یه پیام مناسب برگردون
+      return NextResponse.json(
+        { 
+          error: "درگاه پرداخت در دسترس نیست. لطفاً چند دقیقه دیگر تلاش کنید.",
+          details: paymentError instanceof Error ? paymentError.message : String(paymentError)
+        },
+        { status: 503 }
+      );
+    }
   } catch (error) {
     console.error("❌ Payment request error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "خطا در اتصال به درگاه پرداخت" },
+      { 
+        error: "خطا در اتصال به درگاه پرداخت",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

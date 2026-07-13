@@ -44,6 +44,11 @@ export async function createPaymentRequest(
       payload.mobile = mobile;
     }
 
+    console.log("📤 Sending to IranDargah:", {
+      url: `${API_BASE_URL}/v2/payments`,
+      payload,
+    });
+
     const response = await axios.post(
       `${API_BASE_URL}/v2/payments`,
       payload,
@@ -53,7 +58,14 @@ export async function createPaymentRequest(
       }
     );
 
+    const contentType = response.headers['content-type'];
+    if (typeof contentType === 'string' && !contentType.includes('application/json')) {
+      console.error("❌ Non-JSON response:", response.data);
+      throw new Error("پاسخ سرور معتبر نیست (درگاه پرداخت در دسترس نیست)");
+    }
+
     const data = response.data;
+    console.log("📥 IranDargah response:", JSON.stringify(data, null, 2));
 
     if (data.success && data.status_code === 200 && data.data?.transaction) {
       return {
@@ -66,6 +78,12 @@ export async function createPaymentRequest(
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error("❌ IranDargah error:", error.response?.data || error.message);
+      console.error("❌ Status:", error.response?.status);
+      
+      if (error.response?.status === 503) {
+        throw new Error("درگاه پرداخت در دسترس نیست. لطفاً چند دقیقه دیگر تلاش کنید.");
+      }
+      
       throw new Error(
         error.response?.data?.message || "خطا در اتصال به ایران درگاه"
       );

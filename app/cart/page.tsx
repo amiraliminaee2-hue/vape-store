@@ -445,18 +445,22 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
         return;
       }
 
-      const amountInRials = finalTotal * 10;
-
       const paymentRes = await fetch("/api/payment/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId: orderData.id,
-          amount: amountInRials,
-          description: `پرداخت سفارش شماره ${orderData.id}`,
+          amount: finalTotal,
           mobile: phone,
         }),
       });
+
+      const contentType = paymentRes.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await paymentRes.text();
+        console.error("Non-JSON response:", text);
+        throw new Error("درگاه پرداخت در دسترس نیست. لطفاً چند دقیقه دیگر تلاش کنید.");
+      }
 
       const paymentData = await paymentRes.json();
       console.log("Payment Response:", { status: paymentRes.status, data: paymentData });
