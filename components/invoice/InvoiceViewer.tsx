@@ -17,8 +17,6 @@ interface InvoiceData {
   transactionId: string | null;
   createdAt: string;
   status: string;
-  userName: string;
-  userEmail: string;
   phone: string;
   address: string;
   customerNote: string | null;
@@ -289,31 +287,17 @@ export default function InvoiceViewer({
             </div>
           </div>
 
-          {/* اطلاعات مشتری */}
+          {/* ✅ اطلاعات مشتری - اصلاح شده (بدون userName و userEmail) */}
           <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-5 mb-8 border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
               <span>👤</span> اطلاعات مشتری
             </h3>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div className="flex items-start gap-3">
-                <span className="text-gray-400">👤</span>
-                <div>
-                  <p className="text-gray-500 text-xs">نام</p>
-                  <p className="font-medium">{data.userName}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-gray-400">📧</span>
-                <div>
-                  <p className="text-gray-500 text-xs">ایمیل</p>
-                  <p>{data.userEmail}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
                 <span className="text-gray-400">📞</span>
                 <div>
-                  <p className="text-gray-500 text-xs">تلفن</p>
-                  <p dir="ltr">{data.phone}</p>
+                  <p className="text-gray-500 text-xs">شماره تلفن</p>
+                  <p dir="ltr" className="font-medium">{data.phone}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

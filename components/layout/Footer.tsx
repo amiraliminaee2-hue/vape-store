@@ -16,13 +16,11 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="border-t border-white/10 py-8 md:py-12 mt-10 md:mt-20">
+    <footer className="border-t border-white/10 py-8 md:py-12 bg-[#050505]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* گرید ریسپانسیو */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 lg:gap-12 mb-8 md:mb-10 text-right">
 
-          {/* درباره ما */}
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               درباره ما
@@ -32,7 +30,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* اطلاعات تماس */}
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               اطلاعات تماس
@@ -57,7 +54,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* دسترسی سریع */}
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               دسترسی سریع
@@ -86,7 +82,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* شبکه‌های اجتماعی */}
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
               شبکه‌های اجتماعی
@@ -140,9 +135,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* کپی‌رایت */}
         <div className="pt-6 md:pt-8 border-t border-white/10 text-center text-zinc-500 text-xs sm:text-sm">
-          {settings["footer_text"] || "© ۱۴۰۳ پاد بوشهر. تمامی حقوق محفوظ است."}
+          {settings["footer_text"] || "© 1405 پاد بوشهر. تمامی حقوق محفوظ است."}
         </div>
       </div>
     </footer>

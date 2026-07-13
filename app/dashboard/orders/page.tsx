@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 
-// تعریف interface برای OrderItem
 interface OrderItem {
   id: number;
   orderId: number;
@@ -15,12 +14,9 @@ interface OrderItem {
   updatedAt: Date;
 }
 
-// تعریف interface برای Order (بدون فیلدهای اضافی)
 interface Order {
   id: number;
   userId: string;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   totalPrice: number;

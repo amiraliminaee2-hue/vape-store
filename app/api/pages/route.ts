@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { getPrisma } from "@/lib/prisma";
 
-// نوع برای داده‌های ورودی صفحه
 interface PageCreateInput {
   title: string;
   slug: string;
@@ -17,15 +16,10 @@ interface PageCreateInput {
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 }
 
-// ✅ این تایپ را به این شکل تغییر دهید تا استفاده شود
 interface PageUpdateInput extends PageCreateInput {
   id: number;
 }
 
-// یا اگر نمی‌خواهید از آن استفاده کنید، آن را حذف کنید
-// اما چون در کد از آن استفاده نمی‌شود، خطا می‌دهد
-
-// GET - دریافت لیست صفحات (عمومی: فقط منتشر شده، ادمین: همه)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -35,7 +29,6 @@ export async function GET(request: NextRequest) {
     const statusParam = searchParams.get("status");
     const isAdminUser = session?.user?.id && (await isAdmin(session.user.id));
 
-    // دریافت یک صفحه با slug
     if (slug) {
       const page = await prisma.page.findFirst({
         where: {
@@ -51,7 +44,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(page);
     }
 
-    // دریافت لیست صفحات
     const where: {
       status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     } = {};
@@ -69,7 +61,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         author: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, phone: true },
         },
       },
     });
@@ -81,7 +73,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - ایجاد صفحه جدید (فقط ادمین)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -97,7 +88,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "عنوان، slug و محتوا الزامی است" }, { status: 400 });
     }
 
-    // بررسی تکراری نبودن slug
     const existing = await prisma.page.findUnique({
       where: { slug },
     });
@@ -129,7 +119,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - بروزرسانی صفحه (فقط ادمین)
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -145,7 +134,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "شناسه صفحه الزامی است" }, { status: 400 });
     }
 
-    // اگر slug تغییر کرده، بررسی تکراری نبودن
     if (slug) {
       const existing = await prisma.page.findFirst({
         where: {
@@ -196,7 +184,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - حذف صفحه (فقط ادمین)
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

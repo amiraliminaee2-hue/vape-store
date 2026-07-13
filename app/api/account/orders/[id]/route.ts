@@ -3,10 +3,8 @@ import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-// تعریف تایپ برای OrderStatus بر اساس مقادیر موجود در schema
 type OrderStatus = "REGISTERED" | "PAYED" | "ERROR" | "PROCESSING" | "SHIPPING" | "SHIPPED" | "CANCELLED";
 
-// تعریف تایپ برای where
 interface OrderWhereInput {
   userId: string;
   status?: OrderStatus;
@@ -25,15 +23,12 @@ export async function GET(request: NextRequest) {
     const statusParam = searchParams.get("status");
     const skip = (page - 1) * limit;
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
-    // ✅ ساخت where با تایپ سفارشی
     const where: OrderWhereInput = {
       userId: session.user.id,
     };
 
-    // ✅ اضافه کردن شرط status در صورت وجود
     if (statusParam) {
       const validStatuses: OrderStatus[] = ["REGISTERED", "PAYED", "ERROR", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED"];
       if (validStatuses.includes(statusParam as OrderStatus)) {
@@ -82,10 +77,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // ✅ دریافت prisma از getPrisma
     const prisma = await getPrisma();
 
-    // ✅ تایپ مناسب برای body
     const orderData: {
       address: string;
       phone: string;
@@ -111,11 +104,10 @@ export async function POST(request: NextRequest) {
           create: orderData.items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
-            price: 0, // باید از محصول دریافت بشه
+            price: 0,
           })),
         },
-        userName: session.user.name || "کاربر",
-        userEmail: session.user.email || "",
+        userName: session.user.phone || "کاربر",
         totalPrice: 0,
         trackingNumber: `ORD-${Date.now()}`,
       },

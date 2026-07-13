@@ -71,14 +71,16 @@ export default function RootLayout({
         <meta name="theme-color" content="#050505" />
       </head>
       <body
-        className="min-h-full flex flex-col"
+        className="min-h-full flex flex-col bg-[#050505] text-white"
         style={{ fontFamily: "var(--font-vazirmatn), Arial, sans-serif" }}
       >
         <AuthProvider>
           <BackgroundGrid />
           <BanCheck>
             <ClientLayoutWrapper />
-            {children}
+            <main className="flex-1 pt-16 sm:pt-20">
+              {children}
+            </main>
           </BanCheck>
         </AuthProvider>
       </body>

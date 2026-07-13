@@ -12,12 +12,9 @@ interface Props {
   }>;
 }
 
-// تعریف interface برای Order
 interface Order {
   id: number;
   userId: string;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   totalPrice: number;
@@ -54,7 +51,6 @@ export default async function SuccessPage({ params }: Props) {
     redirect("/");
   }
 
-  // فقط اگر سفارش هنوز REGISTERED باشد وضعیت را تغییر بده
   if (order.status === "REGISTERED") {
     await prisma.order.update({
       where: {

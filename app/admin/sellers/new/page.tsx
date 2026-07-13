@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
-  email: string;
-  name: string | null;
+  phone: string | null;
 }
 
 interface FormData {
@@ -42,7 +41,6 @@ export default function NewSellerPage() {
   });
 
   useEffect(() => {
-    // دریافت لیست کاربران برای انتخاب فروشنده
     const fetchUsers = async (): Promise<void> => {
       try {
         const res = await fetch("/api/admin/users?limit=100");
@@ -101,7 +99,6 @@ export default function NewSellerPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <button
             onClick={() => router.back()}
@@ -120,7 +117,6 @@ export default function NewSellerPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* User Selection */}
           <div className="p-8 rounded-3xl border border-white/10 bg-white/[0.02] space-y-6">
             <h2 className="text-xl font-semibold">اطلاعات کاربر</h2>
 
@@ -153,7 +149,7 @@ export default function NewSellerPage() {
                 ) : (
                   users.map((user: User) => (
                     <option key={user.id} value={user.id} className="bg-zinc-900">
-                      {user.name || user.email} - {user.email}
+                      {user.phone || "بدون شماره"}
                     </option>
                   ))
                 )}
@@ -161,7 +157,6 @@ export default function NewSellerPage() {
             </div>
           </div>
 
-          {/* Store Information */}
           <div className="p-8 rounded-3xl border border-white/10 bg-white/[0.02] space-y-6">
             <h2 className="text-xl font-semibold">اطلاعات فروشگاه</h2>
 
@@ -405,7 +400,6 @@ export default function NewSellerPage() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

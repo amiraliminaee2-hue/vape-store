@@ -1,3 +1,4 @@
+// app/api/comments/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { validateCsrfToken } from "@/lib/csrf";
@@ -6,7 +7,7 @@ import { commentCreateSchema } from "@/lib/validations/schemas";
 import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
-  console.log("🔥 POST /api/comments reached");
+  console.log("🔥 GET /api/comments reached");
   try {
     const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
@@ -127,9 +128,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ اصلاح: استفاده از phone به جای name
     const userName = userProfile?.firstName 
       ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
-      : user?.name || "کاربر";
+      : user?.phone || "کاربر"; // ← استفاده از phone
 
     const comment = await prisma.comment.create({
       data: {

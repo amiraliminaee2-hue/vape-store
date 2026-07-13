@@ -6,16 +6,14 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import StarRating from "./StarRating";
 
+// ✅ اصلاح تایپ Comment - حذف user با name و email
 interface Comment {
   id: number;
   userName: string;
   rating: number;
   content: string;
-  createdAt: Date;
-  user: {
-    name: string | null;
-    email: string | null;
-  };
+  createdAt: Date | string;
+  // user حذف شد
 }
 
 interface ProductReviewsProps {
@@ -99,7 +97,9 @@ export default function ProductReviews({ productId, initialComments, averageRati
       
       if (res.ok) {
         const newComment = await res.json();
-        setComments([newComment, ...comments]);
+        // ✅ پاسخ API شامل comment است
+        const commentData = newComment.comment || newComment;
+        setComments([commentData, ...comments]);
         setRating(0);
         setContent("");
         alert("نظر شما با موفقیت ثبت شد و پس از تأیید نمایش داده می‌شود");
@@ -126,19 +126,18 @@ export default function ProductReviews({ productId, initialComments, averageRati
     }
   };
 
-  // ✅ تابع ایمن برای ساخت key (بدون استفاده از Date.now یا توابع غیرخالص)
+  // تابع ایمن برای ساخت key
   const getSafeKey = (comment: Comment, index: number): string => {
     if (comment.id && comment.id !== 0) {
       return `comment-${comment.id}`;
     }
-    // در حالت fallback، از index استفاده می‌کنیم (که در لیست‌های استاتیک یا موقت قابل قبول است)
     return `comment-fallback-${index}`;
   };
 
   return (
     <div className="space-y-8">
       
-      {/* نمایش میانگین امتیازات - اصلاح شده */}
+      {/* نمایش میانگین امتیازات */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
         <div className="flex items-center gap-6">
           <div className="text-center">
@@ -220,7 +219,7 @@ export default function ProductReviews({ productId, initialComments, averageRati
         )}
       </div>
 
-      {/* لیست نظرات - با key ایمن */}
+      {/* لیست نظرات */}
       {comments.length === 0 ? (
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 text-center text-zinc-500">
           هنوز نظری برای این محصول ثبت نشده است. اولین نفری باشید که نظر می‌دهید!

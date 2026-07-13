@@ -1,3 +1,4 @@
+// app/admin/orders/page.tsx
 import { getPrisma } from "@/lib/prisma";
 import OrderStatusSelect from "./status-select";
 import { Suspense } from "react";
@@ -38,8 +39,6 @@ interface Order {
   id: number;
   trackingNumber: string;
   userId: string;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   customerNote: string | null;
@@ -56,7 +55,6 @@ interface SearchParams {
   search?: string;
 }
 
-// تایپ برای where condition
 interface OrderWhereInput {
   OR?: Array<{
     [key: string]: {
@@ -75,24 +73,11 @@ export default async function OrdersPage({
 
   const prisma = await getPrisma();
 
-  // ساخت where condition به صورت شرطی
   const whereCondition: OrderWhereInput = search
     ? {
         OR: [
           {
             phone: {
-              contains: search,
-              mode: "insensitive" as const,
-            },
-          },
-          {
-            userEmail: {
-              contains: search,
-              mode: "insensitive" as const,
-            },
-          },
-          {
-            userName: {
               contains: search,
               mode: "insensitive" as const,
             },
@@ -137,12 +122,10 @@ export default async function OrdersPage({
     (o: Order) => o.status === "SHIPPED"
   ).length;
 
-  // محاسبه مجموع تخفیف‌ها
   const totalDiscount: number = orders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
 
   return (
     <div className="space-y-8">
-      {/* Header with Export Buttons */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold">
@@ -162,7 +145,7 @@ export default async function OrdersPage({
           type="text"
           name="search"
           defaultValue={search}
-          placeholder="جستجو با نام، ایمیل، موبایل یا شماره پیگیری..."
+          placeholder="جستجو با موبایل یا شماره پیگیری..."
           className="
             w-full
             rounded-2xl
@@ -251,15 +234,8 @@ export default async function OrdersPage({
                         مشتری
                       </p>
                       <p className="font-semibold">
-                        {order.userName || "کاربر"}
+                        {order.phone || "کاربر"}
                       </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-zinc-500">
-                        ایمیل
-                      </p>
-                      <p>{order.userEmail || "-"}</p>
                     </div>
 
                     <div>
@@ -278,7 +254,6 @@ export default async function OrdersPage({
                       </p>
                     </div>
 
-                    {/* Admin Note Section */}
                     <div className="mt-4 pt-4 border-t border-white/10">
                       <p className="text-sm text-zinc-500 mb-2">
                         یادداشت ادمین
@@ -304,7 +279,6 @@ export default async function OrdersPage({
                     {statusLabels[order.status] || order.status}
                   </div>
                   
-                  {/* بخش قیمت با تخفیف */}
                   <div className="mt-3 text-right">
                     {hasDiscount && (
                       <>

@@ -1,3 +1,4 @@
+// app/api/orders/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -36,11 +37,10 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
     });
 
+    // ✅ اصلاح: استفاده از phone به جای name
     const userName = userProfile?.firstName 
       ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
-      : user?.name || "کاربر";
-
-    const userEmail = user?.email || "";
+      : user?.phone || "کاربر"; // ← استفاده از phone
 
     // Check daily order limit for user (max 5 orders per day)
     const todayStart = new Date();
@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
       adminNote: body.adminNote === null ? undefined : body.adminNote,
       couponCode: body.couponCode === null ? undefined : body.couponCode,
       discountAmount: body.discountAmount === null ? undefined : body.discountAmount,
-      // ✅ اصلاح: تبدیل صحیح فیلدهای روش ارسال و پرداخت
       shippingMethodId: body.shippingMethodId ? Number(body.shippingMethodId) : undefined,
       paymentMethodId: body.paymentMethodId ? Number(body.paymentMethodId) : undefined,
       shippingPrice: body.shippingPrice ? Number(body.shippingPrice) : 0,
@@ -215,7 +214,6 @@ export async function POST(request: NextRequest) {
         trackingNumber,
         userId,
         userName: userName,
-        userEmail: userEmail,
         address,
         phone,
         customerNote: customerNote?.trim() || null,
@@ -224,7 +222,6 @@ export async function POST(request: NextRequest) {
         couponId: appliedCouponId,
         couponCode: appliedCouponCode,
         discountAmount: finalDiscountAmount,
-        // ✅ فیلدهای جدید
         shippingMethodId: shippingMethodId || null,
         paymentMethodId: paymentMethodId || null,
         shippingPrice: shippingPrice || 0,

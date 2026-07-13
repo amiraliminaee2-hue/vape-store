@@ -1,3 +1,4 @@
+// app/product/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -52,8 +53,7 @@ interface Product {
     productId: number;
     status: string;
     user: {
-      name: string | null;
-      email: string | null;
+      phone: string | null;  // ✅ تغییر: name به phone
     } | null;
   }>;
 }
@@ -80,7 +80,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const prisma = await getPrisma();
   const { slug } = await params;
   
-  // تلاش برای پیدا کردن محصول با slug یا id
   const isNumeric = /^\d+$/.test(slug);
   let product;
   
@@ -116,7 +115,6 @@ export default async function ProductPage({ params }: PageProps) {
   const prisma = await getPrisma();
   const { slug } = await params;
   
-  // تلاش برای پیدا کردن محصول با slug یا id
   const isNumeric = /^\d+$/.test(slug);
   let product;
   
@@ -134,7 +132,7 @@ export default async function ProductPage({ params }: PageProps) {
           orderBy: { createdAt: "desc" },
           include: {
             user: {
-              select: { name: true, email: true },
+              select: { phone: true },  // ✅ تغییر: name و email به phone
             },
           },
         },
@@ -154,7 +152,7 @@ export default async function ProductPage({ params }: PageProps) {
           orderBy: { createdAt: "desc" },
           include: {
             user: {
-              select: { name: true, email: true },
+              select: { phone: true },  // ✅ تغییر: name و email به phone
             },
           },
         },
@@ -208,8 +206,7 @@ export default async function ProductPage({ params }: PageProps) {
     content: comment.content,
     createdAt: comment.createdAt,
     user: {
-      name: comment.user?.name || null,
-      email: comment.user?.email || null,
+      phone: comment.user?.phone || null,  // ✅ تغییر: name به phone
     },
   }));
 

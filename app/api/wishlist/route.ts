@@ -22,11 +22,10 @@ interface WishlistItemWithProduct {
   };
 }
 
-// تعریف interface برای User
+// ✅ تعریف interface جدید برای User (مطابق با مدل جدید)
 interface User {
   id: string;
-  email: string;
-  name: string;
+  phone: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
     const { action, ...data } = body;
 
     // ============================================
-    // 1️⃣ افزودن/حذف (Toggle) - اگر وجود داشت حذف کن، اگر نبود اضافه کن
+    // 1️⃣ افزودن/حذف (Toggle)
     // ============================================
     if (action === "toggle") {
       const { productId } = data;
@@ -96,14 +95,12 @@ export async function POST(request: NextRequest) {
         where: { id: userId },
       }) as User | null;
 
-      // اگر کاربر وجود نداشت، ایجادش کن
+      // اگر کاربر وجود نداشت، ایجادش کن (بدون name و email)
       if (!user) {
-        const sessionUser = session.user;
         user = await prisma.user.create({
           data: {
             id: userId,
-            email: sessionUser.email || `user-${userId}@temp.com`,
-            name: sessionUser.name || "کاربر",
+            phone: session.user.phone || "", // استفاده از phone به جای name
           },
         }) as User;
         console.log("✅ User created in database:", user.id);
@@ -157,13 +154,11 @@ export async function POST(request: NextRequest) {
       // دریافت productId از body
       let { productId } = data;
       
-      // اگر در body نبود، از query params یا path دریافت کن (برای سازگاری با کد قدیمی)
+      // اگر در body نبود، از query params یا path دریافت کن
       if (!productId) {
         const url = new URL(request.url);
-        // تلاش برای دریافت از searchParams
         productId = url.searchParams.get("productId");
         
-        // اگر در searchParams نبود، از path دریافت کن (آخرین بخش)
         if (!productId) {
           const pathParts = url.pathname.split("/");
           productId = pathParts[pathParts.length - 1];

@@ -47,8 +47,6 @@ interface OrderItem {
 interface Order {
   id: number;
   userId: string;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   totalPrice: number;
@@ -76,7 +74,6 @@ export default function OrderDetailsPage({ params }: PageParams) {
           const data = await res.json();
           setOrder(data);
         } else if (res.status === 404) {
-          // notFound();
           router.push("/404");
         } else if (res.status === 401) {
           router.push("/auth/signin");
@@ -95,7 +92,6 @@ export default function OrderDetailsPage({ params }: PageParams) {
 
     setCancelling(true);
     try {
-      // Get CSRF token
       const csrfRes = await fetch("/api/csrf");
       const { token } = await csrfRes.json();
 

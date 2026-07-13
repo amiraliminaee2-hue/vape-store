@@ -43,7 +43,6 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
 
-          {/* Logo - ریسپانسیو */}
           <Link
             href="/"
             onClick={closeMenu}
@@ -52,7 +51,6 @@ export default function Navbar() {
             پاد بوشهر
           </Link>
 
-          {/* Desktop Links - مخفی در موبایل و تبلت */}
           <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-zinc-300 text-base">
             <Link href="/" className="hover:text-white transition">
               خانه
@@ -70,7 +68,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Desktop Actions - مخفی در موبایل و تبلت */}
           <div className="hidden lg:flex items-center gap-3 xl:gap-4">
             <Link
               href="/cart"
@@ -97,7 +94,7 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <span className="text-sm xl:text-base text-zinc-400 max-w-[120px] xl:max-w-[140px] truncate">
-                  {session?.user?.name || session?.user?.email}
+                  {session?.user?.phone || session?.user?.email}
                 </span>
                 <button
                   onClick={handleSignOut}
@@ -109,7 +106,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile + Tablet: Cart + Hamburger */}
           <div className="flex lg:hidden items-center gap-2">
             <Link
               href="/cart"
@@ -144,7 +140,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile + Tablet Overlay */}
       <div
         onClick={closeMenu}
         className={`
@@ -155,7 +150,6 @@ export default function Navbar() {
         `}
       />
 
-      {/* Mobile + Tablet Drawer */}
       <div
         className={`
           fixed top-0 right-0 z-50
@@ -169,7 +163,6 @@ export default function Navbar() {
           ${menuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        {/* Drawer Header */}
         <div className="flex items-center justify-between px-5 h-16 border-b border-white/10 flex-shrink-0">
           <span className="text-lg font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
             پاد بوشهر
@@ -183,7 +176,6 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Drawer Links */}
         <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
           <Link
             href="/"
@@ -217,7 +209,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Drawer Footer / Auth */}
         <div className="sticky bottom-0 bg-zinc-950/95 backdrop-blur-xl p-4 border-t border-white/10 flex flex-col gap-3">
           {!isSignedIn ? (
             <>
@@ -239,7 +230,7 @@ export default function Navbar() {
           ) : (
             <div className="flex flex-col gap-3">
               <p className="text-sm text-zinc-400 px-1 truncate text-center">
-                {session?.user?.name || session?.user?.email}
+                {session?.user?.phone || session?.user?.email}
               </p>
               <button
                 onClick={() => { handleSignOut(); closeMenu(); }}

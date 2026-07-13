@@ -5,10 +5,8 @@ import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/isAdmin";
 import { getPrisma } from "@/lib/prisma";
 
-// تعریف تایپ برای SellerStatus
 type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
-// تعریف تایپ برای where
 interface SellerWhereInput {
   status?: SellerStatus;
   OR?: Array<{
@@ -17,7 +15,6 @@ interface SellerWhereInput {
   }>;
 }
 
-// GET - دریافت لیست فروشندگان (ادمین: همه، کاربر عادی: فقط وضعیت خودش)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -32,7 +29,6 @@ export async function GET(request: NextRequest) {
 
     const isAdminUser = await isAdmin(session.user.id);
     
-    // اگر ادمین نیست، فقط اطلاعات فروشندگی خودش را ببیند
     if (!isAdminUser) {
       const seller = await prisma.seller.findUnique({
         where: { userId: session.user.id },
@@ -40,7 +36,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ sellers: seller ? [seller] : [] });
     }
 
-    // ادمین: لیست تمام فروشندگان با فیلتر
     const where: SellerWhereInput = {};
     
     if (statusParam && statusParam !== "ALL") {
@@ -57,7 +52,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         user: {
-          select: { id: true, email: true, name: true },
+          select: { id: true, phone: true },
         },
         products: {
           select: { id: true, title: true },
@@ -73,7 +68,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -81,9 +75,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action, ...data } = body;
 
-    // ============================================
-    // 1️⃣ ثبت درخواست فروشندگی (CREATE)
-    // ============================================
     if (action === "create" || action === "request") {
       if (!session?.user?.id) {
         return NextResponse.json({ error: "ابتدا وارد حساب کاربری خود شوید" }, { status: 401 });
@@ -91,7 +82,6 @@ export async function POST(request: NextRequest) {
 
       const { storeName, slug, description, phone, address } = data;
 
-      // اعتبارسنجی
       if (!storeName?.trim()) {
         return NextResponse.json({ error: "نام فروشگاه الزامی است" }, { status: 400 });
       }
@@ -111,7 +101,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "شماره تماس نامعتبر است" }, { status: 400 });
       }
 
-      // بررسی تکراری نبودن slug
       const existingSeller = await prisma.seller.findUnique({
         where: { slug },
       });
@@ -119,7 +108,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "این slug قبلاً استفاده شده است" }, { status: 400 });
       }
 
-      // بررسی اینکه کاربر قبلاً درخواست فروشندگی نداده باشد
       const existingUserSeller = await prisma.seller.findUnique({
         where: { userId: session.user.id },
       });
@@ -127,7 +115,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "شما قبلاً درخواست فروشندگی ثبت کرده‌اید" }, { status: 400 });
       }
 
-      // ایجاد فروشنده
       const seller = await prisma.seller.create({
         data: {
           userId: session.user.id,
@@ -143,9 +130,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, seller });
     }
 
-    // ============================================
-    // 2️⃣ بروزرسانی فروشنده (UPDATE) - فقط ادمین
-    // ============================================
     if (action === "update") {
       if (!session?.user?.id || !(await isAdmin(session.user.id))) {
         return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
@@ -157,7 +141,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "شناسه فروشنده الزامی است" }, { status: 400 });
       }
 
-      // بررسی تکراری نبودن slug در صورت تغییر
       if (slug) {
         const existing = await prisma.seller.findFirst({
           where: {
@@ -196,18 +179,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, seller });
     }
 
-    // ============================================
-    // 3️⃣ حذف فروشنده (DELETE) - فقط ادمین
-    // ============================================
     if (action === "delete") {
       if (!session?.user?.id || !(await isAdmin(session.user.id))) {
         return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
       }
 
-      // ابتدا از body دریافت کن
       let { id } = data;
       
-      // اگر در body نبود، از query params دریافت کن (برای سازگاری با کد قدیمی)
       if (!id) {
         const { searchParams } = new URL(request.url);
         id = searchParams.get("id");
@@ -222,9 +200,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // ============================================
-    // اگر action معتبر نبود
-    // ============================================
     return NextResponse.json(
       { error: "اکشن نامعتبر. گزینه‌های مجاز: create, request, update, delete" },
       { status: 400 }

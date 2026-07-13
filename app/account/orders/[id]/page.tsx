@@ -21,8 +21,6 @@ interface Order {
   id: number;
   trackingNumber: string;
   transactionId: string | null;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   customerNote: string | null;
@@ -49,8 +47,6 @@ interface InvoiceData {
   transactionId: string | null;
   createdAt: string;
   status: string;
-  userName: string;
-  userEmail: string;
   phone: string;
   address: string;
   customerNote: string | null;
@@ -115,16 +111,12 @@ export default function UserOrderDetailPage() {
       </div>
     );
   }
-
-  // تبدیل داده‌ها به فرمت InvoiceViewer
   const invoiceData: InvoiceData = {
     id: order.id,
     trackingNumber: order.trackingNumber,
     transactionId: order.transactionId,
     createdAt: order.createdAt,
     status: order.status,
-    userName: order.userName,
-    userEmail: order.userEmail,
     phone: order.phone,
     address: order.address,
     customerNote: order.customerNote,

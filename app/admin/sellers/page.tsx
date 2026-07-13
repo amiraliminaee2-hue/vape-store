@@ -21,8 +21,7 @@ interface Seller {
   createdAt: string;
   user?: {
     id: string;
-    email: string;
-    name: string | null;
+    phone: string | null;
   };
 }
 
@@ -163,7 +162,6 @@ export default function SellersPage() {
         </Link>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="flex gap-3">
           {filterOptions.map((opt: FilterOption) => (
@@ -197,7 +195,7 @@ export default function SellersPage() {
             type="text"
             value={searchInput}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
-            placeholder="جستجو (نام فروشگاه، ایمیل)..."
+            placeholder="جستجو (نام فروشگاه، شماره تلفن)..."
             className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-zinc-600 outline-none focus:border-violet-500/50 w-64"
           />
           <button
@@ -209,7 +207,6 @@ export default function SellersPage() {
         </form>
       </div>
 
-      {/* Sellers Table */}
       {loading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i: number) => (
@@ -253,7 +250,7 @@ export default function SellersPage() {
 
                   <div className="flex flex-wrap gap-4 mt-3 text-sm">
                     <span className="text-zinc-500">
-                      فروشنده: {seller.user?.name || seller.user?.email || "-"}
+                      فروشنده: {seller.user?.phone || "-"}
                     </span>
                     {seller.phone && (
                       <span className="text-zinc-500">📞 {seller.phone}</span>
@@ -326,7 +323,6 @@ export default function SellersPage() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-3">
           {Array.from({ length: totalPages }).map((_, i: number) => (

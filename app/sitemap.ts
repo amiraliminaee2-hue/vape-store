@@ -10,7 +10,7 @@ interface Product {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://vapestore.ir";
+  const baseUrl = "https://padbusher.ir";
 
   const prisma = await getPrisma();
 

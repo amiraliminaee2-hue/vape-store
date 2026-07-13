@@ -22,8 +22,6 @@ interface Order {
   trackingNumber: string;
   transactionId: string | null;
   userId: string;
-  userName: string;
-  userEmail: string;
   address: string;
   phone: string;
   customerNote: string | null;
@@ -50,8 +48,6 @@ interface InvoiceData {
   transactionId: string | null;
   createdAt: string;
   status: string;
-  userName: string;
-  userEmail: string;
   phone: string;
   address: string;
   customerNote: string | null;
@@ -181,15 +177,12 @@ export default function AdminOrderDetailPage() {
     );
   }
 
-  // تبدیل داده‌ها به فرمت InvoiceViewer
   const invoiceData: InvoiceData = {
     id: order.id,
     trackingNumber: order.trackingNumber,
     transactionId: order.transactionId,
     createdAt: order.createdAt,
     status: order.status,
-    userName: order.userName,
-    userEmail: order.userEmail,
     phone: order.phone,
     address: order.address,
     customerNote: order.customerNote,
@@ -229,7 +222,6 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
 
-        {/* یادداشت مدیر */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
           <h3 className="font-bold mb-3">یادداشت مدیر</h3>
           <textarea
@@ -248,7 +240,6 @@ export default function AdminOrderDetailPage() {
           </button>
         </div>
 
-        {/* فاکتور */}
         <InvoiceViewer data={invoiceData} showPrintButton={true} />
       </div>
     </div>

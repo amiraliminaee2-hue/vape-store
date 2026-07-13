@@ -15,8 +15,7 @@ interface Product {
 
 interface User {
   id: string;
-  email: string;
-  name: string | null;
+  phone: string | null;
 }
 
 interface Seller {
@@ -80,7 +79,6 @@ export default function SellerDetailsPage() {
     status: "PENDING",
   });
 
-  // تعریف fetchSeller با useCallback
   const fetchSeller = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch(`/api/admin/sellers?id=${id}`);
@@ -181,7 +179,6 @@ export default function SellerDetailsPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button
@@ -231,7 +228,6 @@ export default function SellerDetailsPage() {
         </div>
 
         <div className="space-y-6">
-          {/* User Info */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">اطلاعات کاربر</h2>
@@ -244,11 +240,8 @@ export default function SellerDetailsPage() {
             </div>
             <div className="space-y-2">
               <p>
-                <span className="text-zinc-500">نام کاربری:</span>{" "}
-                {seller.user.name || "-"}
-              </p>
-              <p>
-                <span className="text-zinc-500">ایمیل:</span> {seller.user.email}
+                <span className="text-zinc-500">شماره تلفن:</span>{" "}
+                {seller.user.phone || "-"}
               </p>
               <p>
                 <span className="text-zinc-500">شناسه کاربر:</span> {seller.userId}
@@ -256,7 +249,6 @@ export default function SellerDetailsPage() {
             </div>
           </div>
 
-          {/* Store Information */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">اطلاعات فروشگاه</h2>
@@ -422,7 +414,6 @@ export default function SellerDetailsPage() {
             )}
           </div>
 
-          {/* Products */}
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">محصولات فروشنده</h2>

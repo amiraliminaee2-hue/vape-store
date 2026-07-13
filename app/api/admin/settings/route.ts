@@ -5,10 +5,8 @@ import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
-// تعریف تایپ برای SellerStatus
 type SellerStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
-// تعریف تایپ برای Seller با Products
 interface SellerWithProducts {
   id: string;
   userId: string;
@@ -27,15 +25,13 @@ interface SellerWithProducts {
   updatedAt: Date;
   user: {
     id: string;
-    email: string | null;
-    name: string | null;
+    phone: string | null;
   };
   products: {
     id: number;
   }[];
 }
 
-// تعریف تایپ برای where
 interface SellerWhereInput {
   status?: SellerStatus;
   OR?: Array<{
@@ -60,7 +56,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     
-    // اگر id وجود دارد، یک فروشنده خاص را برگردان
     if (id) {
       const seller = await prisma.seller.findUnique({
         where: { id },
@@ -68,8 +63,7 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               id: true,
-              email: true,
-              name: true,
+              phone: true,
             },
           },
           products: {
@@ -95,7 +89,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(seller);
     }
 
-    // اگر id وجود نداشت، لیست فروشندگان را برگردان (با فیلتر و صفحه‌بندی)
     const status = searchParams.get("status");
     const search = searchParams.get("search")?.trim();
     const page = parseInt(searchParams.get("page") || "1");
@@ -126,8 +119,7 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               id: true,
-              email: true,
-              name: true,
+              phone: true,
             },
           },
           products: {
@@ -161,7 +153,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ✅ فقط یک POST که همه عملیات‌ها را مدیریت می‌کند
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -177,9 +168,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action, ...data } = body;
 
-    // ============================================
-    // 1️⃣ ایجاد فروشنده جدید (CREATE)
-    // ============================================
     if (action === "create") {
       const { userId, storeName, slug, description, logo, coverImage, phone, address, commission, status } = data;
 
@@ -190,7 +178,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // بررسی تکراری نبودن slug
       const existingSlug = await prisma.seller.findUnique({
         where: { slug },
       });
@@ -202,7 +189,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // بررسی وجود کاربر
       const user = await prisma.user.findUnique({
         where: { id: userId },
       });
@@ -231,8 +217,7 @@ export async function POST(request: NextRequest) {
           user: {
             select: {
               id: true,
-              email: true,
-              name: true,
+              phone: true,
             },
           },
         },
@@ -241,11 +226,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(seller, { status: 201 });
     }
 
-    // ============================================
-    // 2️⃣ بروزرسانی فروشنده (UPDATE)
-    // ============================================
     if (action === "update") {
-      // دریافت id از body یا از query params
       const { id, status, commission, storeName, description, phone, address } = data;
 
       if (!id) {
@@ -269,8 +250,7 @@ export async function POST(request: NextRequest) {
           user: {
             select: {
               id: true,
-              email: true,
-              name: true,
+              phone: true,
             },
           },
         },
@@ -279,11 +259,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(seller);
     }
 
-    // ============================================
-    // 3️⃣ حذف فروشنده (DELETE)
-    // ============================================
     if (action === "delete") {
-      // دریافت id از body یا از query params
       const { id } = data;
 
       if (!id) {
@@ -300,9 +276,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // ============================================
-    // اگر action معتبر نبود
-    // ============================================
     return NextResponse.json(
       { error: "اکشن نامعتبر. گزینه‌های مجاز: create, update, delete" },
       { status: 400 }

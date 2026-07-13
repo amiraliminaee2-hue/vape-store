@@ -128,7 +128,6 @@ export default function AdminSettingsPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Contact Information */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               📞 اطلاعات تماس
@@ -177,7 +176,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Social Media */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               📱 شبکه‌های اجتماعی
@@ -226,7 +224,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* تنظیمات کارت به کارت */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               💳 تنظیمات پرداخت کارت به کارت
@@ -295,7 +292,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Site Texts */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               📝 متن‌های سایت
@@ -334,7 +330,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* SEO Settings */}
           <div className="rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               🔍 تنظیمات سئو

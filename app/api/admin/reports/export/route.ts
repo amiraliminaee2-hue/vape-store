@@ -33,8 +33,7 @@ interface ProductExportData {
 interface OrderExportData {
   "شماره پیگیری": string;
   "نام کاربر": string;
-  "ایمیل": string;
-  "تلفن": string;
+  "شماره تلفن": string;  // ✅ تغییر: ایمیل به شماره تلفن
   "آدرس": string;
   "محصولات": string;
   "جمع کل": number;
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
       });
 
       const usersWithStats: UserExportData[] = await Promise.all(
-        users.map(async (user: (typeof users)[number]) => {
+        users.map(async (user) => {
           const ordersCount = await prisma.order.count({
             where: { userId: user.userId },
           });
@@ -106,29 +105,25 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      const productsWithStats: ProductExportData[] = products.map(
-        (product: (typeof products)[number]) => {
-          // ✅ Fix 1: type annotation for map callback
-          const ratings = product.comments.map((c: { rating: number }) => c.rating);
-          // ✅ Fix 2: type annotation for reduce callback
-          const averageRating =
-            ratings.length > 0
-              ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
-              : 0;
+      const productsWithStats: ProductExportData[] = products.map((product) => {
+        const ratings = product.comments.map((c) => c.rating);
+        const averageRating =
+          ratings.length > 0
+            ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+            : 0;
 
-          return {
-            "شناسه": product.id,
-            "عنوان": product.title,
-            "دسته‌بندی": product.category.name,
-            "قیمت": product.price,
-            "موجودی": product.stock,
-            "میانگین امتیاز": averageRating.toFixed(1),
-            "تعداد نظرات": product.comments.length,
-            "وضعیت": product.isActive ? "فعال" : "غیرفعال",
-            "تاریخ ایجاد": new Date(product.createdAt).toLocaleDateString("fa-IR"),
-          };
-        }
-      );
+        return {
+          "شناسه": product.id,
+          "عنوان": product.title,
+          "دسته‌بندی": product.category.name,
+          "قیمت": product.price,
+          "موجودی": product.stock,
+          "میانگین امتیاز": averageRating.toFixed(1),
+          "تعداد نظرات": product.comments.length,
+          "وضعیت": product.isActive ? "فعال" : "غیرفعال",
+          "تاریخ ایجاد": new Date(product.createdAt).toLocaleDateString("fa-IR"),
+        };
+      });
 
       data = productsWithStats;
       filename = `products_export_${new Date().toISOString().slice(0, 19)}`;
@@ -142,31 +137,32 @@ export async function GET(request: NextRequest) {
               product: { select: { title: true } },
             },
           },
+          user: {  // ✅ اضافه کردن relation user
+            select: {
+              phone: true,
+            },
+          },
         },
       });
 
-      const ordersWithDetails: OrderExportData[] = orders.map(
-        (order: (typeof orders)[number]) => {
-          // ✅ Fix 3: type annotation for items map callback
-          const itemsList = order.items
-            .map((item: { product: { title: string }; quantity: number }) =>
-              `${item.product.title} (x${item.quantity})`
-            )
-            .join(", ");
+      const ordersWithDetails: OrderExportData[] = orders.map((order) => {
+        const itemsList = order.items
+          .map((item) =>
+            `${item.product.title} (x${item.quantity})`
+          )
+          .join(", ");
 
-          return {
-            "شماره پیگیری": order.trackingNumber,
-            "نام کاربر": order.userName,
-            "ایمیل": order.userEmail,
-            "تلفن": order.phone,
-            "آدرس": order.address,
-            "محصولات": itemsList,
-            "جمع کل": order.totalPrice,
-            "وضعیت": order.status,
-            "تاریخ سفارش": new Date(order.createdAt).toLocaleDateString("fa-IR"),
-          };
-        }
-      );
+        return {
+          "شماره پیگیری": order.trackingNumber,
+          "نام کاربر": order.userName,
+          "شماره تلفن": order.user?.phone || order.phone || "",  // ✅ استفاده از phone
+          "آدرس": order.address,
+          "محصولات": itemsList,
+          "جمع کل": order.totalPrice,
+          "وضعیت": order.status,
+          "تاریخ سفارش": new Date(order.createdAt).toLocaleDateString("fa-IR"),
+        };
+      });
 
       data = ordersWithDetails;
       filename = `orders_export_${new Date().toISOString().slice(0, 19)}`;

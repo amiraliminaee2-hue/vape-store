@@ -1,3 +1,4 @@
+// app/api/auth/otp/verify/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 
@@ -53,11 +54,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      // ایجاد کاربر جدید (بدون ایمیل)
+      // ایجاد کاربر جدید (بدون name و email)
       user = await prisma.user.create({
         data: {
           phone,
-          name: `کاربر ${phone.slice(-4)}`,
         },
       });
       
@@ -75,8 +75,6 @@ export async function POST(request: NextRequest) {
       user: {
         id: user.id,
         phone: user.phone,
-        name: user.name,
-        email: user.email,
       },
     });
   } catch (error) {

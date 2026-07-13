@@ -100,12 +100,9 @@ model Setting {
 
 model User {
   id        String         @id @default(cuid())
-  email     String?        @unique
-  password  String?
-  name      String?
+  phone     String         @unique  // ← required (not nullable)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  phone     String?        @unique
   comments  Comment[]      @relation("UserComments")
   orders    Order[]        @relation("UserOrders")
   seller    Seller?
@@ -120,7 +117,6 @@ model Order {
   transactionId    String?
   userId           String
   userName         String
-  userEmail        String
   address          String
   phone            String
   customerNote     String?
