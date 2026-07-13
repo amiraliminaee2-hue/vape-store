@@ -55,18 +55,6 @@ export default function AccountPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [profileSuccess, setProfileSuccess] = useState<boolean>(false);
 
-  // تابع دریافت توکن CSRF
-  const getCsrfToken = async (): Promise<string | null> => {
-    try {
-      const res = await fetch("/api/csrf", { cache: "no-store" });
-      const data = await res.json();
-      return data.token;
-    } catch (error) {
-      console.error("Failed to fetch CSRF token:", error);
-      return null;
-    }
-  };
-
   const loadProfile = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch("/api/profile");
@@ -96,17 +84,10 @@ export default function AccountPage() {
     try {
       setSavingProfile(true);
       
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        alert("خطا در دریافت توکن امنیتی");
-        return;
-      }
-      
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken,
         },
         body: JSON.stringify(profileForm),
       });
@@ -135,19 +116,12 @@ export default function AccountPage() {
 
     try {
       setSavingAddress(true);
-      
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        alert("خطا در دریافت توکن امنیتی");
-        return;
-      }
 
       if (editingAddress) {
         const res = await fetch("/api/profile/addresses/" + editingAddress.id, {
           method: "PUT",
           headers: { 
             "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken,
           },
           body: JSON.stringify(addressForm),
         });
@@ -162,7 +136,6 @@ export default function AccountPage() {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken,
           },
           body: JSON.stringify(addressForm),
         });
@@ -186,17 +159,8 @@ export default function AccountPage() {
   const handleDeleteAddress = async (id: number): Promise<void> => {
     if (!confirm("آدرس حذف شود؟")) return;
     try {
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        alert("خطا در دریافت توکن امنیتی");
-        return;
-      }
-      
       await fetch("/api/profile/addresses/" + id, { 
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrfToken,
-        },
+        method: "DELETE",
       });
       await loadProfile();
     } catch (error) {
@@ -231,7 +195,6 @@ export default function AccountPage() {
         <p className="mt-2 text-zinc-500 text-sm sm:text-base">مدیریت اطلاعات شخصی و آدرس‌های شما</p>
       </div>
 
-      {/* ویرایش پروفایل */}
       <div className="rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:p-6 md:p-8">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">ویرایش پروفایل</h2>
 
@@ -330,7 +293,6 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* آدرس‌های ذخیره شده */}
       <div className="rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:p-6 md:p-8">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">آدرس‌های ذخیره شده</h2>
 
@@ -393,7 +355,6 @@ export default function AccountPage() {
           </div>
         )}
 
-        {/* فرم افزودن/ویرایش آدرس */}
         <div className="border-t border-white/10 pt-6">
           <h3 className="text-lg font-semibold mb-4">
             {editingAddress ? "ویرایش آدرس" : "افزودن آدرس جدید"}

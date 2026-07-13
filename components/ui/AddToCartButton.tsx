@@ -38,7 +38,11 @@ export default function AddToCartButton({ productId, productTitle, productPrice,
       const res = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ 
+          action: "add",
+          productId, 
+          quantity 
+        }),
       });
 
       if (res.ok) {
@@ -58,7 +62,6 @@ export default function AddToCartButton({ productId, productTitle, productPrice,
 
   return (
     <div className="space-y-4">
-      {/* انتخاب تعداد */}
       <div className="flex items-center gap-4">
         <span className="text-zinc-400">تعداد:</span>
         <div className="flex items-center gap-3">
@@ -80,7 +83,6 @@ export default function AddToCartButton({ productId, productTitle, productPrice,
         </div>
       </div>
 
-      {/* دکمه افزودن به سبد */}
       <button
         onClick={addToCart}
         disabled={loading || stock === 0}

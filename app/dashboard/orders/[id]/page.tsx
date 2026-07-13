@@ -92,14 +92,10 @@ export default function OrderDetailsPage({ params }: PageParams) {
 
     setCancelling(true);
     try {
-      const csrfRes = await fetch("/api/csrf");
-      const { token } = await csrfRes.json();
-
       const res = await fetch(`/api/orders/${order?.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": token,
         },
         body: JSON.stringify({ status: "CANCELLED" }),
       });

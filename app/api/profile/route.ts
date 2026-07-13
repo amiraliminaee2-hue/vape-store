@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { validateCsrfToken } from "@/lib/csrf";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 import { userProfileSchema } from "@/lib/validations/schemas";
@@ -22,21 +21,21 @@ export async function GET() {
     });
 
     const response = NextResponse.json(
-  profile ?? {
-    userId,
-    firstName: "",
-    lastName: "",
-    phone: "",
-    savedAddresses: []
-  }
-);
+      profile ?? {
+        userId,
+        firstName: "",
+        lastName: "",
+        phone: "",
+        savedAddresses: []
+      }
+    );
 
-response.headers.set(
-  "Cache-Control",
-  "no-store, no-cache, must-revalidate"
-);
+    response.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate"
+    );
 
-return response;
+    return response;
   } catch (error) {
     console.error("Get profile error:", error);
     return NextResponse.json({ error: "خطا در دریافت پروفایل" }, { status: 500 });
@@ -54,33 +53,8 @@ export async function PUT(request: NextRequest) {
     const prisma = await getPrisma();
     const userId = session.user.id;
 
-    // CSRF Protection - Validate token
-    const csrfToken = request.headers.get("X-CSRF-Token");
-    if (!csrfToken) {
-      return NextResponse.json(
-        {
-          error: "توکن امنیتی یافت نشد",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
-    if (!validateCsrfToken(userId, csrfToken)) {
-      return NextResponse.json(
-        {
-          error: "توکن امنیتی نامعتبر است. لطفاً صفحه را بازخوانی کنید",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
     const body = await request.json();
 
-    // Zod validation
     const validationResult = userProfileSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(

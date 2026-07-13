@@ -4,9 +4,8 @@ import { getPrisma } from "@/lib/prisma";
 import Navbar from "../components/layout/Navbar";
 import GlobeHero from "../components/sections/GlobeHero";
 import Hero from "../components/sections/Hero";
-import ProductSlider from "../components/sections/ProductSlider";
+import ProductSlider from "@/components/sections/ProductSlider";
 
-// تعریف interface برای Setting
 interface Setting {
   id: number;
   key: string;
@@ -18,7 +17,6 @@ interface Setting {
   updatedAt: Date;
 }
 
-// تعریف interface برای Product با فیلدهای مورد نیاز
 interface Product {
   id: number;
   title: string;
@@ -64,14 +62,12 @@ async function getProducts() {
     girls,
     liquids,
   ] = await Promise.all([
-    // ✅ فقط محصولات تخفیف‌دار (discountPercent > 0)
     prisma.product.findMany({
       where: { isActive: true, discountPercent: { gt: 0 } },
       take: 20,
       orderBy: { discountPercent: "desc" },
     }) as unknown as Product[],
     
-    // ✅ پرفروش‌ترین محصولات (بر اساس تعداد سفارش) + مدیریت دستی
     prisma.product.findMany({
       where: { isActive: true, showInBestSelling: true },
       take: 20,
@@ -82,37 +78,31 @@ async function getProducts() {
       },
     }) as unknown as Product[],
     
-    // ✅ بهترین‌های فروشگاه (مدیریت دستی در ادمین)
     prisma.product.findMany({
       where: { isActive: true, showInFeatured: true },
       take: 20,
     }) as unknown as Product[],
     
-    // ⚡ پاد دائمی (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInPermanent: true },
       take: 20,
     }) as unknown as Product[],
     
-    // 🔄 یکبار مصرف (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInDisposable: true },
       take: 20,
     }) as unknown as Product[],
     
-    // 📦 پک‌ها (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInPacks: true },
       take: 20,
     }) as unknown as Product[],
     
-    // 💖 محصولات دخترونه (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInGirls: true },
       take: 20,
     }) as unknown as Product[],
     
-    // 🧪 لیکوئیدها و سالت‌ها (مدیریت دستی)
     prisma.product.findMany({
       where: { isActive: true, showInLiquids: true },
       take: 20,
@@ -176,13 +166,11 @@ export default async function Home() {
     <>
       <Navbar />
 
-      {/* بخش‌ها - ریسپانسیو با spacing مناسب برای موبایل */}
       <div className="space-y-0 md:space-y-0">
         <GlobeHero />
         <Hero />
       </div>
 
-      {/* اسلایدرها - با فاصله مناسب برای موبایل */}
       <div className="space-y-8 md:space-y-12 lg:space-y-16">
         <ProductSlider title="🔥 تخفیف‌های ویژه" products={products.discounted} />
         <ProductSlider title="🏆 پرفروش‌ترین محصولات" products={products.bestSelling} />

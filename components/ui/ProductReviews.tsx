@@ -1,3 +1,4 @@
+// components/ui/ProductReviews.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,14 +7,12 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import StarRating from "./StarRating";
 
-// ✅ اصلاح تایپ Comment - حذف user با name و email
 interface Comment {
   id: number;
   userName: string;
   rating: number;
   content: string;
   createdAt: Date | string;
-  // user حذف شد
 }
 
 interface ProductReviewsProps {
@@ -33,7 +32,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
 
   const isAuthenticated = status === "authenticated";
 
-  // محاسبه میانگین امتیاز با بررسی NaN
   const calculatedAverageRating = (() => {
     if (comments.length > 0) {
       const sum = comments.reduce((total, comment) => total + (comment.rating || 0), 0);
@@ -43,18 +41,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
     const avg = averageRating || 0;
     return isNaN(avg) ? 0 : avg;
   })();
-
-  // تابع دریافت توکن CSRF
-  const getCsrfToken = async (): Promise<string | null> => {
-    try {
-      const res = await fetch("/api/csrf", { cache: "no-store" });
-      const data = await res.json();
-      return data.token;
-    } catch (error) {
-      console.error("Failed to fetch CSRF token:", error);
-      return null;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,17 +62,10 @@ export default function ProductReviews({ productId, initialComments, averageRati
     
     setSubmitting(true);
     try {
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        alert("خطا در دریافت توکن امنیتی");
-        return;
-      }
-      
       const res = await fetch("/api/comments", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken,
         },
         body: JSON.stringify({
           productId,
@@ -96,10 +75,9 @@ export default function ProductReviews({ productId, initialComments, averageRati
       });
       
       if (res.ok) {
-        const newComment = await res.json();
-        // ✅ پاسخ API شامل comment است
-        const commentData = newComment.comment || newComment;
-        setComments([commentData, ...comments]);
+        const data = await res.json();
+        const newComment = data.comment;
+        setComments([newComment, ...comments]);
         setRating(0);
         setContent("");
         alert("نظر شما با موفقیت ثبت شد و پس از تأیید نمایش داده می‌شود");
@@ -115,7 +93,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
     }
   };
 
-  // تابع ایمن برای نمایش تاریخ
   const formatDate = (date: Date | string) => {
     try {
       const d = new Date(date);
@@ -126,7 +103,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
     }
   };
 
-  // تابع ایمن برای ساخت key
   const getSafeKey = (comment: Comment, index: number): string => {
     if (comment.id && comment.id !== 0) {
       return `comment-${comment.id}`;
@@ -137,7 +113,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
   return (
     <div className="space-y-8">
       
-      {/* نمایش میانگین امتیازات */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
         <div className="flex items-center gap-6">
           <div className="text-center">
@@ -155,7 +130,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
         </div>
       </div>
 
-      {/* فرم ثبت نظر */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
         <h3 className="text-xl font-semibold mb-4">ثبت نظر شما</h3>
         
@@ -219,7 +193,6 @@ export default function ProductReviews({ productId, initialComments, averageRati
         )}
       </div>
 
-      {/* لیست نظرات */}
       {comments.length === 0 ? (
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 text-center text-zinc-500">
           هنوز نظری برای این محصول ثبت نشده است. اولین نفری باشید که نظر می‌دهید!

@@ -78,7 +78,7 @@ export default function AdminProductsPage() {
 
     try {
       const res = await fetch(`/api/products/${id}`, {
-        method: "POST",
+        method: "DELETE",
       });
 
       if (res.ok) {
@@ -164,7 +164,7 @@ export default function AdminProductsPage() {
     setUpdatingSlider(productId);
     try {
       const res = await fetch("/api/admin/products/slider", {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId,
@@ -210,7 +210,6 @@ export default function AdminProductsPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8">
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-4xl font-bold">محصولات</h1>
@@ -253,7 +252,6 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i: number) => (
@@ -269,7 +267,6 @@ export default function AdminProductsPage() {
           {products.map((product: Product) => (
             <div key={product.id} className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* اطلاعات اصلی */}
                 <div>
                   <p className="text-sm text-zinc-500">نام محصول</p>
                   <p className="font-medium">{product.title}</p>
@@ -277,7 +274,6 @@ export default function AdminProductsPage() {
                   <p className="text-sm">{product.category.name}</p>
                 </div>
 
-                {/* قیمت و موجودی */}
                 <div>
                   <p className="text-sm text-zinc-500">قیمت</p>
                   <div>{formatPriceWithDiscount(product.price, product.discountPercent)}</div>
@@ -293,7 +289,6 @@ export default function AdminProductsPage() {
                   </p>
                 </div>
 
-                {/* دکمه‌های اسلایدر */}
                 <div>
                   <p className="text-sm text-zinc-500 mb-2">نمایش در اسلایدرها</p>
                   <div className="flex flex-wrap gap-2">
@@ -377,7 +372,6 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
 
-                {/* عملیات */}
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => openDiscountModal(product)}
@@ -405,7 +399,6 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* Modal تخفیف */}
       {discountModal.isOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[#0a0a0a] rounded-2xl max-w-md w-full p-6 border border-white/10">

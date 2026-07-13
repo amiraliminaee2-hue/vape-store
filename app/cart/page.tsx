@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -55,7 +55,6 @@ interface PaymentMethod {
   };
 }
 
-// گسترش تایپ CartItem برای شامل discountPercent
 interface ExtendedCartItem extends CartItem {
   discountPercent: number;
 }
@@ -77,23 +76,19 @@ export default function CartPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
 
-  // ==================== روش ارسال ====================
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<number | null>(null);
   const [shippingPrice, setShippingPrice] = useState(0);
   const [methodPrices, setMethodPrices] = useState<Record<number, number>>({});
 
-  // ==================== روش پرداخت ====================
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | null>(null);
 
-  // حالت‌های مربوط به کد تخفیف
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<CouponInfo["coupon"] | null>(null);
   const [checkingCoupon, setCheckingCoupon] = useState(false);
 
-  // تنظیمات کارت به کارت
   const [cart2cartSettings, setCart2cartSettings] = useState({
     cart2cart_telegram: "",
     cart2cart_rubika: "",
@@ -103,7 +98,6 @@ export default function CartPage() {
     cart2cart_account_name: "",
   });
 
-  // محاسبه قیمت نهایی برای همه روش‌های ارسال (برای نمایش در لیست)
   const calculateAllMethodPrices = useCallback(async () => {
     if (!province || shippingMethods.length === 0) return;
     
@@ -127,7 +121,6 @@ export default function CartPage() {
     setMethodPrices(prices);
   }, [province, shippingMethods, items]);
 
-  // محاسبه هزینه ارسال برای روش انتخاب شده
   const calculateShippingPrice = useCallback(async () => {
     if (!selectedShippingMethod) return;
 
@@ -148,26 +141,22 @@ export default function CartPage() {
     }
   }, [selectedShippingMethod, province, items]);
 
-  // وقتی استان یا سبد خرید یا روش‌های ارسال تغییر می‌کند، قیمت همه روش‌ها را محاسبه کن
   useEffect(() => {
     calculateAllMethodPrices();
   }, [calculateAllMethodPrices]);
 
-  // وقتی روش ارسال انتخاب می‌شود، قیمت نهایی را محاسبه کن
   useEffect(() => {
     if (selectedShippingMethod && province) {
       calculateShippingPrice();
     }
   }, [selectedShippingMethod, province, calculateShippingPrice]);
 
-  // اگر کاربر لاگین نیست، به صفحه ورود هدایت شود
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
     }
   }, [status, router]);
 
-  // دریافت تنظیمات کارت به کارت
   const fetchCart2CartSettings = async () => {
     try {
       const res = await fetch("/api/settings?group=payment");
@@ -185,7 +174,6 @@ export default function CartPage() {
     }
   };
 
-  // دریافت روش‌های ارسال
   const fetchShippingMethods = async () => {
     try {
       const res = await fetch("/api/admin/shipping-methods");
@@ -197,7 +185,6 @@ export default function CartPage() {
     }
   };
 
-  // دریافت روش‌های پرداخت
   const fetchPaymentMethods = async () => {
     try {
       const res = await fetch("/api/admin/payment-methods");
@@ -209,28 +196,12 @@ export default function CartPage() {
     }
   };
 
-  // Fetch CSRF token on component mount
   useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const res = await fetch("/api/csrf", {
-          cache: "no-store",
-        });
-        const data = await res.json();
-        if (data.token) {
-          // token stored but not used in this component
-        }
-      } catch (error) {
-        console.error("Failed to fetch CSRF token:", error);
-      }
-    };
-    fetchCsrfToken();
     fetchShippingMethods();
     fetchPaymentMethods();
     fetchCart2CartSettings();
   }, []);
 
-  // Fetch saved addresses - اصلاح شده با session?.user?.id
   useEffect(() => {
     const fetchSavedAddresses = async () => {
       if (!session?.user?.id) return;
@@ -261,7 +232,6 @@ export default function CartPage() {
     }
   }, [isAuthenticated]);
 
-  // اصلاح: هر بار که وضعیت احراز هویت تغییر کرد، سبد خرید را بارگذاری کن
   useEffect(() => {
     if (isAuthenticated) {
       loadCart();
@@ -270,7 +240,6 @@ export default function CartPage() {
     }
   }, [isAuthenticated, loadCart]);
 
-  // محاسبه جمع سبد با در نظر گرفتن تخفیف محصولات
   const subtotal = items.reduce((sum, item) => {
     const discountedPrice = item.discountPercent > 0
       ? item.price - (item.price * item.discountPercent / 100)
@@ -278,11 +247,9 @@ export default function CartPage() {
     return sum + discountedPrice * item.quantity;
   }, 0);
 
-  // محاسبه تخفیف و قیمت نهایی
   const discountAmount = appliedCoupon?.discountAmount || 0;
   const finalTotal = subtotal - discountAmount + shippingPrice;
 
-  // اعتبارسنجی کد تخفیف (با تأخیر - debounce)
   const validateCoupon = async (code: string) => {
     if (!code.trim()) {
       setCouponInfo(null);
@@ -302,14 +269,12 @@ export default function CartPage() {
     }
   };
 
-  // اعمال کد تخفیف
   const applyCoupon = () => {
     if (couponInfo?.valid && couponInfo.coupon) {
       setAppliedCoupon(couponInfo.coupon);
     }
   };
 
-  // حذف کد تخفیف
   const removeCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
@@ -319,7 +284,6 @@ export default function CartPage() {
   const handleDelete = async (id: number) => {
     await removeFromCart(id);
     await loadCart();
-    // بعد از تغییر سبد، کد تخفیف رو دوباره بررسی کن
     if (appliedCoupon) {
       const newProductIds = items.filter(i => i.id !== id).map(i => i.productId);
       const newSubtotal = items.filter(i => i.id !== id).reduce((sum, i) => {
@@ -340,7 +304,6 @@ export default function CartPage() {
   const handleIncrease = async (id: number) => {
     await increaseQuantity(id);
     await loadCart();
-    // بعد از تغییر سبد، کد تخفیف رو دوباره بررسی کن
     if (appliedCoupon) {
       const productIds = items.map(i => i.productId);
       const res = await fetch(`/api/coupons?code=${appliedCoupon.code}&subtotal=${subtotal}&productIds=${productIds.join(",")}`);
@@ -355,7 +318,6 @@ export default function CartPage() {
   const handleDecrease = async (id: number) => {
     await decreaseQuantity(id);
     await loadCart();
-    // بعد از تغییر سبد، کد تخفیف رو دوباره بررسی کن
     if (appliedCoupon) {
       const productIds = items.map(i => i.productId);
       const res = await fetch(`/api/coupons?code=${appliedCoupon.code}&subtotal=${subtotal}&productIds=${productIds.join(",")}`);
@@ -372,7 +334,6 @@ export default function CartPage() {
     if (selected) {
       setAddress(selected.address);
       setSelectedAddressId(id);
-      // استخراج استان از آدرس انتخاب شده
       const provincesList = ["تهران", "البرز", "اصفهان", "فارس", "خراسان رضوی", "خوزستان", "مازندران", "گیلان", "کرمان", "آذربایجان شرقی", "آذربایجان غربی", "قم", "سمنان", "یزد", "همدان", "مرکزی", "لرستان", "کردستان", "کرمانشاه", "ایلام", "بوشهر", "هرمزگان", "چهارمحال و بختیاری", "کهگیلویه و بویراحمد", "زنجان", "اردبیل", "گلستان", "خراسان شمالی", "خراسان جنوبی", "سیستان و بلوچستان"];
       for (const p of provincesList) {
         if (selected.address.includes(p)) {
@@ -383,23 +344,6 @@ export default function CartPage() {
     }
   };
 
-  // تابع کمکی برای دریافت توکن جدید
-  const getFreshCsrfToken = async () => {
-    try {
-      const res = await fetch("/api/csrf", {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (data.token) {
-        return data.token;
-      }
-    } catch (error) {
-      console.error("Failed to fetch CSRF token:", error);
-    }
-    return null;
-  };
-
-  // پرداخت واقعی با زرین‌پال یا کارت به کارت
   const handlePayment = async () => {
     if (!address.trim()) {
       alert("آدرس را وارد کنید");
@@ -426,7 +370,6 @@ export default function CartPage() {
       return;
     }
 
-    // اعتبارسنجی شماره تلفن
     const phoneRegex = /^09[0-9]{9}$/;
     if (!phoneRegex.test(phone.trim())) {
       alert("شماره تلفن باید با 09 شروع شود و 11 رقم باشد (مثال: 09123456789)");
@@ -436,18 +379,10 @@ export default function CartPage() {
     try {
       setPaying(true);
 
-      // دریافت توکن جدید قبل از ثبت سفارش
-      const freshToken = await getFreshCsrfToken();
-      if (!freshToken) {
-        throw new Error("خطا در دریافت توکن امنیتی");
-      }
-
-      // 1. ثبت سفارش اولیه با توکن جدید
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": freshToken,
         },
         body: JSON.stringify({
           address,
@@ -466,12 +401,10 @@ export default function CartPage() {
         }),
       });
 
-      // خواندن پاسخ حتی اگر خطا باشد
       const orderData = await orderRes.json();
       console.log("Order Response:", { status: orderRes.status, data: orderData });
 
       if (!orderRes.ok) {
-        // نمایش خطای دقیق از سرور
         const errorMessage = orderData.error || 
           (orderData.details ? JSON.stringify(orderData.details) : "خطا در ثبت سفارش");
         throw new Error(errorMessage);
@@ -481,10 +414,8 @@ export default function CartPage() {
         throw new Error("پاسخ سفارش ناقص است");
       }
 
-      // بررسی روش پرداخت
       const selectedPayment = paymentMethods.find(p => p.id === selectedPaymentMethod);
       
-      // ==================== اگر روش پرداخت کارت به کارت باشد ====================
       if (selectedPayment?.code === "cart2cart") {
         const message = `✅ سفارش شما با موفقیت ثبت شد.
 🆔 شماره سفارش: ${orderData.id}
@@ -504,20 +435,16 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
         
         alert(message);
         
-        // هدایت به لینک تلگرام یا روبیکا اگر تنظیم شده باشد
         if (cart2cartSettings.cart2cart_telegram) {
           window.open(cart2cartSettings.cart2cart_telegram, "_blank");
         } else if (cart2cartSettings.cart2cart_rubika) {
           window.open(cart2cartSettings.cart2cart_rubika, "_blank");
         }
         
-        // هدایت به صفحه سفارشات
         router.push(`/dashboard/orders`);
         return;
       }
 
-      // ==================== پرداخت آنلاین ====================
-      // تبدیل تومان به ریال (ضرب در 10)
       const amountInRials = finalTotal * 10;
 
       const paymentRes = await fetch("/api/payment/request", {
@@ -542,7 +469,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
         throw new Error("آدرس درگاه پرداخت دریافت نشد");
       }
 
-      // 3. هدایت به درگاه زرین‌پال
       window.location.assign(paymentData.paymentUrl);
     } catch (error) {
       console.error("Payment error:", error);
@@ -577,7 +503,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
       ) : (
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           
-          {/* ستون راست: لیست محصولات */}
           <div className="flex-1 space-y-3 sm:space-y-4">
             {items.map((item) => {
               const discountedPrice = item.discountPercent > 0
@@ -600,7 +525,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                     gap-3 sm:gap-4
                   "
                 >
-                  {/* کنترل تعداد */}
                   <div className="flex items-center gap-2 sm:gap-3 order-2 sm:order-1">
                     <button
                       onClick={() => handleIncrease(item.productId)}
@@ -619,7 +543,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                     </button>
                   </div>
 
-                  {/* اطلاعات محصول */}
                   <div className="flex-1 text-center sm:text-right order-1 sm:order-2">
                     <h3 className="font-semibold text-sm sm:text-base">
                       {item.title}
@@ -631,7 +554,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                     )}
                   </div>
 
-                  {/* قیمت و حذف */}
                   <div className="text-left order-3">
                     {hasDiscount ? (
                       <>
@@ -659,10 +581,8 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
             })}
           </div>
 
-          {/* ستون چپ: خلاصه سفارش */}
           <div className="lg:w-96 space-y-6">
             
-            {/* بخش کد تخفیف */}
             <div className="border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">
                 🎫 کد تخفیف
@@ -722,7 +642,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
               )}
             </div>
 
-            {/* اطلاعات مشتری */}
             <div className="border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">
                 اطلاعات مشتری
@@ -736,7 +655,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                   className="w-full p-3 sm:p-4 rounded-xl bg-zinc-900 border border-white/10 text-sm sm:text-base"
                 />
 
-                {/* انتخاب استان */}
                 <div>
                   <label className="block text-sm text-zinc-400 mb-2">استان</label>
                   <select
@@ -781,7 +699,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
                   </select>
                 </div>
 
-                {/* آدرس‌های ذخیره شده */}
                 {savedAddresses.length > 0 && (
                   <div className="space-y-2">
                     <label className="block text-xs sm:text-sm text-zinc-400">
@@ -837,7 +754,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
               </div>
             </div>
 
-            {/* ==================== روش ارسال ==================== */}
             {shippingMethods.length > 0 && (
               <div className="border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">
@@ -884,7 +800,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
               </div>
             )}
 
-            {/* ==================== روش پرداخت ==================== */}
             {paymentMethods.length > 0 && (
               <div className="border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">
@@ -942,7 +857,6 @@ ${cart2cartSettings.cart2cart_phone ? `📞 پشتیبانی: ${cart2cartSetting
               </div>
             )}
 
-            {/* جمع‌بندی مالی */}
             <div className="border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between text-base sm:text-lg">

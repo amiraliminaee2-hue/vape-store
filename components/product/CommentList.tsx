@@ -45,20 +45,14 @@ export default function CommentList({ productId, refreshTrigger = 0, onCommentDe
 
     setDeletingId(commentId);
     try {
-      // Get CSRF token first
-      const csrfRes = await fetch("/api/csrf");
-      const { token } = await csrfRes.json();
-
       const res = await fetch(`/api/comments/${commentId}`, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": token,
         },
       });
 
       if (res.ok) {
-        // Remove comment from list
         setComments((prev) => prev.filter((c) => c.id !== commentId));
         if (onCommentDeleted) onCommentDeleted();
       } else {
@@ -124,7 +118,6 @@ export default function CommentList({ productId, refreshTrigger = 0, onCommentDe
               </p>
             </div>
             
-            {/* Delete button - only show for comment owner */}
             {session?.user?.id === comment.userId && (
               <button
                 onClick={() => handleDelete(comment.id)}

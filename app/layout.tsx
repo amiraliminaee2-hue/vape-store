@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import BackgroundGrid from "../components/layout/BackgroundGrid";
-import ClientLayoutWrapper from "../components/layout/ClientLayoutWrapper";
 import AuthProvider from "./providers/AuthProviders";
 import BanCheck from "@/components/auth/BanCheck";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
@@ -52,35 +53,23 @@ export const metadata: Metadata = {
   },
 };
 
-interface RootLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function RootLayout({
-  children,
-}: RootLayoutProps) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="fa"
-      dir="rtl"
-      className={`${vazirmatn.variable} h-full antialiased`}
-    >
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} h-full antialiased`}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#050505" />
       </head>
-      <body
-        className="min-h-full flex flex-col bg-[#050505] text-white"
-        style={{ fontFamily: "var(--font-vazirmatn), Arial, sans-serif" }}
-      >
+      <body className="min-h-screen flex flex-col bg-[#050505] text-white">
         <AuthProvider>
           <BackgroundGrid />
           <BanCheck>
-            <ClientLayoutWrapper />
+            <Navbar />
             <main className="flex-1 pt-16 sm:pt-20">
               {children}
             </main>
+            <Footer />
           </BanCheck>
         </AuthProvider>
       </body>

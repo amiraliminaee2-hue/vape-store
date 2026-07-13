@@ -1,13 +1,11 @@
 // app/api/comments/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { validateCsrfToken } from "@/lib/csrf";
 import { authOptions } from "@/lib/auth";
 import { commentCreateSchema } from "@/lib/validations/schemas";
 import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
-  console.log("🔥 GET /api/comments reached");
   try {
     const prisma = await getPrisma();
     const { searchParams } = new URL(request.url);
@@ -53,40 +51,6 @@ export async function POST(request: NextRequest) {
 
     const prisma = await getPrisma();
     const userId = session.user.id;
-
-    // CSRF Protection - Validate token
-    const csrfToken = request.headers.get("X-CSRF-Token");
-    if (!csrfToken) {
-      return NextResponse.json(
-        {
-          error: "توکن امنیتی یافت نشد",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
-    if (!validateCsrfToken(userId, csrfToken)) {
-      return NextResponse.json(
-        {
-          error: "توکن امنیتی نامعتبر است. لطفاً صفحه را بازخوانی کنید",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
-    // Get user info from our database
-    const userProfile = await prisma.userProfile.findUnique({
-      where: { userId: userId },
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
     const body = await request.json();
     
     // Zod validation
@@ -128,10 +92,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ✅ اصلاح: استفاده از phone به جای name
-    const userName = userProfile?.firstName 
-      ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
-      : user?.phone || "کاربر"; // ← استفاده از phone
+    // گرفتن شماره تلفن کاربر
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    const userName = user?.phone || "کاربر";
 
     const comment = await prisma.comment.create({
       data: {
