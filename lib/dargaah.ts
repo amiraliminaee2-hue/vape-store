@@ -11,7 +11,7 @@ const API_BASE_URL = (
   SANDBOX_MODE
     ? "https://sandbox.irandargah.com"
     : process.env.IRANDARGAH_BASE_URL ||
-      "https://api.irandargah.com"
+      "https://ipg.irandargah.com"
 ).replace(/\/+$/, "");
 
 const REQUEST_TIMEOUT = 30000;
