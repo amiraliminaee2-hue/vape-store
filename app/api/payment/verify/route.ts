@@ -5,6 +5,17 @@ import { verifyPayment } from "@/lib/dargaah";
 
 export async function GET(request: NextRequest) {
   try {
+    console.log("=================================");
+    console.log("CALLBACK URL:");
+    console.log(request.url);
+      
+    console.log("ALL PARAMS:");
+      
+    request.nextUrl.searchParams.forEach((value, key) => {
+      console.log(`${key} = ${value}`);
+    });
+    
+    console.log("=================================");
     const prisma = await getPrisma();
     const searchParams = request.nextUrl.searchParams;
     
