@@ -90,11 +90,16 @@ async function getIdempotencyKey(): Promise<string> {
     console.log("📤 Idempotency Response:", response.data);
 
     if (
-      response.data?.success &&
-      response.data?.data?.idempotency_key
-    ) {
-      return response.data.data.idempotency_key;
-    }
+  response.data?.success &&
+  response.data?.idempotency_key
+) {
+  console.log(
+    "✅ Using server Idempotency-Key:",
+    response.data.idempotency_key
+  );
+
+  return response.data.idempotency_key;
+}
 
     console.warn(
       "⚠️ Server did not return idempotency key. Using UUID."
@@ -271,7 +276,9 @@ export async function createPaymentRequest(
       console.log("Status:", status);
       console.log("Headers:", err.response?.headers);
       console.log("Response:");
-      console.log(err.response?.data);
+      console.log(
+        JSON.stringify(err.response?.data, null, 2)
+      );
       console.log("========================================");
 
       switch (status) {
@@ -409,7 +416,9 @@ export async function verifyPayment(
       console.log("Status:", status);
       console.log("Headers:", err.response?.headers);
       console.log("Response:");
-      console.log(err.response?.data);
+      console.log(
+        JSON.stringify(err.response?.data, null, 2)
+      );
       console.log("========================================");
 
       switch (status) {
