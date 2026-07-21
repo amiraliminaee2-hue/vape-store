@@ -34,8 +34,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "سفارش یافت نشد" }, { status: 404 });
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || "https://padbusher.ir";
+    console.log("NEXTAUTH_URL =", process.env.NEXTAUTH_URL);
+    console.log("VERCEL_URL =", process.env.VERCEL_URL);
+
+    const baseUrl = "https://padbusher.ir";
     const callbackUrl = `${baseUrl}/api/payment/verify?orderId=${orderId}`;
+    console.log("Generated callback =", callbackUrl);
 
     try {
       const { redirectUrl } = await createPaymentRequest(
