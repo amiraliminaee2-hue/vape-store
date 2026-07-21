@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
         callbackUrl,
         mobile
       );
+      console.log("========================================");
+      console.log("Callback URL:", callbackUrl);
+      console.log("Redirect URL:", redirectUrl);
+      console.log("========================================");
 
       return NextResponse.json({ paymentUrl: redirectUrl });
     } catch (paymentError) {

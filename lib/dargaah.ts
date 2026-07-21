@@ -252,6 +252,12 @@ export async function createPaymentRequest(
       data.data?.transaction
     ) {
       console.log("✅ Payment Created Successfully");
+      console.log("========================================");
+      console.log("Authority:", data.data.transaction.authority);
+      console.log("Gateway URL:", data.data.transaction.gateway_url);
+      console.log("Full IranDargah Response:");
+      console.log(JSON.stringify(data, null, 2));
+      console.log("========================================");
 
       return {
         authority: data.data.transaction.authority,
