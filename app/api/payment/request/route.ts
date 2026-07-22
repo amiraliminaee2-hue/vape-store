@@ -48,10 +48,12 @@ export async function POST(request: NextRequest) {
         callbackUrl,
         mobile
       );
-      console.log("========================================");
+      console.log("=================================");
+      console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+      console.log("Host:", request.headers.get("host"));
+      console.log("Origin:", request.headers.get("origin"));
       console.log("Callback URL:", callbackUrl);
-      console.log("Redirect URL:", redirectUrl);
-      console.log("========================================");
+      console.log("=================================");
 
       return NextResponse.json({ paymentUrl: redirectUrl });
     } catch (paymentError) {
