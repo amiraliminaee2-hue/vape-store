@@ -5,10 +5,38 @@ import { verifyPayment } from "@/lib/dargaah";
 
 export async function GET(request: NextRequest) {
   try {
+
+    console.log("========== CALLBACK HEADERS ==========");
+
+    console.log("request.url =", request.url);
+      
+    console.log("host =", request.headers.get("host"));
+      
+    console.log(
+      "x-forwarded-host =",
+      request.headers.get("x-forwarded-host")
+    );
+    
+    console.log(
+      "x-forwarded-proto =",
+      request.headers.get("x-forwarded-proto")
+    );
+    
+    console.log(
+      "origin =",
+      request.headers.get("origin")
+    );
+    
+    console.log(
+      "referer =",
+      request.headers.get("referer")
+    );
+    
+    console.log("======================================");
     console.log("=================================");
-  console.log("VERIFY ROUTE HIT");
-  console.log("URL:", request.url);
-  console.log("=================================");
+    console.log("VERIFY ROUTE HIT");
+    console.log("URL:", request.url);
+    console.log("=================================");
 
   console.log("ALL PARAMS:");
 
