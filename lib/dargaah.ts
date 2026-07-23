@@ -354,9 +354,10 @@ export async function verifyPayment(
   const idempotencyKey = await getIdempotencyKey();
 
   const payload = {
-    authority,
-    amount: toRial(amount),
-  };
+  authority,
+  amount: toRial(amount),
+  order_id: String(orderId),
+};
 
   console.log("");
   console.log("========================================");
