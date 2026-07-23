@@ -23,6 +23,7 @@ interface PaymentRequest {
   callback_url: string;
   description: string;
   mobile?: string;
+  action?: "GET" | "POST";
 }
 
 interface PaymentResponse {
@@ -191,15 +192,13 @@ export async function createPaymentRequest(
   const idempotencyKey = await getIdempotencyKey();
 
   const payload: PaymentRequest = {
-    amount: toRial(amount),
-    order_id: String(orderId),
-    callback_url: callbackUrl,
-    description: `پرداخت سفارش شماره ${orderId}`,
-  };
-
-  if (mobile) {
-    payload.mobile = mobile;
-  }
+  amount: toRial(amount),
+  order_id: String(orderId),
+  callback_url: callbackUrl,
+  description: `پرداخت سفارش شماره ${orderId}`,
+  mobile,
+  action: "GET",
+};
 
   console.log("");
   console.log("========================================");
