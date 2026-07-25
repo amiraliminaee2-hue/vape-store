@@ -355,7 +355,7 @@ export async function verifyPayment(
 
   const payload = {
   authority,
-  amount: toRial(amount),
+  amount,
   order_id: String(orderId),
 };
 
