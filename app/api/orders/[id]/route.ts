@@ -16,6 +16,66 @@ const patchBodySchema = z.object({
   status: z.enum(["REGISTERED", "PAYED", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED", "ERROR"]),
 });
 
+export async function GET(
+  request: NextRequest,
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const prisma = await getPrisma();
+    const { id } = await params;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id: Number(id),
+        userId: session.user.id,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        shippingMethod: true,
+        paymentMethod: true,
+        coupon: true,
+      },
+    });
+
+    if (!order) {
+      return NextResponse.json(
+        { error: "سفارشی یافت نشد" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(order);
+  } catch (error) {
+    console.error("Get Order Error:", error);
+
+    return NextResponse.json(
+      {
+        error: "خطا در دریافت سفارش",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
 export async function POST(
   request: NextRequest,
   {
