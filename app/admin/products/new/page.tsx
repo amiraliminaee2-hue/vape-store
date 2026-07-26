@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import ImageUploaderDirect from "@/components/admin/ImageUploaderDirect";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface Spec {
   key: string;
@@ -172,7 +172,7 @@ export default function NewProductPage() {
             {/* Images Upload */}
             <div>
               <label className="block text-sm text-zinc-400 mb-2">تصاویر محصول</label>
-              <ImageUploaderDirect
+              <ImageUploader
                 onUploaded={handleImagesUploaded}
                 existingImages={form.images}
               />
