@@ -29,24 +29,24 @@ export default async function AdminLayout({
                 className="
                   w-full
                   lg:w-64
-                
-                  lg:min-h-screen
-                
+
+                  lg:h-screen
+
                   border-b
                   lg:border-b-0
                   lg:border-l
                   border-white/10
-                
+
                   bg-black/40
                   backdrop-blur-xl
-                
+
                   lg:fixed
                   lg:right-0
                   lg:top-0
-                
+
                   flex
                   flex-col
-                
+
                   z-50
                 "
                 >         
@@ -61,6 +61,8 @@ export default async function AdminLayout({
             className="
               flex
               lg:flex-col
+
+              flex-1
 
               overflow-x-auto
               lg:overflow-y-auto
@@ -353,7 +355,7 @@ export default async function AdminLayout({
             </Link>
           </nav>
 
-          <div className="p-4 border-t border-white/10">
+          <div className="mt-auto p-4 border-t border-white/10">
             <Link
               href="/"
               className="
