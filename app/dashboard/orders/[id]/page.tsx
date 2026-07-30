@@ -76,6 +76,7 @@ export default function OrderDetailsPage({ params }: PageParams) {
         } else if (res.status === 404) {
           router.push("/404");
         } else if (res.status === 401) {
+          alert("ابتدا باید ثبت‌نام یا وارد حساب کاربری خود شوید.");
           router.push("/auth/signin");
         }
       } catch (error) {

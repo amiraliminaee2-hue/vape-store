@@ -59,6 +59,7 @@ export default function AccountPage() {
     try {
       const res = await fetch("/api/profile");
       if (res.status === 401) {
+        alert("ابتدا باید ثبت‌نام یا وارد حساب کاربری خود شوید.");
         router.push("/sign-in");
         return;
       }

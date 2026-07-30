@@ -41,19 +41,18 @@ export default function ContactPage() {
             <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
               <h2 className="text-xl font-semibold mb-4 text-violet-400">اطلاعات تماس</h2>
               <div className="space-y-3 text-zinc-300">
-                <p className="flex items-center gap-3">📞 ۰۷۷-۳۳۳۳۴۵۶۷</p>
-                <p className="flex items-center gap-3">📱 ۰۹۱۷۷۷۱۲۳۴۵</p>
-                <p className="flex items-center gap-3">✉️ info@padbushehr.ir</p>
-                <p className="flex items-start gap-3">📍 بوشهر، خیابان انقلاب، پلاک ۱۲۳</p>
+                <p className="flex items-center gap-3">📞 09939061841</p>
+                <p className="flex items-center gap-3"></p>
+                <p className="flex items-center gap-3">✉️mahdi.8040@gmail.com</p>
+                <p className="flex items-start gap-3">📍 بوشهر ، خیابان باغ زهرا ، مجتمع تجاری زیتون ، طبقه همکف ، پاد بوشهر</p>
               </div>
             </div>
 
             <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
               <h2 className="text-xl font-semibold mb-4 text-violet-400">ساعات کاری</h2>
               <div className="space-y-2 text-zinc-300">
-                <p>شنبه تا چهارشنبه: ۱۰ صبح تا ۸ شب</p>
-                <p>پنجشنبه: ۱۰ صبح تا ۶ عصر</p>
-                <p>جمعه: تعطیل</p>
+                <p> 10:30 - 13:30</p>
+                <p>17:30 - 22:30</p>
               </div>
             </div>
           </div>

@@ -31,6 +31,7 @@ export default function WishlistPage() {
     try {
       const res = await fetch("/api/wishlist");
       if (res.status === 401) {
+        alert("ابتدا باید ثبت‌نام یا وارد حساب کاربری خود شوید.");
         router.push("/sign-in");
         return;
       }
