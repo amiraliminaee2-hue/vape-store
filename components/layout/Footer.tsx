@@ -19,7 +19,7 @@ export default function Footer() {
     <footer className="border-t border-white/10 py-8 md:py-12 bg-[#050505]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 lg:gap-12 mb-8 md:mb-10 text-right">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10 lg:gap-12 mb-8 md:mb-10 text-right">
 
           <div className="text-center sm:text-right">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">
@@ -80,6 +80,22 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
+          </div>
+
+          <div className="flex justify-center">
+            <a
+              referrerPolicy="origin"
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://trustseal.enamad.ir/?id=657254&Code=CH5iZSuHzzaDkRcwFNexeOWwh2uskZB2"
+            >
+              <img
+                referrerPolicy="origin"
+                src="https://trustseal.enamad.ir/logo.aspx?id=657254&Code=CH5iZSuHzzaDkRcwFNexeOWwh2uskZB2"
+                alt="نماد اعتماد الکترونیکی"
+                className="w-28 h-auto cursor-pointer"
+              />
+            </a>
           </div>
 
           <div className="text-center sm:text-right">
