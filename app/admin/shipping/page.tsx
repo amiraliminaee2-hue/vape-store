@@ -70,20 +70,25 @@ export default function AdminShippingPage() {
   const handleSave = async (): Promise<void> => {
     try {
       const payload = {
-        ...(editingMethod && { id: editingMethod.id }),
+        action: editingMethod ? "update" : "create",
+        ...(editingMethod && {
+          id: editingMethod.id,
+          isActive: editingMethod.isActive,
+        }),
         name: formData.name,
         code: formData.code,
         basePrice: parseInt(formData.basePrice),
-        pricePerKg: formData.pricePerKg ? parseInt(formData.pricePerKg) : null,
+        pricePerKg: formData.pricePerKg
+          ? parseInt(formData.pricePerKg)
+          : null,
         estimatedDays: formData.estimatedDays || null,
       };
 
-      const url = "/api/admin/shipping-methods";
-      const method = editingMethod ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch("/api/admin/shipping-methods", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
@@ -105,10 +110,21 @@ export default function AdminShippingPage() {
       if (!method) return;
 
       const res = await fetch("/api/admin/shipping-methods", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...method, isActive: !isActive }),
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    action: "update",
+    id: method.id,
+    name: method.name,
+    code: method.code,
+    basePrice: method.basePrice,
+    pricePerKg: method.pricePerKg,
+    estimatedDays: method.estimatedDays,
+    isActive: !method.isActive,
+  }),
+});
 
       if (res.ok) {
         fetchMethods();
@@ -122,7 +138,16 @@ export default function AdminShippingPage() {
   const handleDelete = async (id: number): Promise<void> => {
     if (!confirm("آیا از حذف این روش ارسال مطمئن هستید؟")) return;
     try {
-      const res = await fetch(`/api/admin/shipping-methods?id=${id}`, { method: "POST" });
+      const res = await fetch("/api/admin/shipping-methods", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "delete",
+          id,
+        }),
+      });
       if (res.ok) {
         fetchMethods();
       } else {

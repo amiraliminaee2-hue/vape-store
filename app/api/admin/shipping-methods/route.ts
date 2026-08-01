@@ -62,7 +62,14 @@ export async function POST(req: NextRequest) {
     // 2️⃣ ویرایش روش ارسال (UPDATE)
     // ============================================
     if (action === "update") {
-      const { id, name, code, basePrice, pricePerKg, estimatedDays, isActive } = data;
+      const {
+        id,
+        name,
+        code,
+        basePrice,
+        pricePerKg,
+        estimatedDays,
+      } = data;
 
       if (!id) {
         return NextResponse.json(
@@ -72,14 +79,16 @@ export async function POST(req: NextRequest) {
       }
 
       const method = await prisma.shippingMethod.update({
-        where: { id },
+        where: {
+          id: parseInt(id.toString()),
+        },
         data: {
           name,
           code,
           basePrice,
           pricePerKg: pricePerKg || null,
           estimatedDays: estimatedDays || null,
-          isActive,
+          isActive: data.isActive,
         },
       });
 
