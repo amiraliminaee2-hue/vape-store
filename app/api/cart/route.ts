@@ -5,50 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 import { cartItemSchema } from "@/lib/validations/schemas";
 
-interface CartItemWithProduct {
-  id: number;
-  quantity: number;
-  product: {
-    id: number;
-    title: string;
-    price: number;
-    discountPercent: number;
-    category: {
-      id: number;
-      name: string;
-      slug: string;
-    };
-  };
-}
-
-interface CartItemWithFlavors {
-  id: number;
-  quantity: number;
-  productId: number;
-  product: {
-    id: number;
-    title: string;
-    price: number;
-    discountPercent: number;
-    category: {
-      id: number;
-      name: string;
-      slug: string;
-    };
-  };
-  flavors: Array<{
-    id: number;
-    flavorId: number;
-    quantity: number;
-    price: number;
-    flavor: {
-      id: number;
-      name: string;
-      price: number | null;
-    };
-  }>;
-}
-
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -93,16 +49,17 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    const items = cart.items.map((item: CartItemWithFlavors) => {
-      const basePrice = item.product.price;
-      const discountPercent = item.product.discountPercent || 0;
+    const items = cart.items.map((item) => {
+      const product = item.product;
+      const basePrice = product.price;
+      const discountPercent = product.discountPercent || 0;
       const discountedPrice = discountPercent > 0
         ? basePrice - (basePrice * discountPercent / 100)
         : basePrice;
 
       let flavorTotalPrice = 0;
       const flavorDetails = item.flavors.map((flavorItem) => {
-        const flavorPrice = flavorItem.flavor.price || 0;
+        const flavorPrice = flavorItem.price;
         flavorTotalPrice += flavorPrice * flavorItem.quantity;
         return {
           flavorId: flavorItem.flavorId,
@@ -112,15 +69,16 @@ export async function GET() {
         };
       });
 
-      const totalPrice = (discountedPrice + (flavorTotalPrice / item.quantity)) * item.quantity;
+      const itemQuantity = item.quantity || 1;
+      const totalPrice = (discountedPrice * itemQuantity) + flavorTotalPrice;
 
       return {
         id: item.id,
-        productId: item.product.id,
-        title: item.product.title,
-        price: item.product.price,
+        productId: product.id,
+        title: product.title,
+        price: product.price,
         discountPercent: discountPercent,
-        quantity: item.quantity,
+        quantity: itemQuantity,
         flavors: flavorDetails,
         totalPrice: totalPrice,
       };
@@ -176,18 +134,32 @@ export async function POST(request: Request) {
 
       const { productId, quantity = 1, flavorId } = validationResult.data;
 
-      let cart = await prisma.cart.findUnique({
-        where: {
-          userId,
-        },
+      // بررسی وجود محصول
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
       });
 
-      if (!cart) {
-        cart = await prisma.cart.create({
-          data: {
-            userId,
+      if (!product) {
+        return NextResponse.json(
+          {
+            error: "محصول یافت نشد",
           },
-        });
+          {
+            status: 404,
+          }
+        );
+      }
+
+      // بررسی موجودی محصول
+      if (product.stock < quantity) {
+        return NextResponse.json(
+          {
+            error: `موجودی محصول ${product.title} کافی نیست`,
+          },
+          {
+            status: 400,
+          }
+        );
       }
 
       let flavor = null;
@@ -205,10 +177,35 @@ export async function POST(request: Request) {
             }
           );
         }
-        if (flavor.stock < quantity) {
+        // بررسی موجودی طعم با احتساب مقدار فعلی در سبد
+        const currentCart = await prisma.cart.findUnique({
+          where: { userId },
+          include: {
+            items: {
+              where: { productId },
+              include: {
+                flavors: {
+                  where: { flavorId },
+                },
+              },
+            },
+          },
+        });
+
+        let currentFlavorQuantity = 0;
+        if (currentCart) {
+          for (const item of currentCart.items) {
+            for (const flavorItem of item.flavors) {
+              currentFlavorQuantity += flavorItem.quantity;
+            }
+          }
+        }
+
+        const totalFlavorQuantity = currentFlavorQuantity + quantity;
+        if (flavor.stock < totalFlavorQuantity) {
           return NextResponse.json(
             {
-              error: `موجودی طعم ${flavor.name} کافی نیست`,
+              error: `موجودی طعم ${flavor.name} کافی نیست (موجودی: ${flavor.stock}، درخواستی: ${totalFlavorQuantity})`,
             },
             {
               status: 400,
@@ -217,80 +214,127 @@ export async function POST(request: Request) {
         }
       }
 
-      let cartItem = await prisma.cartItem.findUnique({
-        where: {
-          cartId_productId: {
-            cartId: cart.id,
-            productId,
-          },
-        },
-        include: {
-          flavors: true,
-        },
-      });
-
-      if (!cartItem) {
-        cartItem = await prisma.cartItem.create({
-          data: {
-            cartId: cart.id,
-            productId,
-            quantity: 0,
-          },
+      // استفاده از Transaction برای جلوگیری از ناسازگاری داده‌ها
+      const result = await prisma.$transaction(async (tx) => {
+        // پیدا کردن یا ایجاد سبد خرید
+        let cart = await tx.cart.findUnique({
+          where: { userId },
         });
-      }
 
-      if (flavorId) {
-        const existingFlavor = await prisma.cartItemFlavor.findUnique({
+        if (!cart) {
+          cart = await tx.cart.create({
+            data: { userId },
+          });
+        }
+
+        // پیدا کردن یا ایجاد آیتم سبد
+        let cartItem = await tx.cartItem.findUnique({
           where: {
-            cartItemId_flavorId: {
-              cartItemId: cartItem.id,
-              flavorId,
+            cartId_productId: {
+              cartId: cart.id,
+              productId,
             },
           },
+          include: {
+            flavors: true,
+          },
         });
 
-        if (existingFlavor) {
-          await prisma.cartItemFlavor.update({
-            where: { id: existingFlavor.id },
-            data: { quantity: { increment: quantity } },
-          });
-        } else {
-          await prisma.cartItemFlavor.create({
+        if (!cartItem) {
+          cartItem = await tx.cartItem.create({
             data: {
-              cartItemId: cartItem.id,
-              flavorId,
-              quantity,
-              price: flavor?.price || 0,
+              cartId: cart.id,
+              productId,
+              quantity: 0,
             },
           });
         }
-      }
 
-      await prisma.cartItem.update({
-        where: { id: cartItem.id },
-        data: { quantity: { increment: quantity } },
+        // اضافه کردن یا بروزرسانی طعم
+        if (flavorId) {
+          const existingFlavor = await tx.cartItemFlavor.findUnique({
+            where: {
+              cartItemId_flavorId: {
+                cartItemId: cartItem.id,
+                flavorId,
+              },
+            },
+          });
+
+          const flavorPrice = flavor?.price || 0;
+
+          if (existingFlavor) {
+            await tx.cartItemFlavor.update({
+              where: { id: existingFlavor.id },
+              data: { quantity: { increment: quantity } },
+            });
+          } else {
+            await tx.cartItemFlavor.create({
+              data: {
+                cartItemId: cartItem.id,
+                flavorId,
+                quantity,
+                price: flavorPrice,
+              },
+            });
+          }
+        }
+
+        // بروزرسانی تعداد کل آیتم
+        const updatedCartItem = await tx.cartItem.update({
+          where: { id: cartItem.id },
+          data: { quantity: { increment: quantity } },
+        });
+
+        return updatedCartItem;
       });
 
       return NextResponse.json({
         success: true,
         message: "محصول به سبد خرید اضافه شد",
+        cartItem: result,
       });
     }
 
     if (action === "clear") {
-      const cart = await prisma.cart.findUnique({
-        where: {
-          userId,
-        },
-      });
-
-      if (cart) {
-        await prisma.cartItem.deleteMany({
-          where: {
-            cartId: cart.id,
+      // استفاده از Transaction برای پاکسازی امن سبد
+      await prisma.$transaction(async (tx) => {
+        const cart = await tx.cart.findUnique({
+          where: { userId },
+          include: {
+            items: {
+              include: {
+                flavors: true,
+              },
+            },
           },
         });
-      }
+
+        if (cart) {
+          // حذف تمام طعم‌های آیتم‌های سبد
+          for (const item of cart.items) {
+            await tx.cartItemFlavor.deleteMany({
+              where: {
+                cartItemId: item.id,
+              },
+            });
+          }
+
+          // حذف تمام آیتم‌های سبد
+          await tx.cartItem.deleteMany({
+            where: {
+              cartId: cart.id,
+            },
+          });
+
+          // حذف خود سبد
+          await tx.cart.delete({
+            where: {
+              id: cart.id,
+            },
+          });
+        }
+      });
 
       return NextResponse.json({
         success: true,
