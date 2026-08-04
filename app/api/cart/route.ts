@@ -134,7 +134,6 @@ export async function POST(request: Request) {
 
       const { productId, quantity = 1, flavorId } = validationResult.data;
 
-      // بررسی وجود محصول
       const product = await prisma.product.findUnique({
         where: { id: productId },
       });
@@ -150,7 +149,6 @@ export async function POST(request: Request) {
         );
       }
 
-      // بررسی موجودی محصول
       if (product.stock < quantity) {
         return NextResponse.json(
           {
@@ -177,7 +175,7 @@ export async function POST(request: Request) {
             }
           );
         }
-        // بررسی موجودی طعم با احتساب مقدار فعلی در سبد
+
         const currentCart = await prisma.cart.findUnique({
           where: { userId },
           include: {
@@ -214,9 +212,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // استفاده از Transaction برای جلوگیری از ناسازگاری داده‌ها
       const result = await prisma.$transaction(async (tx) => {
-        // پیدا کردن یا ایجاد سبد خرید
         let cart = await tx.cart.findUnique({
           where: { userId },
         });
@@ -227,7 +223,6 @@ export async function POST(request: Request) {
           });
         }
 
-        // پیدا کردن یا ایجاد آیتم سبد
         let cartItem = await tx.cartItem.findUnique({
           where: {
             cartId_productId: {
@@ -247,10 +242,12 @@ export async function POST(request: Request) {
               productId,
               quantity: 0,
             },
+            include: {
+              flavors: true,
+            },
           });
         }
 
-        // اضافه کردن یا بروزرسانی طعم
         if (flavorId) {
           const existingFlavor = await tx.cartItemFlavor.findUnique({
             where: {
@@ -280,7 +277,6 @@ export async function POST(request: Request) {
           }
         }
 
-        // بروزرسانی تعداد کل آیتم
         const updatedCartItem = await tx.cartItem.update({
           where: { id: cartItem.id },
           data: { quantity: { increment: quantity } },
@@ -297,7 +293,6 @@ export async function POST(request: Request) {
     }
 
     if (action === "clear") {
-      // استفاده از Transaction برای پاکسازی امن سبد
       await prisma.$transaction(async (tx) => {
         const cart = await tx.cart.findUnique({
           where: { userId },
@@ -311,7 +306,6 @@ export async function POST(request: Request) {
         });
 
         if (cart) {
-          // حذف تمام طعم‌های آیتم‌های سبد
           for (const item of cart.items) {
             await tx.cartItemFlavor.deleteMany({
               where: {
@@ -320,14 +314,12 @@ export async function POST(request: Request) {
             });
           }
 
-          // حذف تمام آیتم‌های سبد
           await tx.cartItem.deleteMany({
             where: {
               cartId: cart.id,
             },
           });
 
-          // حذف خود سبد
           await tx.cart.delete({
             where: {
               id: cart.id,

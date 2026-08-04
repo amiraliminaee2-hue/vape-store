@@ -125,6 +125,7 @@ model CartItemFlavor {
   cartItemId  Int
   flavorId    Int
   quantity    Int       @default(1)
+  price       Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   cartItem    CartItem  @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
