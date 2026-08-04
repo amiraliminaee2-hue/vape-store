@@ -7,6 +7,7 @@ import { getPrisma } from "@/lib/prisma";
 interface OrderItemInput {
   productId: number;
   quantity: number;
+  flavorId?: number | null;
 }
 
 interface Product {
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
     const finalTotal = totalPrice - finalDiscount + (shippingPrice || 0);
     const trackingNumber = `VS-${Date.now()}`;
 
+    // ایجاد سفارش با آیتم‌ها و طعم‌ها
     const order = await prisma.order.create({
       data: {
         userId,
@@ -146,6 +148,11 @@ export async function POST(request: NextRequest) {
         items: {
           include: {
             product: true,
+            flavors: {
+              include: {
+                flavor: true,
+              },
+            },
           },
         },
       },
@@ -153,6 +160,7 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ Order created:", order.id);
 
+    // کاهش موجودی محصولات
     for (const item of items) {
       await prisma.product.update({
         where: { id: item.productId },
@@ -160,6 +168,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // حذف سبد خرید و طعم‌های آن (Cascade حذف می‌شود)
     await prisma.cart.delete({
       where: { userId },
     }).catch(() => {});

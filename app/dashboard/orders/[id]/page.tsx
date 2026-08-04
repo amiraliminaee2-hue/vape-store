@@ -33,6 +33,18 @@ const statusColors: Record<OrderStatus, string> = {
   ERROR: "bg-red-500/20 text-red-300",
 };
 
+interface OrderItemFlavor {
+  id: number;
+  flavorId: number;
+  quantity: number;
+  price: number;
+  flavor: {
+    id: number;
+    name: string;
+    price: number | null;
+  };
+}
+
 interface OrderItem {
   id: number;
   quantity: number;
@@ -42,6 +54,7 @@ interface OrderItem {
     title: string;
     price: number;
   };
+  flavors: OrderItemFlavor[];
 }
 
 interface Order {
@@ -213,19 +226,35 @@ export default function OrderDetailsPage({ params }: PageParams) {
           {order.items.map((item: OrderItem) => (
             <div
               key={item.id}
-              className="p-6 flex justify-between items-center"
+              className="p-6"
             >
-              <div>
-                <h3 className="font-semibold">
-                  {item.product.title}
-                </h3>
-                <p className="text-zinc-500 mt-1">
-                  تعداد: {item.quantity}
-                </p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-semibold">
+                    {item.product.title}
+                  </h3>
+                  <p className="text-zinc-500 mt-1">
+                    تعداد: {item.quantity}
+                  </p>
+                </div>
+                <div>
+                  {(item.price * item.quantity).toLocaleString("fa-IR")} تومان
+                </div>
               </div>
-              <div>
-                {(item.price * item.quantity).toLocaleString("fa-IR")} تومان
-              </div>
+              {item.flavors && item.flavors.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {item.flavors.map((flavorItem: OrderItemFlavor) => (
+                    <span
+                      key={flavorItem.id}
+                      className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300"
+                    >
+                      {flavorItem.flavor.name}
+                      {flavorItem.quantity > 1 && ` x${flavorItem.quantity}`}
+                      {flavorItem.price > 0 && ` (+${flavorItem.price.toLocaleString("fa-IR")} تومان)`}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -9,12 +9,12 @@ import WishlistButton from "../../../components/product/WishlistButton";
 import PriceWithDiscount from "@/components/ui/PriceWithDiscount";
 import StarRating from "@/components/ui/StarRating";
 import ProductReviews from "@/components/ui/ProductReviews";
+import FlavorSelector from "@/components/product/FlavorSelector";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// تعریف interface برای Product
 interface Product {
   id: number;
   title: string;
@@ -53,12 +53,18 @@ interface Product {
     productId: number;
     status: string;
     user: {
-      phone: string | null;  // ✅ تغییر: name به phone
+      phone: string | null;
     } | null;
+  }>;
+  flavors: Array<{
+    id: number;
+    name: string;
+    stock: number;
+    price: number | null;
+    isActive: boolean;
   }>;
 }
 
-// تعریف interface برای SimilarProduct
 interface SimilarProduct {
   id: number;
   title: string;
@@ -132,9 +138,13 @@ export default async function ProductPage({ params }: PageProps) {
           orderBy: { createdAt: "desc" },
           include: {
             user: {
-              select: { phone: true },  // ✅ تغییر: name و email به phone
+              select: { phone: true },
             },
           },
+        },
+        flavors: {
+          where: { isActive: true },
+          orderBy: { createdAt: "asc" },
         },
       },
     }) as Product | null;
@@ -152,9 +162,13 @@ export default async function ProductPage({ params }: PageProps) {
           orderBy: { createdAt: "desc" },
           include: {
             user: {
-              select: { phone: true },  // ✅ تغییر: name و email به phone
+              select: { phone: true },
             },
           },
+        },
+        flavors: {
+          where: { isActive: true },
+          orderBy: { createdAt: "asc" },
         },
       },
     }) as Product | null;
@@ -164,12 +178,10 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
 
-  // محاسبه میانگین امتیاز
   const avgRating = product.comments && product.comments.length > 0
     ? product.comments.reduce((sum, c) => sum + c.rating, 0) / product.comments.length
     : 0;
 
-  // محصولات مشابه
   const similarProducts = await prisma.product.findMany({
     where: {
       categoryId: product.categoryId,
@@ -182,7 +194,6 @@ export default async function ProductPage({ params }: PageProps) {
     },
   }) as SimilarProduct[];
 
-  // تبدیل تصاویر به WebP
   const processImageUrl = (url: string) => {
     if (!url) return null;
     if (url.includes('/uploads/')) {
@@ -198,7 +209,6 @@ export default async function ProductPage({ params }: PageProps) {
 
   const productSpecs = product.specs || [];
   
-  // ✅ اصلاح: تبدیل نظرات به فرمت مناسب برای ProductReviews
   const safeComments = (product.comments || []).map((comment) => ({
     id: comment.id,
     userName: comment.userName,
@@ -206,7 +216,7 @@ export default async function ProductPage({ params }: PageProps) {
     content: comment.content,
     createdAt: comment.createdAt,
     user: {
-      phone: comment.user?.phone || null,  // ✅ تغییر: name به phone
+      phone: comment.user?.phone || null,
     },
   }));
 
@@ -214,7 +224,6 @@ export default async function ProductPage({ params }: PageProps) {
     <main className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0f] text-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         
-        {/* مسیر راهنما */}
         <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8 flex-wrap">
           <Link href="/" className="hover:text-white transition">خانه</Link>
           <span>/</span>
@@ -227,10 +236,8 @@ export default async function ProductPage({ params }: PageProps) {
           <span className="text-white">{product.title}</span>
         </div>
 
-        {/* محصول اصلی */}
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
           
-          {/* تصویر */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-white/10 backdrop-blur-sm">
               {product.images?.[0] ? (
@@ -266,7 +273,6 @@ export default async function ProductPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* اطلاعات محصول */}
           <div className="space-y-6">
             <div>
               {product.discountPercent > 0 && (
@@ -309,6 +315,15 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
+            {product.flavors && product.flavors.length > 0 && (
+              <div className="mt-4">
+                <FlavorSelector
+                  flavors={product.flavors}
+                  onFlavorChange={() => {}}
+                />
+              </div>
+            )}
+
             <AddToCartButton
               productId={product.id}
               productTitle={product.title}
@@ -323,7 +338,6 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* مشخصات فنی */}
         {productSpecs.length > 0 && (
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-6">مشخصات فنی</h2>
@@ -340,7 +354,6 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* نظرات کاربران */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold mb-6">
             نظرات کاربران ({safeComments.length})
@@ -353,7 +366,6 @@ export default async function ProductPage({ params }: PageProps) {
           />
         </div>
 
-        {/* محصولات مشابه */}
         {similarProducts.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold mb-6">محصولات مشابه</h2>

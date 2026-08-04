@@ -53,6 +53,7 @@ export const commentStatusSchema = z.object({
 export const cartItemSchema = z.object({
   productId: z.coerce.number().positive("productId معتبر نیست"),
   quantity: z.coerce.number().int().min(1, "تعداد باید حداقل ۱ باشد").max(99, "تعداد حداکثر ۹۹ است"),
+  flavorId: z.coerce.number().positive().optional().nullable(),
 });
 
 export const cartActionSchema = z.object({
@@ -69,10 +70,8 @@ export const orderCreateSchema = z.object({
     productId: z.coerce.number().positive(),
     quantity: z.coerce.number().int().min(1),
   })).min(1, "سبد خرید خالی است"),
-  // فیلدهای کد تخفیف
   couponCode: z.string().optional(),
   discountAmount: z.number().min(0).optional().default(0),
-  // ✅ فیلدهای جدید روش ارسال و پرداخت
   shippingMethodId: z.number().optional().nullable(),
   paymentMethodId: z.number().optional().nullable(),
   shippingPrice: z.number().min(0).optional().default(0),

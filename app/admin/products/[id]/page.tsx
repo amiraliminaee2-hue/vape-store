@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import ImageUploader from "@/components/admin/ImageUploader";
+import FlavorManager from "@/components/admin/FlavorManager";
 
 interface Spec {
   key: string;
@@ -199,7 +200,6 @@ export default function EditProductPage() {
     <div className="min-h-screen bg-[#050505] text-white p-8">
       <div className="max-w-3xl mx-auto">
 
-        {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <button
             onClick={() => router.back()}
@@ -219,7 +219,6 @@ export default function EditProductPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {/* Images Upload */}
           <div
             className="
               p-8
@@ -236,7 +235,6 @@ export default function EditProductPage() {
             />
           </div>
 
-          {/* Basic Info */}
           <div
             className="
               p-8
@@ -331,7 +329,6 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Price & Stock */}
           <div
             className="
               p-8
@@ -478,7 +475,6 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Specs */}
           <div
             className="
               p-8
@@ -570,7 +566,18 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Submit */}
+          <div
+            className="
+              p-8
+              rounded-3xl
+              border border-white/10
+              bg-white/[0.02]
+              space-y-6
+            "
+          >
+            <FlavorManager productId={parseInt(id)} />
+          </div>
+
           <button
             type="submit"
             disabled={loading}

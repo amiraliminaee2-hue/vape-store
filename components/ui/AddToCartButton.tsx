@@ -8,9 +8,16 @@ interface AddToCartButtonProps {
   productTitle: string;
   productPrice: number;
   stock: number;
+  flavorId?: number | null;
 }
 
-export default function AddToCartButton({ productId, productTitle, productPrice, stock }: AddToCartButtonProps) {
+export default function AddToCartButton({ 
+  productId, 
+  productTitle, 
+  productPrice, 
+  stock,
+  flavorId = null 
+}: AddToCartButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -41,7 +48,8 @@ export default function AddToCartButton({ productId, productTitle, productPrice,
         body: JSON.stringify({ 
           action: "add",
           productId, 
-          quantity 
+          quantity,
+          flavorId,
         }),
       });
 

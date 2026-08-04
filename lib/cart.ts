@@ -7,6 +7,13 @@ export interface CartItem {
   price: number;
   discountPercent: number;
   quantity: number;
+  flavors?: Array<{
+    flavorId: number;
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+  totalPrice?: number;
 }
 
 export async function getCart(): Promise<CartItem[]> {
@@ -23,7 +30,8 @@ export async function getCart(): Promise<CartItem[]> {
 
 export async function addToCart(
   productId: number,
-  quantity = 1
+  quantity = 1,
+  flavorId?: number | null
 ) {
   const res = await fetch("/api/cart", {
     method: "POST",
@@ -31,8 +39,10 @@ export async function addToCart(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      action: "add",
       productId,
       quantity,
+      flavorId,
     }),
   });
 
@@ -54,7 +64,7 @@ export async function removeFromCart(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        action: "delete", // ✅ اضافه شد
+        action: "delete",
       }),
     }
   );
@@ -121,7 +131,7 @@ export async function clearCart() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        action: "clear", // ✅ اضافه شد
+        action: "clear",
       }),
     }
   );

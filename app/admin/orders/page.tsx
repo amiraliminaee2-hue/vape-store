@@ -35,6 +35,22 @@ interface OrderItem {
   };
 }
 
+interface OrderItemFlavor {
+  id: number;
+  flavorId: number;
+  quantity: number;
+  price: number;
+  flavor: {
+    id: number;
+    name: string;
+    price: number | null;
+  };
+}
+
+interface OrderItemWithFlavors extends OrderItem {
+  flavors: OrderItemFlavor[];
+}
+
 interface Order {
   id: number;
   trackingNumber: string;
@@ -48,7 +64,7 @@ interface Order {
   discountAmount: number;
   status: string;
   createdAt: Date;
-  items: OrderItem[];
+  items: OrderItemWithFlavors[];
 }
 
 interface SearchParams {
@@ -92,7 +108,7 @@ export default async function OrdersPage({
       }
     : {};
 
-  const orders: Order[] = await prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: whereCondition,
     orderBy: {
       createdAt: "desc",
@@ -101,10 +117,15 @@ export default async function OrdersPage({
       items: {
         include: {
           product: true,
+          flavors: {
+            include: {
+              flavor: true,
+            },
+          },
         },
       },
     },
-  });
+  }) as Order[];
 
   const registered: number = orders.filter(
     (o: Order) => o.status === "REGISTERED"
@@ -304,15 +325,31 @@ export default async function OrdersPage({
 
               <div className="mt-6 border-t border-white/10 pt-5">
                 <p className="text-sm text-zinc-500 mb-2">محصولات</p>
-                {order.items.map((item: OrderItem) => (
+                {order.items.map((item: OrderItemWithFlavors) => (
                   <div
                     key={item.id}
-                    className="flex justify-between py-2 text-sm"
+                    className="flex flex-col py-2 text-sm"
                   >
-                    <span>{item.product.title}</span>
-                    <span className="text-zinc-400">
-                      {item.quantity} × {item.price.toLocaleString("fa-IR")} تومان
-                    </span>
+                    <div className="flex justify-between">
+                      <span>{item.product.title}</span>
+                      <span className="text-zinc-400">
+                        {item.quantity} × {item.price.toLocaleString("fa-IR")} تومان
+                      </span>
+                    </div>
+                    {item.flavors && item.flavors.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {item.flavors.map((flavorItem: OrderItemFlavor) => (
+                          <span
+                            key={flavorItem.id}
+                            className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300"
+                          >
+                            {flavorItem.flavor.name}
+                            {flavorItem.quantity > 1 && ` x${flavorItem.quantity}`}
+                            {flavorItem.price > 0 && ` (+${flavorItem.price.toLocaleString("fa-IR")} تومان)`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

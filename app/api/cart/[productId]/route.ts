@@ -8,7 +8,6 @@ import { z } from "zod";
 // Schema validation for body
 const bodySchema = z.object({
   action: z.enum(["increase", "decrease", "delete", "remove"]),
-  // quantity: z.number().optional(), // ❌ حذف شد چون استفاده نمی‌شود
 });
 
 // Schema validation for params
@@ -75,7 +74,7 @@ export async function POST(
       );
     }
 
-    const { action } = bodyValidationResult.data; // ✅ فقط action استخراج می‌شود
+    const { action } = bodyValidationResult.data;
 
     // پیدا کردن سبد کاربر
     const cart = await prisma.cart.findUnique({
@@ -102,6 +101,9 @@ export async function POST(
           cartId: cart.id,
           productId: Number(productId),
         },
+      },
+      include: {
+        flavors: true,
       },
     });
 
@@ -194,10 +196,10 @@ export async function POST(
         });
       }
 
-      await prisma.cartItem.deleteMany({
+      // حذف آیتم و تمام طعم‌های مرتبط با آن (Cascade حذف می‌شود)
+      await prisma.cartItem.delete({
         where: {
-          cartId: cart.id,
-          productId: Number(productId),
+          id: item.id,
         },
       });
 
