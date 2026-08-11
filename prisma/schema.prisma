@@ -92,19 +92,19 @@ model CartItem {
 // ==================== مدل‌های جدید برای طعم‌بندی ====================
 
 model Flavor {
-  id         Int               @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   productId  Int
-  name       String            // نام طعم (مثلاً "توت فرنگی")
-  stock      Int               @default(0) // موجودی جداگانه برای هر طعم
-  price      Int?              // قیمت اضافی برای این طعم (اختیاری)
-  isActive   Boolean           @default(true)
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  name       String
+  stock      Int       @default(0)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
   product    Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItemFlavor[]
   cartItems  CartItemFlavor[]
 
-  @@unique([productId, name]) // هر محصول نمی‌تواند دو طعم با نام یکسان داشته باشد
+  @@unique([productId, name])
 }
 
 model OrderItemFlavor {
@@ -112,8 +112,8 @@ model OrderItemFlavor {
   orderItemId Int
   flavorId    Int
   quantity    Int       @default(1)
-  price       Int       // قیمت در زمان سفارش (با احتساب قیمت اضافی طعم)
   createdAt   DateTime  @default(now())
+
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   flavor      Flavor    @relation(fields: [flavorId], references: [id], onDelete: Cascade)
 
@@ -121,15 +121,15 @@ model OrderItemFlavor {
 }
 
 model CartItemFlavor {
-  id          Int       @id @default(autoincrement())
-  cartItemId  Int
-  flavorId    Int
-  quantity    Int       @default(1)
-  price       Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  cartItem    CartItem  @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
-  flavor      Flavor    @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  cartItemId Int
+  flavorId   Int
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  flavor     Flavor   @relation(fields: [flavorId], references: [id], onDelete: Cascade)
 
   @@unique([cartItemId, flavorId])
 }
