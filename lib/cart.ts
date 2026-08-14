@@ -1,5 +1,14 @@
 // lib/cart.ts
 
+export interface CartFlavor {
+  flavorId: number;
+  name: string;
+  quantity: number;
+  price: number;
+  stock?: number;
+  isActive?: boolean;
+}
+
 export interface CartItem {
   id: number;
   productId: number;
@@ -7,14 +16,46 @@ export interface CartItem {
   price: number;
   discountPercent: number;
   quantity: number;
-  flavors?: Array<{
-    flavorId: number;
+
+  /*
+   * طعم‌های انتخاب‌شده برای این محصول
+   */
+  flavors?: CartFlavor[];
+
+  /*
+   * طعم‌های فعال قابل انتخاب
+   */
+  availableFlavors?: Array<{
+    id: number;
     name: string;
-    quantity: number;
-    price: number;
+    stock: number;
+    isActive: boolean;
   }>;
+
+  /*
+   * آیا محصول دارای طعم است؟
+   */
+  hasFlavors?: boolean;
+
+  /*
+   * موجودی کلی محصول
+   */
+  stock?: number;
+
+  /*
+   * موجودی قابل استفاده برای این آیتم
+   */
+  availableStock?: number;
+
+  /*
+   * قیمت کل آیتم
+   */
   totalPrice?: number;
 }
+
+// ============================================================
+// دریافت سبد خرید
+// ============================================================
 
 export async function getCart(): Promise<CartItem[]> {
   const res = await fetch("/api/cart", {
@@ -22,11 +63,27 @@ export async function getCart(): Promise<CartItem[]> {
   });
 
   if (!res.ok) {
-    throw new Error("خطا در دریافت سبد خرید");
+    let message = "خطا در دریافت سبد خرید";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
+
+// ============================================================
+// افزودن محصول به سبد
+// ============================================================
 
 export async function addToCart(
   productId: number,
@@ -42,16 +99,35 @@ export async function addToCart(
       action: "add",
       productId,
       quantity,
-      flavorId,
+      flavorId:
+        flavorId !== undefined
+          ? flavorId
+          : null,
     }),
   });
 
   if (!res.ok) {
-    throw new Error("خطا در افزودن محصول");
+    let message = "خطا در افزودن محصول";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
+
+// ============================================================
+// حذف کامل محصول از سبد
+// ============================================================
 
 export async function removeFromCart(
   productId: number
@@ -70,14 +146,31 @@ export async function removeFromCart(
   );
 
   if (!res.ok) {
-    throw new Error("خطا در حذف محصول");
+    let message = "خطا در حذف محصول";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
 
+// ============================================================
+// افزایش تعداد محصول / طعم
+// ============================================================
+
 export async function increaseQuantity(
-  productId: number
+  productId: number,
+  flavorId?: number | null
 ) {
   const res = await fetch(
     `/api/cart/${productId}`,
@@ -88,19 +181,46 @@ export async function increaseQuantity(
       },
       body: JSON.stringify({
         action: "increase",
+
+        /*
+         * اگر محصول چند طعم داشته باشد،
+         * API با این مقدار مشخص می‌کند
+         * کدام طعم باید افزایش پیدا کند.
+         */
+        flavorId:
+          flavorId !== undefined
+            ? flavorId
+            : null,
       }),
     }
   );
 
   if (!res.ok) {
-    throw new Error("خطا در افزایش تعداد");
+    let message = "خطا در افزایش تعداد";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
 
+// ============================================================
+// کاهش تعداد محصول / طعم
+// ============================================================
+
 export async function decreaseQuantity(
-  productId: number
+  productId: number,
+  flavorId?: number | null
 ) {
   const res = await fetch(
     `/api/cart/${productId}`,
@@ -111,16 +231,42 @@ export async function decreaseQuantity(
       },
       body: JSON.stringify({
         action: "decrease",
+
+        /*
+         * اگر محصول چند طعم داشته باشد،
+         * API با این مقدار مشخص می‌کند
+         * کدام طعم باید کاهش پیدا کند.
+         */
+        flavorId:
+          flavorId !== undefined
+            ? flavorId
+            : null,
       }),
     }
   );
 
   if (!res.ok) {
-    throw new Error("خطا در کاهش تعداد");
+    let message = "خطا در کاهش تعداد";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
 }
+
+// ============================================================
+// پاکسازی کامل سبد خرید
+// ============================================================
 
 export async function clearCart() {
   const res = await fetch(
@@ -137,7 +283,19 @@ export async function clearCart() {
   );
 
   if (!res.ok) {
-    throw new Error("خطا در پاکسازی سبد");
+    let message = "خطا در پاکسازی سبد";
+
+    try {
+      const data = await res.json();
+
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // پاسخ JSON نبود؛ پیام پیش‌فرض استفاده می‌شود.
+    }
+
+    throw new Error(message);
   }
 
   return res.json();
