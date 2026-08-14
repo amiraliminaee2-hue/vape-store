@@ -1,6 +1,6 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
-import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import BackgroundGrid from "../components/layout/BackgroundGrid";
 import AuthProvider from "./providers/AuthProviders";
@@ -8,34 +8,53 @@ import BanCheck from "@/components/auth/BanCheck";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-vazirmatn",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://padbushehr.ir"),
+
   title: {
     default: "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
     template: "%s | پاد بوشهر",
   },
-  description: "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب در بوشهر",
-  keywords: ["ویپ", "پاد", "لیکوئید", "خرید ویپ", "پاد بوشهر", "فروشگاه ویپ"],
-  authors: [{ name: "پاد بوشهر" }],
+
+  description:
+    "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب در بوشهر",
+
+  keywords: [
+    "ویپ",
+    "پاد",
+    "لیکوئید",
+    "خرید ویپ",
+    "پاد بوشهر",
+    "فروشگاه ویپ",
+  ],
+
+  authors: [
+    {
+      name: "پاد بوشهر",
+    },
+  ],
+
   creator: "پاد بوشهر",
+
   robots: {
     index: true,
     follow: true,
   },
+
   openGraph: {
     title: "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
-    description: "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب",
+
+    description:
+      "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی با بهترین کیفیت و قیمت مناسب",
+
     url: "https://padbushehr.ir",
+
     siteName: "پاد بوشهر",
+
     locale: "fa_IR",
+
     type: "website",
+
     images: [
       {
         url: "/og-image.png",
@@ -45,30 +64,58 @@ export const metadata: Metadata = {
       },
     ],
   },
+
   twitter: {
     card: "summary_large_image",
+
     title: "پاد بوشهر | فروشگاه تخصصی ویپ و پاد",
-    description: "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی",
+
+    description:
+      "فروشگاه تخصصی ویپ، پاد، لیکوئید و لوازم جانبی",
+
     images: ["/og-image.png"],
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} h-full antialiased`}>
+    <html
+      lang="fa"
+      dir="rtl"
+      className="h-full antialiased"
+    >
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="theme-color" content="#050505" />
+        <link
+          rel="icon"
+          href="/favicon.ico"
+        />
+
+        <link
+          rel="apple-touch-icon"
+          href="/apple-touch-icon.png"
+        />
+
+        <meta
+          name="theme-color"
+          content="#050505"
+        />
       </head>
+
       <body className="min-h-screen flex flex-col bg-[#050505] text-white">
         <AuthProvider>
           <BackgroundGrid />
+
           <BanCheck>
             <Navbar />
+
             <main className="flex-1 pt-16 sm:pt-20">
               {children}
             </main>
+
             <Footer />
           </BanCheck>
         </AuthProvider>

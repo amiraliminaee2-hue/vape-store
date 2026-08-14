@@ -16,7 +16,7 @@ body {
   background: #050505;
   color: white;
   overflow-x: hidden;
-  font-family: "Vazirmatn", Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Background Glow */
@@ -62,18 +62,35 @@ body.admin-page {
 
 /* Gradient animation */
 @keyframes gradientMove {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* Float animation */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* Pulse glow */
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
 }
