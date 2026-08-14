@@ -5,6 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InvoiceViewer from "@/components/invoice/InvoiceViewer";
 
+interface OrderItemFlavor {
+  id: number;
+  flavorId: number;
+  quantity: number;
+  price: number;
+  flavor: {
+    id: number;
+    name: string;
+  };
+}
+
 interface OrderItem {
   id: number;
   quantity: number;
@@ -15,6 +26,11 @@ interface OrderItem {
     slug: string;
     images: string[];
   };
+
+  /*
+   * طعم‌های انتخاب شده برای این آیتم
+   */
+  flavors?: OrderItemFlavor[];
 }
 
 interface Order {
@@ -39,6 +55,11 @@ interface InvoiceItem {
   quantity: number;
   price: number;
   total: number;
+
+  /*
+   * نام طعم‌های انتخاب شده
+   */
+  flavors?: string[];
 }
 
 interface InvoiceData {
@@ -62,25 +83,45 @@ interface InvoiceData {
 export default function UserOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const orderId = params?.["id"] as string;
+  const [order, setOrder] =
+    useState<Order | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const orderId =
+    params?.["id"] as string;
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/account/orders/${orderId}`);
+        const res =
+          await fetch(
+            `/api/account/orders/${orderId}`
+          );
+
         if (!res.ok) {
           if (res.status === 404) {
-            router.push("/account/orders");
+            router.push(
+              "/account/orders"
+            );
           }
-          throw new Error("خطا در دریافت سفارش");
+
+          throw new Error(
+            "خطا در دریافت سفارش"
+          );
         }
-        const data = await res.json();
+
+        const data =
+          await res.json();
+
         setOrder(data);
       } catch (error) {
-        console.error("Error fetching order:", error);
+        console.error(
+          "Error fetching order:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -94,7 +135,9 @@ export default function UserOrderDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] text-white p-8">
-        <div className="text-center py-20">در حال بارگذاری...</div>
+        <div className="text-center py-20">
+          در حال بارگذاری...
+        </div>
       </div>
     );
   }
@@ -103,47 +146,148 @@ export default function UserOrderDetailPage() {
     return (
       <div className="min-h-screen bg-[#050505] text-white p-8">
         <div className="text-center py-20">
-          <p className="text-zinc-500">سفارش یافت نشد</p>
-          <Link href="/account/orders" className="mt-4 inline-block text-violet-400">
+          <p className="text-zinc-500">
+            سفارش یافت نشد
+          </p>
+
+          <Link
+            href="/account/orders"
+            className="mt-4 inline-block text-violet-400"
+          >
             بازگشت به لیست سفارش‌ها
           </Link>
         </div>
       </div>
     );
   }
+
   const invoiceData: InvoiceData = {
     id: order.id,
-    trackingNumber: order.trackingNumber,
-    transactionId: order.transactionId,
-    createdAt: order.createdAt,
-    status: order.status,
-    phone: order.phone,
-    address: order.address,
-    customerNote: order.customerNote,
-    adminNote: order.adminNote,
-    subtotal: order.totalPrice + (order.discountAmount || 0),
-    couponCode: order.couponCode,
-    discountAmount: order.discountAmount || 0,
+
+    trackingNumber:
+      order.trackingNumber,
+
+    transactionId:
+      order.transactionId,
+
+    createdAt:
+      order.createdAt,
+
+    status:
+      order.status,
+
+    phone:
+      order.phone,
+
+    address:
+      order.address,
+
+    customerNote:
+      order.customerNote,
+
+    adminNote:
+      order.adminNote,
+
+    subtotal:
+      order.totalPrice +
+      (order.discountAmount || 0),
+
+    couponCode:
+      order.couponCode,
+
+    discountAmount:
+      order.discountAmount || 0,
+
     shippingCost: 0,
-    totalPrice: order.totalPrice,
-    items: order.items.map((item: OrderItem): InvoiceItem => ({
-      id: item.id,
-      title: item.product.title,
-      quantity: item.quantity,
-      price: item.price,
-      total: item.price * item.quantity,
-    })),
+
+    totalPrice:
+      order.totalPrice,
+
+    items:
+      order.items.map(
+        (
+          item: OrderItem
+        ): InvoiceItem => {
+          /*
+           * ---------------------------------------------------
+           * استخراج طعم‌های انتخاب شده
+           * ---------------------------------------------------
+           */
+
+          const flavors =
+            item.flavors
+              ?.map(
+                (
+                  flavorItem
+                ) =>
+                  flavorItem.flavor?.name
+              )
+              .filter(
+                (
+                  name
+                ): name is string =>
+                  Boolean(name)
+              ) || [];
+
+          /*
+           * ---------------------------------------------------
+           * محاسبه عنوان محصول
+           * ---------------------------------------------------
+           *
+           * اگر طعم داشته باشد:
+           *
+           * محصول
+           * طعم: Strawberry, Mango
+           *
+           * ---------------------------------------------------
+           */
+
+          const itemTitle =
+            flavors.length > 0
+              ? `${item.product.title} - طعم: ${flavors.join(
+                  "، "
+                )}`
+              : item.product.title;
+
+          return {
+            id:
+              item.id,
+
+            title:
+              itemTitle,
+
+            quantity:
+              item.quantity,
+
+            price:
+              item.price,
+
+            total:
+              item.price *
+              item.quantity,
+
+            flavors,
+          };
+        }
+      ),
   };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <Link href="/account/orders" className="text-zinc-400 hover:text-white">
+          <Link
+            href="/account/orders"
+            className="text-zinc-400 hover:text-white"
+          >
             ← بازگشت به لیست سفارش‌ها
           </Link>
         </div>
-        <InvoiceViewer data={invoiceData} showPrintButton={true} />
+
+        <InvoiceViewer
+          data={invoiceData}
+          showPrintButton={true}
+        />
       </div>
     </div>
   );

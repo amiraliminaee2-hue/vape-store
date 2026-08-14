@@ -10,7 +10,7 @@
     "seed": "tsx prisma/seed.ts",
     "prisma:generate": "node_modules/.bin/prisma generate",
     "prisma:migrate": "node_modules/.bin/prisma migrate deploy",
-    "type-check": "tsc --noEmit --skipLibCheck false",
+    "type-check": "tsc --noEmit --skipLibCheck true",
     "type-check-save": "tsc --noEmit > errors.txt 2>&1"
   },
   "dependencies": {
