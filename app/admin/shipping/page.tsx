@@ -104,7 +104,7 @@ export default function AdminShippingPage() {
   };
 
   // تغییر وضعیت فعال/غیرفعال
-  const toggleActive = async (id: number, isActive: boolean): Promise<void> => {
+  const toggleActive = async (id: number): Promise<void> => {
     try {
       const method = methods.find((m: ShippingMethod) => m.id === id);
       if (!method) return;
@@ -234,7 +234,7 @@ export default function AdminShippingPage() {
               <div className="text-zinc-400">{method.estimatedDays || "—"}</div>
               <div>
                 <button
-                  onClick={() => toggleActive(method.id, method.isActive)}
+                  onClick={() => toggleActive(method.id)}
                   className={`px-3 py-1 rounded-full text-xs font-medium ${
                     method.isActive
                       ? "bg-emerald-500/20 text-emerald-400"
