@@ -1,15 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ✅ standalone برای PaaS مثل پارس‌پک ضروری است
+  // ✅ standalone برای PaaS مثل پارس‌پک
   output: "standalone",
 
-  // ✅ Prisma client files را در standalone bundle قرار می‌دهد
+  // ✅ قرار دادن Prisma Client در standalone bundle
   outputFileTracingIncludes: {
     "/*": ["node_modules/.prisma/client/**/*"],
   },
 
+  // ✅ تنظیمات تصاویر
   images: {
+    // ✅ جلوگیری از استفاده از /_next/image
+    // تصاویر UploadThing مستقیماً از utfs.io لود می‌شوند
+    unoptimized: true,
+
     remotePatterns: [
       {
         protocol: "https",
@@ -22,7 +27,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ✅ Turbopack برای build سریع‌تر
+  // ✅ Turbopack
   turbopack: {},
 };
 
