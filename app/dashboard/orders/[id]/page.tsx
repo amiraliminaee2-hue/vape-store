@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import OrderTimeline from "@/components/orders/OrderTimeline";
 
-type OrderStatus = 
+type OrderStatus =
   | "REGISTERED"
   | "PAYED"
   | "PROCESSING"
@@ -72,67 +72,127 @@ interface PageParams {
   params: Promise<{ id: string }>;
 }
 
-export default function OrderDetailsPage({ params }: PageParams) {
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(false);
+export default function OrderDetailsPage({
+  params,
+}: PageParams) {
+  const [order, setOrder] =
+    useState<Order | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [cancelling, setCancelling] =
+    useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
     async function fetchOrder() {
       const { id } = await params;
+
       try {
-        const res = await fetch(`/api/orders/${id}`);
+        const res = await fetch(
+          `/api/orders/${id}`
+        );
+
         if (res.ok) {
-          const data = await res.json();
+          const data =
+            await res.json();
+
           setOrder(data);
-        } else if (res.status === 404) {
+        } else if (
+          res.status === 404
+        ) {
           router.push("/404");
-        } else if (res.status === 401) {
-          alert("ابتدا باید ثبت‌نام یا وارد حساب کاربری خود شوید.");
-          router.push("/auth/signin");
+        } else if (
+          res.status === 401
+        ) {
+          alert(
+            "ابتدا باید ثبت‌نام یا وارد حساب کاربری خود شوید."
+          );
+
+          router.push(
+            "/auth/signin"
+          );
         }
       } catch (error) {
-        console.error("Error fetching order:", error);
+        console.error(
+          "Error fetching order:",
+          error
+        );
       } finally {
         setLoading(false);
       }
     }
+
     fetchOrder();
   }, [params, router]);
 
-  const handleCancelOrder = async () => {
-    if (!confirm("آیا از لغو این سفارش مطمئن هستید؟")) return;
-
-    setCancelling(true);
-    try {
-      const res = await fetch(`/api/orders/${order?.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "CANCELLED" }),
-      });
-
-      if (res.ok) {
-        alert("سفارش با موفقیت لغو شد");
-        router.push("/dashboard/orders");
-      } else {
-        const data = await res.json();
-        alert(data.error || "خطا در لغو سفارش");
+  const handleCancelOrder =
+    async () => {
+      if (
+        !confirm(
+          "آیا از لغو این سفارش مطمئن هستید؟"
+        )
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error("Cancel order error:", error);
-      alert("خطا در لغو سفارش");
-    } finally {
-      setCancelling(false);
-    }
-  };
+
+      setCancelling(true);
+
+      try {
+        const res =
+          await fetch(
+            `/api/orders/${order?.id}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                status: "CANCELLED",
+              }),
+            }
+          );
+
+        if (res.ok) {
+          alert(
+            "سفارش با موفقیت لغو شد"
+          );
+
+          router.push(
+            "/dashboard/orders"
+          );
+        } else {
+          const data =
+            await res.json();
+
+          alert(
+            data.error ||
+              "خطا در لغو سفارش"
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Cancel order error:",
+          error
+        );
+
+        alert(
+          "خطا در لغو سفارش"
+        );
+      } finally {
+        setCancelling(false);
+      }
+    };
 
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto p-10">
-        <div className="text-center">در حال بارگذاری...</div>
+        <div className="text-center">
+          در حال بارگذاری...
+        </div>
       </div>
     );
   }
@@ -140,12 +200,16 @@ export default function OrderDetailsPage({ params }: PageParams) {
   if (!order) {
     return (
       <div className="max-w-5xl mx-auto p-10">
-        <div className="text-center">سفارش یافت نشد</div>
+        <div className="text-center">
+          سفارش یافت نشد
+        </div>
       </div>
     );
   }
 
-  const canCancel = order.status === "REGISTERED";
+  const canCancel =
+    order.status ===
+    "REGISTERED";
 
   return (
     <div className="max-w-5xl mx-auto p-10">
@@ -155,12 +219,18 @@ export default function OrderDetailsPage({ params }: PageParams) {
         </h1>
 
         <p className="mt-3 text-zinc-500">
-          {new Date(order.createdAt).toLocaleDateString("fa-IR")}
+          {new Date(
+            order.createdAt
+          ).toLocaleDateString(
+            "fa-IR"
+          )}
         </p>
       </div>
 
       <div className="mb-10">
-        <OrderTimeline status={order.status} />
+        <OrderTimeline
+          status={order.status}
+        />
       </div>
 
       <div className="flex items-center justify-between mb-8">
@@ -178,11 +248,15 @@ export default function OrderDetailsPage({ params }: PageParams) {
 
         {canCancel && (
           <button
-            onClick={handleCancelOrder}
+            onClick={
+              handleCancelOrder
+            }
             disabled={cancelling}
             className="px-6 py-2 rounded-full bg-red-600 hover:bg-red-500 transition-colors text-white font-medium disabled:opacity-50"
           >
-            {cancelling ? "در حال لغو..." : "لغو سفارش"}
+            {cancelling
+              ? "در حال لغو..."
+              : "لغو سفارش"}
           </button>
         )}
       </div>
@@ -193,7 +267,9 @@ export default function OrderDetailsPage({ params }: PageParams) {
             اطلاعات ارسال
           </h2>
 
-          <p>{order.phone}</p>
+          <p>
+            {order.phone}
+          </p>
 
           <p className="mt-3 text-zinc-400">
             {order.address}
@@ -206,7 +282,9 @@ export default function OrderDetailsPage({ params }: PageParams) {
           </h2>
 
           <p className="text-3xl font-bold">
-            {order.totalPrice.toLocaleString("fa-IR")}
+            {order.totalPrice.toLocaleString(
+              "fa-IR"
+            )}
           </p>
 
           <p className="text-zinc-500 mt-2">
@@ -223,40 +301,97 @@ export default function OrderDetailsPage({ params }: PageParams) {
         </div>
 
         <div className="divide-y divide-white/10">
-          {order.items.map((item: OrderItem) => (
-            <div
-              key={item.id}
-              className="p-6"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">
-                    {item.product.title}
-                  </h3>
-                  <p className="text-zinc-500 mt-1">
-                    تعداد: {item.quantity}
-                  </p>
+          {order.items.map(
+            (
+              item: OrderItem
+            ) => (
+              <div
+                key={item.id}
+                className="p-6"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold">
+                      {
+                        item
+                          .product
+                          .title
+                      }
+                    </h3>
+
+                    <p className="text-zinc-500 mt-1">
+                      تعداد:{" "}
+                      {
+                        item.quantity
+                      }
+                    </p>
+                  </div>
+
+                  <div>
+                    {(
+                      item.price *
+                      item.quantity
+                    ).toLocaleString(
+                      "fa-IR"
+                    )}{" "}
+                    تومان
+                  </div>
                 </div>
-                <div>
-                  {(item.price * item.quantity).toLocaleString("fa-IR")} تومان
-                </div>
+
+                {item.flavors &&
+                  item.flavors
+                    .length >
+                    0 && (
+                    <div className="mt-4">
+                      <p className="text-sm text-zinc-500 mb-2">
+                        طعم‌های انتخاب شده:
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {item.flavors.map(
+                          (
+                            flavorItem: OrderItemFlavor
+                          ) => (
+                            <span
+                              key={
+                                flavorItem.id
+                              }
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-500/20 text-violet-300 border border-violet-500/20"
+                            >
+                              <span>
+                                {
+                                  flavorItem
+                                    .flavor
+                                    .name
+                                }
+                              </span>
+
+                              <span className="font-bold">
+                                ×{" "}
+                                {
+                                  flavorItem.quantity
+                                }
+                              </span>
+
+                              {flavorItem.price >
+                                0 && (
+                                <span className="text-xs text-violet-400">
+                                  +
+                                  {flavorItem.price.toLocaleString(
+                                    "fa-IR"
+                                  )}{" "}
+                                  تومان
+                                </span>
+                              )}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
               </div>
-              {item.flavors && item.flavors.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {item.flavors.map((flavorItem: OrderItemFlavor) => (
-                    <span
-                      key={flavorItem.id}
-                      className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300"
-                    >
-                      {flavorItem.flavor.name}
-                      {flavorItem.quantity > 1 && ` x${flavorItem.quantity}`}
-                      {flavorItem.price > 0 && ` (+${flavorItem.price.toLocaleString("fa-IR")} تومان)`}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          )}
         </div>
       </div>
     </div>
