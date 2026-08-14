@@ -25,48 +25,6 @@ const statusLabels: Record<string, string> = {
   ERROR: "خطا در پرداخت",
 };
 
-interface OrderItem {
-  id: number;
-  quantity: number;
-  price: number;
-  product: {
-    id: number;
-    title: string;
-  };
-}
-
-interface OrderItemFlavor {
-  id: number;
-  flavorId: number;
-  quantity: number;
-  price: number;
-  flavor: {
-    id: number;
-    name: string;
-    price: number | null;
-  };
-}
-
-interface OrderItemWithFlavors extends OrderItem {
-  flavors: OrderItemFlavor[];
-}
-
-interface Order {
-  id: number;
-  trackingNumber: string;
-  userId: string;
-  address: string;
-  phone: string;
-  customerNote: string | null;
-  adminNote: string | null;
-  totalPrice: number;
-  couponCode: string | null;
-  discountAmount: number;
-  status: string;
-  createdAt: Date;
-  items: OrderItemWithFlavors[];
-}
-
 interface SearchParams {
   search?: string;
 }
@@ -108,6 +66,10 @@ export default async function OrdersPage({
       }
     : {};
 
+  // ------------------------------------------
+  // دریافت سفارشات
+  // نوع داده توسط Prisma به صورت خودکار تعیین می‌شود.
+  // ------------------------------------------
   const orders = await prisma.order.findMany({
     where: whereCondition,
     orderBy: {
@@ -125,25 +87,31 @@ export default async function OrdersPage({
         },
       },
     },
-  }) as Order[];
+  });
 
-  const registered: number = orders.filter(
-    (o: Order) => o.status === "REGISTERED"
+  // ------------------------------------------
+  // آمار سفارشات
+  // ------------------------------------------
+  const registered = orders.filter(
+    (order) => order.status === "REGISTERED"
   ).length;
 
-  const processing: number = orders.filter(
-    (o: Order) => o.status === "PROCESSING"
+  const processing = orders.filter(
+    (order) => order.status === "PROCESSING"
   ).length;
 
-  const shipping: number = orders.filter(
-    (o: Order) => o.status === "SHIPPING"
+  const shipping = orders.filter(
+    (order) => order.status === "SHIPPING"
   ).length;
 
-  const shipped: number = orders.filter(
-    (o: Order) => o.status === "SHIPPED"
+  const shipped = orders.filter(
+    (order) => order.status === "SHIPPED"
   ).length;
 
-  const totalDiscount: number = orders.reduce((sum: number, order: Order) => sum + (order.discountAmount || 0), 0);
+  const totalDiscount = orders.reduce(
+    (sum, order) => sum + (order.discountAmount || 0),
+    0
+  );
 
   return (
     <div className="space-y-8">
@@ -152,10 +120,12 @@ export default async function OrdersPage({
           <h1 className="text-4xl font-bold">
             مدیریت سفارشات
           </h1>
+
           <p className="mt-2 text-zinc-500">
             {orders.length} سفارش ثبت شده
           </p>
         </div>
+
         <Suspense fallback={<div className="w-48 h-10" />}>
           <ExportButtons type="orders" />
         </Suspense>
@@ -180,7 +150,10 @@ export default async function OrdersPage({
 
       <div className="grid md:grid-cols-5 gap-4">
         <div className="rounded-3xl border border-white/10 p-5">
-          <p className="text-zinc-500">ثبت شده</p>
+          <p className="text-zinc-500">
+            ثبت شده
+          </p>
+
           <p className="text-3xl font-bold mt-3">
             {registered}
           </p>
@@ -190,6 +163,7 @@ export default async function OrdersPage({
           <p className="text-zinc-500">
             در حال پردازش
           </p>
+
           <p className="text-3xl font-bold mt-3">
             {processing}
           </p>
@@ -199,6 +173,7 @@ export default async function OrdersPage({
           <p className="text-zinc-500">
             در مرحله ارسال
           </p>
+
           <p className="text-3xl font-bold mt-3">
             {shipping}
           </p>
@@ -208,13 +183,17 @@ export default async function OrdersPage({
           <p className="text-zinc-500">
             ارسال شده
           </p>
+
           <p className="text-3xl font-bold mt-3">
             {shipped}
           </p>
         </div>
 
         <div className="rounded-3xl border border-green-500/20 bg-green-500/5 p-5">
-          <p className="text-zinc-500">مجموع تخفیف‌ها</p>
+          <p className="text-zinc-500">
+            مجموع تخفیف‌ها
+          </p>
+
           <p className="text-3xl font-bold mt-3 text-green-400">
             {totalDiscount.toLocaleString("fa-IR")} تومان
           </p>
@@ -222,10 +201,13 @@ export default async function OrdersPage({
       </div>
 
       <div className="space-y-5">
-        {orders.map((order: Order) => {
-          const originalTotal: number = order.totalPrice + (order.discountAmount || 0);
-          const hasDiscount: boolean = (order.discountAmount || 0) > 0;
-          
+        {orders.map((order) => {
+          const originalTotal =
+            order.totalPrice + (order.discountAmount || 0);
+
+          const hasDiscount =
+            (order.discountAmount || 0) > 0;
+
           return (
             <div
               key={order.id}
@@ -244,6 +226,7 @@ export default async function OrdersPage({
                     <h2 className="text-2xl font-bold">
                       سفارش #{order.id}
                     </h2>
+
                     <span className="text-sm text-zinc-500 font-mono">
                       {order.trackingNumber}
                     </span>
@@ -254,6 +237,7 @@ export default async function OrdersPage({
                       <p className="text-sm text-zinc-500">
                         مشتری
                       </p>
+
                       <p className="font-semibold">
                         {order.phone || "کاربر"}
                       </p>
@@ -263,13 +247,17 @@ export default async function OrdersPage({
                       <p className="text-sm text-zinc-500">
                         موبایل
                       </p>
-                      <p>{order.phone}</p>
+
+                      <p>
+                        {order.phone}
+                      </p>
                     </div>
 
                     <div>
                       <p className="text-sm text-zinc-500">
                         آدرس
                       </p>
+
                       <p className="text-zinc-300 line-clamp-2">
                         {order.address}
                       </p>
@@ -279,6 +267,7 @@ export default async function OrdersPage({
                       <p className="text-sm text-zinc-500 mb-2">
                         یادداشت ادمین
                       </p>
+
                       <AdminNoteEditor
                         orderId={order.id}
                         initialNote={order.adminNote || ""}
@@ -299,21 +288,31 @@ export default async function OrdersPage({
                   >
                     {statusLabels[order.status] || order.status}
                   </div>
-                  
+
                   <div className="mt-3 text-right">
                     {hasDiscount && (
                       <>
                         <p className="text-sm text-zinc-500 line-through">
                           {originalTotal.toLocaleString("fa-IR")} تومان
                         </p>
+
                         <p className="text-sm text-green-400">
-                          تخفیف: -{(order.discountAmount || 0).toLocaleString("fa-IR")} تومان
+                          تخفیف: -
+                          {(order.discountAmount || 0).toLocaleString(
+                            "fa-IR"
+                          )} تومان
                         </p>
                       </>
                     )}
-                    <p className={`font-bold text-lg ${hasDiscount ? "text-green-400" : ""}`}>
+
+                    <p
+                      className={`font-bold text-lg ${
+                        hasDiscount ? "text-green-400" : ""
+                      }`}
+                    >
                       {order.totalPrice.toLocaleString("fa-IR")} تومان
                     </p>
+
                     {order.couponCode && (
                       <p className="text-xs text-zinc-500 mt-1">
                         کد: {order.couponCode}
@@ -324,32 +323,54 @@ export default async function OrdersPage({
               </div>
 
               <div className="mt-6 border-t border-white/10 pt-5">
-                <p className="text-sm text-zinc-500 mb-2">محصولات</p>
-                {order.items.map((item: OrderItemWithFlavors) => (
+                <p className="text-sm text-zinc-500 mb-2">
+                  محصولات
+                </p>
+
+                {order.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex flex-col py-2 text-sm"
                   >
                     <div className="flex justify-between">
-                      <span>{item.product.title}</span>
+                      <span>
+                        {item.product.title}
+                      </span>
+
                       <span className="text-zinc-400">
-                        {item.quantity} × {item.price.toLocaleString("fa-IR")} تومان
+                        {item.quantity} ×{" "}
+                        {item.price.toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
-                    {item.flavors && item.flavors.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {item.flavors.map((flavorItem: OrderItemFlavor) => (
-                          <span
-                            key={flavorItem.id}
-                            className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300"
-                          >
-                            {flavorItem.flavor.name}
-                            {flavorItem.quantity > 1 && ` x${flavorItem.quantity}`}
-                            {flavorItem.price > 0 && ` (+${flavorItem.price.toLocaleString("fa-IR")} تومان)`}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+
+                    {item.flavors &&
+                      item.flavors.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {item.flavors.map((flavorItem) => (
+                            <span
+                              key={flavorItem.id}
+                              className="
+                                text-xs
+                                px-2
+                                py-0.5
+                                rounded-full
+                                bg-violet-500/20
+                                text-violet-300
+                              "
+                            >
+                              {flavorItem.flavor.name}
+
+                              {flavorItem.quantity > 1 &&
+                                ` x${flavorItem.quantity}`}
+
+                              {flavorItem.price > 0 &&
+                                ` (+${flavorItem.price.toLocaleString(
+                                  "fa-IR"
+                                )} تومان)`}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>

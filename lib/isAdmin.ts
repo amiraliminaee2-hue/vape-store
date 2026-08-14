@@ -13,9 +13,10 @@ export async function isAdmin(userId: string): Promise<boolean> {
   if (!user?.phone) return false;
 
   const adminPhones = [
-    process.env.ADMIN_PHONE,
-    "09969061841",
-  ];
+  process.env.ADMIN_PHONE,
+  "09334839609",
+  "09969061841",
+];
 
   return adminPhones.includes(user.phone);
 }

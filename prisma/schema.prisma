@@ -19,122 +19,129 @@ model Category {
 }
 
 model Product {
-  id                Int            @id @default(autoincrement())
-  title             String
-  slug              String         @unique
-  description       String
-  price             Int
-  stock             Int            @default(0)
-  images            String[]
-  isActive          Boolean        @default(true)
-  isFeatured        Boolean        @default(false)
-  categoryId        Int
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  discountPercent   Int            @default(0) @map("discount_percent")
-  sellerId          String?
-  showInBestSelling Boolean        @default(false) @map("show_in_best_selling")
-  showInDisposable  Boolean        @default(false) @map("show_in_disposable")
-  showInFeatured    Boolean        @default(false) @map("show_in_featured")
-  showInGirls       Boolean        @default(false) @map("show_in_girls")
-  showInLiquids     Boolean        @default(false) @map("show_in_liquids")
-  showInPacks       Boolean        @default(false) @map("show_in_packs")
-  showInPermanent   Boolean        @default(false) @map("show_in_permanent")
-  cartItems         CartItem[]
-  comments          Comment[]
-  orderItems        OrderItem[]
-  category          Category       @relation(fields: [categoryId], references: [id])
-  seller            Seller?        @relation(fields: [sellerId], references: [id])
-  specs             ProductSpec[]
-  wishlistItems     WishlistItem[]
-  flavors           Flavor[]       // ← اضافه شده: ارتباط با طعم‌ها
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String
+  price       Int
+  stock       Int      @default(0)
+  images      String[]
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  categoryId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  discountPercent Int     @default(0) @map("discount_percent")
+  sellerId        String?
+
+  showInBestSelling Boolean @default(false) @map("show_in_best_selling")
+  showInDisposable  Boolean @default(false) @map("show_in_disposable")
+  showInFeatured    Boolean @default(false) @map("show_in_featured")
+  showInGirls       Boolean @default(false) @map("show_in_girls")
+  showInLiquids     Boolean @default(false) @map("show_in_liquids")
+  showInPacks       Boolean @default(false) @map("show_in_packs")
+  showInPermanent   Boolean @default(false) @map("show_in_permanent")
+
+  cartItems     CartItem[]
+  comments      Comment[]
+  flavors       Flavor[]
+  orderItems    OrderItem[]
+  category      Category       @relation(fields: [categoryId], references: [id])
+  seller        Seller?        @relation(fields: [sellerId], references: [id])
+  specs         ProductSpec[]
+  wishlistItems WishlistItem[]
+}
+
+model Flavor {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  name      String
+  stock     Int      @default(0)
+  price     Int?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product    Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems  CartItemFlavor[]
+  orderItems OrderItemFlavor[]
+
+  @@unique([productId, name])
+  @@index([productId])
+  @@index([isActive])
 }
 
 model ProductSpec {
-  id        Int     @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   key       String
   value     String
   productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {
-  id        Int               @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   orderId   Int
   productId Int
   quantity  Int
   price     Int
-  order     Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product           @relation(fields: [productId], references: [id])
-  flavors   OrderItemFlavor[] // ← اضافه شده: ارتباط با طعم‌های سفارش
+
+  order   Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product           @relation(fields: [productId], references: [id])
+  flavors OrderItemFlavor[]
+}
+
+model OrderItemFlavor {
+  id         Int @id @default(autoincrement())
+  orderItemId Int
+  flavorId   Int
+  quantity   Int @default(1)
+  price      Int
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  flavor    Flavor    @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+
+  @@unique([orderItemId, flavorId])
+  @@index([flavorId])
 }
 
 model Cart {
-  id        Int        @id @default(autoincrement())
-  userId    String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     CartItem[]
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
 }
 
 model CartItem {
-  id        Int             @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   cartId    Int
   productId Int
   quantity  Int
-  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product         @relation(fields: [productId], references: [id])
-  flavors   CartItemFlavor[] // ← اضافه شده: ارتباط با طعم‌های سبد خرید
+
+  cart    Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product          @relation(fields: [productId], references: [id])
+  flavors CartItemFlavor[]
 
   @@unique([cartId, productId])
 }
 
-// ==================== مدل‌های جدید برای طعم‌بندی ====================
-
-model Flavor {
-  id         Int       @id @default(autoincrement())
-  productId  Int
-  name       String
-  stock      Int       @default(0)
-  isActive   Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  product    Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  orderItems OrderItemFlavor[]
-  cartItems  CartItemFlavor[]
-
-  @@unique([productId, name])
-}
-
-model OrderItemFlavor {
-  id          Int       @id @default(autoincrement())
-  orderItemId Int
-  flavorId    Int
-  quantity    Int       @default(1)
-  createdAt   DateTime  @default(now())
-
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  flavor      Flavor    @relation(fields: [flavorId], references: [id], onDelete: Cascade)
-
-  @@unique([orderItemId, flavorId])
-}
-
 model CartItemFlavor {
-  id         Int      @id @default(autoincrement())
+  id         Int @id @default(autoincrement())
   cartItemId Int
   flavorId   Int
-  quantity   Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  quantity   Int @default(1)
+  price      Int
 
-  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
-  flavor     Flavor   @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+  cartItem CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  flavor   Flavor   @relation(fields: [flavorId], references: [id], onDelete: Cascade)
 
   @@unique([cartItemId, flavorId])
+  @@index([flavorId])
 }
-
-// ==================== ادامه مدل‌های موجود ====================
 
 model Setting {
   id          Int      @id @default(autoincrement())
@@ -149,42 +156,48 @@ model Setting {
 }
 
 model User {
-  id        String         @id @default(cuid())
-  phone     String         @unique
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  comments  Comment[]      @relation("UserComments")
-  orders    Order[]        @relation("UserOrders")
-  seller    Seller?
-  profile   UserProfile?   @relation("UserProfile")
-  wishlist  WishlistItem[] @relation("UserWishlist")
-  pages     Page[]
+  id        String   @id @default(cuid())
+  password  String?
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  phone     String?  @unique
+
+  comments Comment[]      @relation("UserComments")
+  orders   Order[]        @relation("UserOrders")
+  seller   Seller?
+  profile  UserProfile?   @relation("UserProfile")
+  wishlist WishlistItem[] @relation("UserWishlist")
+  pages    Page[]
 }
 
 model Order {
-  id               Int             @id @default(autoincrement())
-  trackingNumber   String          @unique
-  transactionId    String?
-  userId           String
-  userName         String
-  address          String
-  phone            String
-  customerNote     String?
-  adminNote        String?
-  totalPrice       Int
-  status           OrderStatus     @default(REGISTERED)
-  createdAt        DateTime        @default(now())
-  couponId         Int?            @map("coupon_id")
-  couponCode       String?         @map("coupon_code")
-  discountAmount   Int             @default(0) @map("discount_amount")
+  id             Int         @id @default(autoincrement())
+  trackingNumber String      @unique
+  transactionId  String?
+  userId         String
+  userName       String
+  address        String
+  phone          String
+  customerNote   String?
+  adminNote      String?
+  totalPrice     Int
+  status         OrderStatus @default(REGISTERED)
+  createdAt      DateTime    @default(now())
+
+  couponId       Int?    @map("coupon_id")
+  couponCode     String? @map("coupon_code")
+  discountAmount Int     @default(0) @map("discount_amount")
+
   paymentMethodId  Int?
   shippingMethodId Int?
-  shippingPrice    Int             @default(0)
-  coupon           Coupon?         @relation(fields: [couponId], references: [id])
-  paymentMethod    PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
-  shippingMethod   ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
-  user             User            @relation("UserOrders", fields: [userId], references: [id])
-  items            OrderItem[]
+  shippingPrice    Int  @default(0)
+
+  coupon         Coupon?         @relation(fields: [couponId], references: [id])
+  paymentMethod  PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+  user           User            @relation("UserOrders", fields: [userId], references: [id])
+  items          OrderItem[]
 
   @@map("Order")
 }
@@ -199,8 +212,9 @@ model Comment {
   status    CommentStatus @default(PENDING)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
-  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User          @relation("UserComments", fields: [userId], references: [id])
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserComments", fields: [userId], references: [id])
 }
 
 model WishlistItem {
@@ -208,36 +222,41 @@ model WishlistItem {
   userId    String
   productId Int
   createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User     @relation("UserWishlist", fields: [userId], references: [id])
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserWishlist", fields: [userId], references: [id])
 
   @@unique([userId, productId])
 }
 
 model UserProfile {
-  id             Int            @id @default(autoincrement())
-  userId         String         @unique
-  firstName      String?
-  lastName       String?
-  phone          String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  banReason      String?
-  isBanned       Boolean        @default(false)
-  banExpiry      DateTime?
-  bannedAt       DateTime?
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique
+  firstName String?
+  lastName  String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  banReason String?
+  isBanned  Boolean   @default(false)
+  banExpiry DateTime?
+  bannedAt  DateTime?
+
   savedAddresses SavedAddress[]
-  user           User           @relation("UserProfile", fields: [userId], references: [id])
+
+  user User @relation("UserProfile", fields: [userId], references: [id])
 }
 
 model SavedAddress {
-  id        Int         @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   userId    String
   label     String
   address   String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  profile   UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Seller {
@@ -256,32 +275,36 @@ model Seller {
   totalEarned Int          @default(0)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  products    Product[]
-  user        User         @relation(fields: [userId], references: [id])
+
+  products Product[]
+  user     User      @relation(fields: [userId], references: [id])
 
   @@index([slug])
   @@index([status])
 }
 
 model Coupon {
-  id                   Int           @id @default(autoincrement())
-  code                 String        @unique
-  type                 CouponType    @default(FIXED)
-  value                Int
-  minPurchase          Int?          @map("min_purchase")
-  maxDiscount          Int?          @map("max_discount")
-  usageLimit           Int?          @map("usage_limit")
-  usedCount            Int           @default(0) @map("used_count")
-  perUserLimit         Int?          @map("per_user_limit")
-  startDate            DateTime?     @map("start_date")
-  endDate              DateTime?     @map("end_date")
-  status               CouponStatus  @default(ACTIVE)
-  applicableProducts   Int[]         @map("applicable_products")
-  applicableCategories Int[]         @map("applicable_categories")
-  createdAt            DateTime      @default(now()) @map("created_at")
-  updatedAt            DateTime      @updatedAt @map("updated_at")
-  orders               Order[]
-  usages               CouponUsage[]
+  id           Int          @id @default(autoincrement())
+  code         String       @unique
+  type         CouponType   @default(FIXED)
+  value        Int
+  minPurchase  Int?         @map("min_purchase")
+  maxDiscount  Int?         @map("max_discount")
+  usageLimit   Int?         @map("usage_limit")
+  usedCount    Int          @default(0) @map("used_count")
+  perUserLimit Int?         @map("per_user_limit")
+  startDate    DateTime?    @map("start_date")
+  endDate      DateTime?    @map("end_date")
+  status       CouponStatus @default(ACTIVE)
+
+  applicableProducts   Int[] @map("applicable_products")
+  applicableCategories Int[] @map("applicable_categories")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  orders Order[]
+  usages CouponUsage[]
 
   @@map("coupons")
 }
@@ -293,7 +316,8 @@ model CouponUsage {
   userId   String   @map("user_id")
   discount Int
   usedAt   DateTime @default(now()) @map("used_at")
-  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
 
   @@unique([couponId, orderId])
   @@map("coupon_usages")
@@ -313,33 +337,36 @@ model Page {
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
   authorId        String?    @map("author_id")
-  author          User?      @relation(fields: [authorId], references: [id])
+
+  author User? @relation(fields: [authorId], references: [id])
 
   @@map("pages")
 }
 
 model ShippingMethod {
-  id             Int                     @id @default(autoincrement())
-  name           String
-  code           String                  @unique
-  basePrice      Int
-  pricePerKg     Int?
-  estimatedDays  String?
-  isActive       Boolean                 @default(true)
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  code          String   @unique
+  basePrice     Int
+  pricePerKg    Int?
+  estimatedDays String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   orders         Order[]
   provincePrices ProvinceShippingPrice[]
 }
 
 model ProvinceShippingPrice {
-  id               Int            @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
   province         String
   shippingMethodId Int
   price            Int
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  shippingMethod   ShippingMethod @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  shippingMethod ShippingMethod @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
 
   @@unique([province, shippingMethodId])
 }
@@ -352,7 +379,8 @@ model PaymentMethod {
   settings  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  orders    Order[]
+
+  orders Order[]
 }
 
 model Otp {
