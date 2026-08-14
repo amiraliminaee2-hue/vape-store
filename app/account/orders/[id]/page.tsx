@@ -49,6 +49,14 @@ interface Order {
   items: OrderItem[];
 }
 
+interface InvoiceItemFlavor {
+  id: number;
+  flavorId: number;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
 interface InvoiceItem {
   id: number;
   title: string;
@@ -57,9 +65,12 @@ interface InvoiceItem {
   total: number;
 
   /*
-   * نام طعم‌های انتخاب شده
+   * اطلاعات کامل طعم‌های انتخاب شده
+   *
+   * برخلاف نسخه قبلی، فقط نام طعم منتقل نمی‌شود.
+   * quantity نیز منتقل می‌شود تا در فاکتور نمایش داده شود.
    */
-  flavors?: string[];
+  flavors: InvoiceItemFlavor[];
 }
 
 interface InvoiceData {
@@ -210,44 +221,66 @@ export default function UserOrderDetailPage() {
         ): InvoiceItem => {
           /*
            * ---------------------------------------------------
-           * استخراج طعم‌های انتخاب شده
+           * استخراج اطلاعات کامل طعم‌های انتخاب شده
+           * ---------------------------------------------------
+           *
+           * در نسخه قبلی فقط flavor.name
+           * منتقل می‌شد و quantity از بین می‌رفت.
+           *
+           * اکنون:
+           *
+           * name
+           * quantity
+           * price
+           *
+           * همگی منتقل می‌شوند.
            * ---------------------------------------------------
            */
 
-          const flavors =
-            item.flavors
-              ?.map(
-                (
-                  flavorItem
-                ) =>
-                  flavorItem.flavor?.name
-              )
-              .filter(
-                (
-                  name
-                ): name is string =>
-                  Boolean(name)
-              ) || [];
+          const flavors: InvoiceItemFlavor[] =
+            item.flavors?.map(
+              (
+                flavorItem
+              ): InvoiceItemFlavor => ({
+                id:
+                  flavorItem.id,
+
+                flavorId:
+                  flavorItem.flavorId,
+
+                name:
+                  flavorItem.flavor?.name ||
+                  "نامشخص",
+
+                quantity:
+                  flavorItem.quantity,
+
+                price:
+                  flavorItem.price,
+              })
+            ) || [];
 
           /*
            * ---------------------------------------------------
-           * محاسبه عنوان محصول
+           * عنوان محصول
            * ---------------------------------------------------
            *
-           * اگر طعم داشته باشد:
+           * طعم دیگر داخل title قرار نمی‌گیرد.
            *
-           * محصول
-           * طعم: Strawberry, Mango
+           * قبلاً:
            *
+           * test - طعم: توت‌فرنگی، انبه
+           *
+           * ساخته می‌شد.
+           *
+           * اکنون عنوان فقط نام محصول است و
+           * طعم‌ها به صورت جداگانه در InvoiceViewer
+           * نمایش داده می‌شوند.
            * ---------------------------------------------------
            */
 
           const itemTitle =
-            flavors.length > 0
-              ? `${item.product.title} - طعم: ${flavors.join(
-                  "، "
-                )}`
-              : item.product.title;
+            item.product.title;
 
           return {
             id:

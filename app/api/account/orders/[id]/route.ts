@@ -3,21 +3,16 @@ import { getPrisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-type OrderStatus =
-  | "REGISTERED"
-  | "PAYED"
-  | "ERROR"
-  | "PROCESSING"
-  | "SHIPPING"
-  | "SHIPPED"
-  | "CANCELLED";
-
-interface OrderWhereInput {
-  userId: string;
-  status?: OrderStatus;
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: RouteContext
+) {
   try {
     const session =
       await getServerSession(authOptions);
@@ -33,128 +28,127 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { searchParams } =
-      new URL(request.url);
+    const { id } = await params;
 
-    const page =
-      parseInt(
-        searchParams.get("page") || "1"
+    const orderId =
+      parseInt(id, 10);
+
+    if (isNaN(orderId)) {
+      return NextResponse.json(
+        {
+          error: "شناسه سفارش نامعتبر است",
+        },
+        {
+          status: 400,
+        }
       );
-
-    const limit =
-      parseInt(
-        searchParams.get("limit") || "10"
-      );
-
-    const statusParam =
-      searchParams.get("status");
-
-    const skip =
-      (page - 1) * limit;
+    }
 
     const prisma =
       await getPrisma();
 
-    const where: OrderWhereInput = {
-      userId:
-        session.user.id,
-    };
+    /*
+     * -------------------------------------------------------
+     * دریافت سفارش مشخص کاربر
+     * -------------------------------------------------------
+     *
+     * سفارش فقط در صورتی برگردانده می‌شود که:
+     *
+     * 1. شناسه سفارش با id موجود در URL یکی باشد.
+     * 2. سفارش متعلق به کاربر لاگین‌شده باشد.
+     *
+     * این شرط باعث می‌شود کاربر نتواند با تغییر
+     * orderId به سفارش کاربر دیگری دسترسی پیدا کند.
+     * -------------------------------------------------------
+     */
 
-    if (statusParam) {
-      const validStatuses: OrderStatus[] = [
-        "REGISTERED",
-        "PAYED",
-        "ERROR",
-        "PROCESSING",
-        "SHIPPING",
-        "SHIPPED",
-        "CANCELLED",
-      ];
+    const order =
+      await prisma.order.findFirst({
+        where: {
+          id: orderId,
+          userId: session.user.id,
+        },
 
-      if (
-        validStatuses.includes(
-          statusParam as OrderStatus
-        )
-      ) {
-        where.status =
-          statusParam as OrderStatus;
-      }
-    }
+        include: {
+          items: {
+            include: {
+              product: true,
 
-    const [orders, total] =
-      await Promise.all([
-        prisma.order.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: {
-            createdAt: "desc",
-          },
+              /*
+               * ------------------------------------------------
+               * طعم‌های انتخاب شده سفارش
+               * ------------------------------------------------
+               *
+               * OrderItem
+               *   └── OrderItemFlavor
+               *          └── Flavor
+               *
+               * اطلاعات کامل طعم شامل:
+               *
+               * - id
+               * - flavorId
+               * - quantity
+               * - price
+               * - flavor.name
+               *
+               * دریافت می‌شود تا در فاکتور نیز
+               * قابل نمایش باشد.
+               * ------------------------------------------------
+               */
 
-          include: {
-            items: {
-              include: {
-                product: true,
-
-                /*
-                 * ------------------------------------------------
-                 * طعم‌های انتخاب شده سفارش
-                 * ------------------------------------------------
-                 *
-                 * OrderItem
-                 *   └── OrderItemFlavor
-                 *          └── Flavor
-                 *
-                 * قیمت Flavor عمداً برای محاسبه قیمت
-                 * سفارش استفاده نمی‌شود.
-                 *
-                 * قیمت سفارش همان price ذخیره‌شده
-                 * در OrderItem است.
-                 */
-
-                flavors: {
-                  include: {
-                    flavor: true,
-                  },
-                  orderBy: {
-                    flavor: {
-                      name: "asc",
-                    },
+              flavors: {
+                include: {
+                  flavor: true,
+                },
+                orderBy: {
+                  flavor: {
+                    name: "asc",
                   },
                 },
               },
             },
-
-            shippingMethod: true,
-            paymentMethod: true,
-            coupon: true,
           },
-        }),
 
-        prisma.order.count({
-          where,
-        }),
-      ]);
+          shippingMethod: true,
+          paymentMethod: true,
+          coupon: true,
+        },
+      });
 
-    return NextResponse.json({
-      orders,
-      total,
-      page,
-      totalPages:
-        Math.ceil(
-          total / limit
-        ),
-    });
+    if (!order) {
+      return NextResponse.json(
+        {
+          error: "سفارش یافت نشد",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    /*
+     * -------------------------------------------------------
+     * برگرداندن سفارش
+     * -------------------------------------------------------
+     *
+     * در اینجا flavors نیز همراه هر OrderItem
+     * به سمت صفحه سفارش کاربر ارسال می‌شود.
+     * -------------------------------------------------------
+     */
+
+    return NextResponse.json(
+      order
+    );
   } catch (error) {
     console.error(
-      "Get orders error:",
+      "Get order error:",
       error
     );
 
     return NextResponse.json(
       {
         error:
-          "خطا در دریافت سفارشات",
+          "خطا در دریافت سفارش",
       },
       {
         status: 500,
