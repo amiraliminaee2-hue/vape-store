@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, startTransition } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  startTransition,
+} from "react";
 import ProductCard from "@/components/shop/ProductCard";
 import PriceFilter from "@/components/shop/PriceFilter";
 import gsap from "gsap";
@@ -21,6 +27,7 @@ interface Product {
   id: number;
   title: string;
   price: number;
+  discountPercent: number;
   images: string[];
   category: Category;
   specs: Spec[];
@@ -45,10 +52,42 @@ const CATEGORY_OPTIONS = [
   { value: "accessories", label: "لوازم جانبی" },
 ];
 
-// Get min and max price from products
+/**
+ * محاسبه قیمت نهایی محصول بعد از تخفیف
+ */
+const getDiscountedPrice = (
+  price: number,
+  discountPercent: number
+): number => {
+  if (!discountPercent || discountPercent <= 0) {
+    return price;
+  }
+
+  return Math.round(
+    price - (price * discountPercent) / 100
+  );
+};
+
+/**
+ * دریافت محدوده قیمت بر اساس قیمت نهایی
+ * یعنی اگر محصول 1,000,000 تومان باشد و 20٪ تخفیف داشته باشد،
+ * قیمت آن برای فیلتر 800,000 تومان در نظر گرفته می‌شود.
+ */
 const getPriceRange = (products: Product[]) => {
-  if (products.length === 0) return { min: 0, max: 10000000 };
-  const prices = products.map((p: Product) => p.price);
+  if (products.length === 0) {
+    return {
+      min: 0,
+      max: 10000000,
+    };
+  }
+
+  const prices = products.map((product) =>
+    getDiscountedPrice(
+      product.price,
+      product.discountPercent
+    )
+  );
+
   return {
     min: Math.min(...prices),
     max: Math.max(...prices),
@@ -61,17 +100,25 @@ export default function ShopPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [category, setCategory] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  
+
   // Price filter states
   const [minPrice, setMinPrice] = useState<number>(0);
-  const [maxPrice, setMaxPrice] = useState<number>(10000000);
-  const [globalMinPrice, setGlobalMinPrice] = useState<number>(0);
-  const [globalMaxPrice, setGlobalMaxPrice] = useState<number>(10000000);
-  const [priceRangeLoaded, setPriceRangeLoaded] = useState(false);
+  const [maxPrice, setMaxPrice] =
+    useState<number>(10000000);
+
+  const [globalMinPrice, setGlobalMinPrice] =
+    useState<number>(0);
+
+  const [globalMaxPrice, setGlobalMaxPrice] =
+    useState<number>(10000000);
+
+  const [priceRangeLoaded, setPriceRangeLoaded] =
+    useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -79,106 +126,258 @@ export default function ShopPage() {
 
   useEffect(() => {
     isMounted.current = true;
+
     return () => {
       isMounted.current = false;
     };
   }, []);
 
-  // Fetch all products once to get price range
+  /**
+   * دریافت همه محصولات برای محاسبه محدوده قیمت
+   */
   useEffect(() => {
     async function fetchAllProducts() {
       try {
-        const res = await fetch(`/api/products?limit=1000&admin=true`);
+        const res = await fetch(
+          `/api/products?limit=1000&admin=true`
+        );
+
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch products: ${res.status}`
+          );
+        }
+
         const data = await res.json();
-        if (isMounted.current && data.products) {
-          const { min, max } = getPriceRange(data.products);
+
+        if (
+          isMounted.current &&
+          Array.isArray(data.products)
+        ) {
+          const { min, max } = getPriceRange(
+            data.products
+          );
+
           setGlobalMinPrice(min);
           setGlobalMaxPrice(max);
+
           setMinPrice(min);
           setMaxPrice(max);
+
+          setPriceRangeLoaded(true);
+        } else if (isMounted.current) {
           setPriceRangeLoaded(true);
         }
       } catch (error) {
-        console.error("Error fetching price range:", error);
-        setPriceRangeLoaded(true);
+        console.error(
+          "Error fetching price range:",
+          error
+        );
+
+        if (isMounted.current) {
+          setPriceRangeLoaded(true);
+        }
       }
     }
+
     fetchAllProducts();
   }, []);
 
+  /**
+   * دریافت محصولات فروشگاه
+   */
   const fetchProducts = useCallback(async () => {
     const params = new URLSearchParams();
-    if (category && category !== "") params.set("category", category);
-    if (search && search.trim() !== "") params.set("search", search.trim());
-    if (sort) params.set("sort", sort);
+
+    if (category && category !== "") {
+      params.set("category", category);
+    }
+
+    if (search && search.trim() !== "") {
+      params.set("search", search.trim());
+    }
+
+    if (sort) {
+      params.set("sort", sort);
+    }
+
     params.set("page", String(page));
     params.set("limit", "12");
-    
-    // Add price filters
-    if (minPrice > 0 && minPrice !== globalMinPrice) params.set("minPrice", String(minPrice));
-    if (maxPrice < globalMaxPrice && maxPrice !== globalMaxPrice) params.set("maxPrice", String(maxPrice));
+
+    /**
+     * فیلتر قیمت
+     *
+     * توجه:
+     * این مقادیر به API ارسال می‌شوند.
+     * API نیز باید minPrice/maxPrice را روی قیمت نهایی
+     * بعد از تخفیف اعمال کند.
+     */
+    if (
+      minPrice > 0 &&
+      minPrice !== globalMinPrice
+    ) {
+      params.set(
+        "minPrice",
+        String(minPrice)
+      );
+    }
+
+    if (
+      maxPrice < globalMaxPrice &&
+      maxPrice !== globalMaxPrice
+    ) {
+      params.set(
+        "maxPrice",
+        String(maxPrice)
+      );
+    }
 
     try {
-      const res = await fetch(`/api/products?${params.toString()}`);
+      const res = await fetch(
+        `/api/products?${params.toString()}`
+      );
+
+      if (!res.ok) {
+        throw new Error(
+          `Failed to fetch products: ${res.status}`
+        );
+      }
+
       const data = await res.json();
 
       if (isMounted.current) {
         startTransition(() => {
-          setProducts(data.products || []);
-          setTotal(data.total || 0);
-          setTotalPages(data.totalPages || 1);
+          setProducts(
+            Array.isArray(data.products)
+              ? data.products
+              : []
+          );
+
+          setTotal(
+            typeof data.total === "number"
+              ? data.total
+              : 0
+          );
+
+          setTotalPages(
+            typeof data.totalPages === "number"
+              ? data.totalPages
+              : 1
+          );
+
           setLoading(false);
         });
       }
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error(
+        "Error fetching products:",
+        error
+      );
+
       if (isMounted.current) {
         startTransition(() => {
+          setProducts([]);
+          setTotal(0);
+          setTotalPages(1);
           setLoading(false);
         });
       }
     }
-  }, [category, search, sort, page, minPrice, maxPrice, globalMinPrice, globalMaxPrice]);
+  }, [
+    category,
+    search,
+    sort,
+    page,
+    minPrice,
+    maxPrice,
+    globalMinPrice,
+    globalMaxPrice,
+  ]);
 
+  /**
+   * Fetch products whenever filters/page change
+   */
   useEffect(() => {
-    if (!priceRangeLoaded) return;
-    
+    if (!priceRangeLoaded) {
+      return;
+    }
+
     startTransition(() => {
       setLoading(true);
     });
-    
+
     const timer = setTimeout(() => {
       fetchProducts();
-    }, 100); // Small delay to prevent race conditions
-    
-    return () => clearTimeout(timer);
-  }, [fetchProducts, priceRangeLoaded]);
+    }, 100);
 
-  // Reset page when filters change
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [
+    fetchProducts,
+    priceRangeLoaded,
+  ]);
+
+  /**
+   * Reset pagination when filters change
+   */
   useEffect(() => {
     setPage(1);
-  }, [search, category, sort, minPrice, maxPrice]);
+  }, [
+    search,
+    category,
+    sort,
+    minPrice,
+    maxPrice,
+  ]);
 
+  /**
+   * Header animation
+   */
   useEffect(() => {
-    if (!headerRef.current) return;
+    if (!headerRef.current) {
+      return;
+    }
 
     gsap.fromTo(
       headerRef.current,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+      {
+        opacity: 0,
+        y: 40,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power3.out",
+      }
     );
   }, []);
 
+  /**
+   * Product cards animation
+   */
   useEffect(() => {
-    if (!gridRef.current || loading) return;
+    if (!gridRef.current || loading) {
+      return;
+    }
 
-    const cards = gridRef.current.querySelectorAll(".product-card-item");
+    const cards =
+      gridRef.current.querySelectorAll(
+        ".product-card-item"
+      );
 
-    if (cards.length === 0) return;
+    if (cards.length === 0) {
+      return;
+    }
 
     gsap.fromTo(
       cards,
-      { opacity: 0, y: 30, scale: 0.97 },
+      {
+        opacity: 0,
+        y: 30,
+        scale: 0.97,
+      },
       {
         opacity: 1,
         y: 0,
@@ -190,20 +389,41 @@ export default function ShopPage() {
     );
   }, [products, loading]);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  /**
+   * Search
+   */
+  const handleSearch = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setSearch(searchInput);
   };
 
-  const handleCategoryChange = (val: string) => {
+  /**
+   * Category
+   */
+  const handleCategoryChange = (
+    val: string
+  ) => {
     setCategory(val);
   };
 
-  const handleSortChange = (val: string) => {
+  /**
+   * Sort
+   */
+  const handleSortChange = (
+    val: string
+  ) => {
     setSort(val);
   };
 
-  const handlePriceChange = (newMin: number, newMax: number) => {
+  /**
+   * Price filter
+   */
+  const handlePriceChange = (
+    newMin: number,
+    newMax: number
+  ) => {
     setMinPrice(newMin);
     setMaxPrice(newMax);
   };
@@ -212,28 +432,39 @@ export default function ShopPage() {
     <main className="min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Header - ریسپانسیو */}
-        <div ref={headerRef} className="text-center sm:text-right">
+        {/* Header */}
+        <div
+          ref={headerRef}
+          className="text-center sm:text-right"
+        >
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold">
             فروشگاه
           </h1>
+
           <p className="mt-2 sm:mt-4 text-zinc-400 text-sm sm:text-base">
             {total} محصول موجود
           </p>
         </div>
 
-        {/* Filters - ریسپانسیو */}
+        {/* Filters */}
         <div className="mt-8 sm:mt-12 flex flex-col lg:flex-row gap-6 items-start justify-between">
-          
-          {/* Left side filters - ریسپانسیو */}
+
+          {/* Left side filters */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 w-full lg:w-auto">
-            
-            {/* Search - ریسپانسیو */}
-            <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
+
+            {/* Search */}
+            <form
+              onSubmit={handleSearch}
+              className="flex gap-2 w-full sm:w-auto"
+            >
               <input
                 type="text"
                 value={searchInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
+                onChange={(
+                  e: React.ChangeEvent<HTMLInputElement>
+                ) =>
+                  setSearchInput(e.target.value)
+                }
                 placeholder="جستجوی محصول..."
                 className="
                   flex-1 sm:flex-initial
@@ -245,11 +476,13 @@ export default function ShopPage() {
                   placeholder:text-zinc-500
                   outline-none
                   focus:border-violet-500/50
-                  focus:ring-2 focus:ring-violet-500/20
+                  focus:ring-2
+                  focus:ring-violet-500/20
                   transition-all
                   w-full sm:w-56 md:w-64
                 "
               />
+
               <button
                 type="submit"
                 className="
@@ -267,37 +500,49 @@ export default function ShopPage() {
               </button>
             </form>
 
-            {/* Category Filter - ریسپانسیو */}
+            {/* Category Filter */}
             <div className="flex gap-2 flex-wrap">
-              {CATEGORY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => handleCategoryChange(opt.value)}
-                  className={`
-                    px-3 sm:px-5 py-2 sm:py-2.5
-                    rounded-full
-                    border
-                    font-medium
-                    text-xs sm:text-sm
-                    transition-all duration-200
-                    whitespace-nowrap
-                    cursor-pointer
-                    ${
-                      category === opt.value
-                        ? "bg-white text-black border-white"
-                        : "border-white/10 text-zinc-400 hover:border-white/30 hover:text-white"
+              {CATEGORY_OPTIONS.map(
+                (opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() =>
+                      handleCategoryChange(
+                        opt.value
+                      )
                     }
-                  `}
-                >
-                  {opt.label}
-                </button>
-              ))}
+                    className={`
+                      px-3 sm:px-5 py-2 sm:py-2.5
+                      rounded-full
+                      border
+                      font-medium
+                      text-xs sm:text-sm
+                      transition-all duration-200
+                      whitespace-nowrap
+                      cursor-pointer
+                      ${
+                        category === opt.value
+                          ? "bg-white text-black border-white"
+                          : "border-white/10 text-zinc-400 hover:border-white/30 hover:text-white"
+                      }
+                    `}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              )}
             </div>
 
-            {/* Sort - ریسپانسیو */}
+            {/* Sort */}
             <select
               value={sort}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSortChange(e.target.value)}
+              onChange={(
+                e: React.ChangeEvent<HTMLSelectElement>
+              ) =>
+                handleSortChange(
+                  e.target.value
+                )
+              }
               className="
                 px-4 sm:px-5 py-2.5 sm:py-3
                 rounded-full
@@ -312,27 +557,35 @@ export default function ShopPage() {
                 w-full sm:w-auto
               "
             >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-zinc-900">
-                  {opt.label}
-                </option>
-              ))}
+              {SORT_OPTIONS.map(
+                (opt) => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    className="bg-zinc-900"
+                  >
+                    {opt.label}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
-          {/* Price Filter - ریسپانسیو */}
+          {/* Price Filter */}
           {priceRangeLoaded && (
             <div className="w-full lg:w-64">
               <PriceFilter
                 min={globalMinPrice}
                 max={globalMaxPrice}
-                onPriceChange={handlePriceChange}
+                onPriceChange={
+                  handlePriceChange
+                }
               />
             </div>
           )}
         </div>
 
-        {/* Products Grid - ریسپانسیو */}
+        {/* Products Grid */}
         <div
           ref={gridRef}
           className="
@@ -346,50 +599,116 @@ export default function ShopPage() {
           "
         >
           {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="
-                  h-[380px] sm:h-[420px] lg:h-[450px]
-                  rounded-2xl sm:rounded-3xl
-                  border border-white/5
-                  bg-white/[0.02]
-                  animate-pulse
-                "
-              />
-            ))
+            Array.from({ length: 8 }).map(
+              (_, i) => (
+                <div
+                  key={i}
+                  className="
+                    h-[380px] sm:h-[420px] lg:h-[450px]
+                    rounded-2xl sm:rounded-3xl
+                    border border-white/5
+                    bg-white/[0.02]
+                    animate-pulse
+                  "
+                />
+              )
+            )
           ) : products.length === 0 ? (
             <div className="col-span-full text-center py-20">
-              <p className="text-2xl mb-2">🔍</p>
-              <p className="text-zinc-500">محصولی یافت نشد</p>
+              <p className="text-2xl mb-2">
+                🔍
+              </p>
+
+              <p className="text-zinc-500">
+                محصولی یافت نشد
+              </p>
+
               <p className="text-zinc-600 text-sm mt-1">
                 &quot;عبارت را در دسته‌بندی‌های دیگر جستجو کنید&quot;
               </p>
             </div>
           ) : (
-            products.map((product: Product) => (
-              <div key={product.id} className="product-card-item">
-                <ProductCard
-                  id={product.id}
-                  title={product.title}
-                  price={product.price}
-                  seller={product.category.name}
-                  stock={product.stock}
-                  isFeatured={product.isFeatured}
-                  images={product.images}
-                  averageRating={product.averageRating ?? 0}
-                  reviewCount={product.reviewCount ?? 0}
-                />
-              </div>
-            ))
+            products.map(
+              (product: Product) => {
+
+                /**
+                 * قیمت نهایی بعد از تخفیف
+                 */
+                const discountedPrice =
+                  getDiscountedPrice(
+                    product.price,
+                    product.discountPercent
+                  );
+
+                return (
+                  <div
+                    key={product.id}
+                    className="product-card-item"
+                  >
+                    <ProductCard
+                      id={product.id}
+                      title={product.title}
+
+                      /*
+                       * قیمت اصلی
+                       */
+                      price={product.price}
+
+                      /*
+                       * قیمت نهایی بعد از تخفیف
+                       */
+                      discountedPrice={
+                        discountedPrice
+                      }
+
+                      /*
+                       * درصد تخفیف
+                       */
+                      discountPercent={
+                        product.discountPercent
+                      }
+
+                      seller={
+                        product.category.name
+                      }
+
+                      stock={product.stock}
+
+                      isFeatured={
+                        product.isFeatured
+                      }
+
+                      images={
+                        product.images
+                      }
+
+                      averageRating={
+                        product.averageRating ??
+                        0
+                      }
+
+                      reviewCount={
+                        product.reviewCount ??
+                        0
+                      }
+                    />
+                  </div>
+                );
+              }
+            )
           )}
         </div>
 
-        {/* Pagination - ریسپانسیو */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-12 sm:mt-16 flex justify-center gap-2 sm:gap-3 flex-wrap">
+
             <button
-              onClick={() => setPage(Math.max(1, page - 1))}
+              onClick={() =>
+                setPage(
+                  Math.max(1, page - 1)
+                )
+              }
               disabled={page === 1}
               className="
                 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12
@@ -398,29 +717,44 @@ export default function ShopPage() {
                 text-zinc-400
                 transition-all duration-200
                 hover:border-white/30 hover:text-white
-                disabled:opacity-30 disabled:cursor-not-allowed
+                disabled:opacity-30
+                disabled:cursor-not-allowed
                 text-sm sm:text-base
               "
             >
               ←
             </button>
-            
-            {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+
+            {Array.from({
+              length: Math.min(
+                totalPages,
+                5
+              ),
+            }).map((_, i) => {
+
               let pageNum: number;
+
               if (totalPages <= 5) {
                 pageNum = i + 1;
               } else if (page <= 3) {
                 pageNum = i + 1;
-              } else if (page >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
+              } else if (
+                page >=
+                totalPages - 2
+              ) {
+                pageNum =
+                  totalPages - 4 + i;
               } else {
-                pageNum = page - 2 + i;
+                pageNum =
+                  page - 2 + i;
               }
-              
+
               return (
                 <button
                   key={i}
-                  onClick={() => setPage(pageNum)}
+                  onClick={() =>
+                    setPage(pageNum)
+                  }
                   className={`
                     w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12
                     rounded-full
@@ -439,10 +773,19 @@ export default function ShopPage() {
                 </button>
               );
             })}
-            
+
             <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
+              onClick={() =>
+                setPage(
+                  Math.min(
+                    totalPages,
+                    page + 1
+                  )
+                )
+              }
+              disabled={
+                page === totalPages
+              }
               className="
                 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12
                 rounded-full
@@ -450,12 +793,14 @@ export default function ShopPage() {
                 text-zinc-400
                 transition-all duration-200
                 hover:border-white/30 hover:text-white
-                disabled:opacity-30 disabled:cursor-not-allowed
+                disabled:opacity-30
+                disabled:cursor-not-allowed
                 text-sm sm:text-base
               "
             >
               →
             </button>
+
           </div>
         )}
 
