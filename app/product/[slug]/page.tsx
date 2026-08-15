@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
 import WishlistButton from "../../../components/product/WishlistButton";
+import ImageGallery from "@/components/product/ImageGallery";
 import PriceWithDiscount from "@/components/ui/PriceWithDiscount";
 import StarRating from "@/components/ui/StarRating";
 import ProductReviews from "@/components/ui/ProductReviews";
@@ -253,6 +254,14 @@ export default async function ProductPage({
       },
     })) as SimilarProduct[];
 
+  /*
+   * این تابع فقط برای URLهای قدیمی /uploads/ استفاده می‌شود.
+   *
+   * URLهای UploadThing مثل:
+   * https://utfs.io/f/xxxxx
+   *
+   * بدون هیچ تغییری برگردانده می‌شوند.
+   */
   const processImageUrl = (url: string) => {
     if (!url) {
       return null;
@@ -266,6 +275,10 @@ export default async function ProductPage({
 
     return url;
   };
+
+  const galleryImages = (product.images || [])
+    .map((image) => processImageUrl(image))
+    .filter((image): image is string => Boolean(image));
 
   const discountedPrice =
     product.discountPercent > 0
@@ -293,7 +306,8 @@ export default async function ProductPage({
     <main className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0f] text-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
 
-        {/* Breadcrumb */}
+        {/* ==================== Breadcrumb ==================== */}
+
         <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8 flex-wrap">
 
           <Link
@@ -329,68 +343,25 @@ export default async function ProductPage({
 
         </div>
 
-        {/* Product Main Section */}
+        {/* ==================== Product Main Section ==================== */}
+
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
 
-          {/* Product Images */}
-          <div className="space-y-4">
+          {/* ==================== Product Images ==================== */}
 
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-white/10 backdrop-blur-sm">
-
-              {product.images?.[0] ? (
-                <Image
-                  src={
-                    processImageUrl(product.images[0]) ||
-                    product.images[0]
-                  }
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-6xl text-zinc-600">
-                  🖼️
-                </div>
-              )}
-
-            </div>
-
-            {product.images &&
-              product.images.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2">
-
-                  {product.images
-                    .slice(1, 5)
-                    .map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative w-20 h-20 rounded-lg overflow-hidden bg-zinc-900/50 border border-white/10 flex-shrink-0 cursor-pointer hover:border-violet-500 transition"
-                      >
-                        <Image
-                          src={
-                            processImageUrl(img) || img
-                          }
-                          alt={`${product.title} - ${
-                            idx + 2
-                          }`}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      </div>
-                    ))}
-
-                </div>
-              )}
-
+          <div className="w-full min-w-0">
+            <ImageGallery
+              images={galleryImages}
+              title={product.title}
+            />
           </div>
 
-          {/* Product Information */}
+          {/* ==================== Product Information ==================== */}
+
           <div className="space-y-6">
 
             {/* Title / Rating */}
+
             <div>
 
               {product.discountPercent > 0 && (
@@ -399,7 +370,7 @@ export default async function ProductPage({
                 </span>
               )}
 
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-4">
 
                 <h1 className="text-3xl md:text-4xl font-bold">
                   {product.title}
@@ -426,6 +397,7 @@ export default async function ProductPage({
             </div>
 
             {/* Stock */}
+
             <div className="flex items-center gap-4">
 
               <span className="text-zinc-400">
@@ -445,6 +417,7 @@ export default async function ProductPage({
             </div>
 
             {/* Price */}
+
             <div className="border-t border-b border-white/10 py-4">
 
               <PriceWithDiscount
@@ -484,6 +457,7 @@ export default async function ProductPage({
             />
 
             {/* Description */}
+
             <div>
 
               <h2 className="text-xl font-semibold mb-3">
@@ -500,7 +474,8 @@ export default async function ProductPage({
 
         </div>
 
-        {/* Specifications */}
+        {/* ==================== Specifications ==================== */}
+
         {productSpecs.length > 0 && (
           <div className="mb-16">
 
@@ -540,7 +515,8 @@ export default async function ProductPage({
           </div>
         )}
 
-        {/* Reviews */}
+        {/* ==================== Reviews ==================== */}
+
         <div className="mb-16">
 
           <h2 className="text-2xl font-bold mb-6">
@@ -555,7 +531,8 @@ export default async function ProductPage({
 
         </div>
 
-        {/* Similar Products */}
+        {/* ==================== Similar Products ==================== */}
+
         {similarProducts.length > 0 && (
           <div>
 
@@ -576,6 +553,11 @@ export default async function ProductPage({
                           100
                       : similar.price;
 
+                  const similarImage =
+                    processImageUrl(
+                      similar.images?.[0] || ""
+                    );
+
                   return (
                     <Link
                       key={similar.id}
@@ -585,14 +567,9 @@ export default async function ProductPage({
 
                       <div className="aspect-square relative bg-zinc-900/50">
 
-                        {similar.images?.[0] ? (
+                        {similarImage ? (
                           <Image
-                            src={
-                              processImageUrl(
-                                similar.images[0]
-                              ) ||
-                              similar.images[0]
-                            }
+                            src={similarImage}
                             alt={similar.title}
                             fill
                             className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -620,8 +597,7 @@ export default async function ProductPage({
 
                         <div className="mt-1">
 
-                          {similar.discountPercent >
-                          0 ? (
+                          {similar.discountPercent > 0 ? (
                             <div className="flex flex-col items-center">
 
                               <span className="text-xs text-zinc-500 line-through">
