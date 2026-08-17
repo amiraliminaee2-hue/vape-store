@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const ADMIN_PHONE = "09334839609";
+const ADMIN_PHONE = "09939061841";
 
 async function main() {
   console.log("🌱 Starting database seed...");
