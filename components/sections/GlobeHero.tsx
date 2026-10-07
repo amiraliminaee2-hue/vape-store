@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SimpleGlobe from "../three/SimpleGlobe";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+
+const SimpleGlobe = dynamic(() => import("../three/SimpleGlobe"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] xl:w-[600px] xl:h-[600px] rounded-full bg-white/5 animate-pulse" aria-hidden="true" />
+  ),
+});
 
 export default function GlobeHero() {
+  const [showGlobe, setShowGlobe] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const globeRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -13,7 +19,14 @@ export default function GlobeHero() {
   const arrowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
+    const timer = window.setTimeout(() => setShowGlobe(true), 250);
+
+    let cancelled = false;
+    let scrollTrigger: { kill: () => void } | null = null;
+    import("gsap").then(async ({ default: gsap }) => {
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      if (cancelled) return;
+      gsap.registerPlugin(ScrollTrigger);
 
     // تنظیم موقعیت اولیه - بدون انیمیشن ورود
     if (globeRef.current) {
@@ -30,7 +43,7 @@ export default function GlobeHero() {
     }
 
     // فقط اسکرول انیمیشن
-    ScrollTrigger.create({
+    scrollTrigger = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: "top top",
       end: "bottom top",
@@ -56,9 +69,12 @@ export default function GlobeHero() {
         }
       },
     });
+    });
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      cancelled = true;
+      window.clearTimeout(timer);
+      scrollTrigger?.kill();
     };
   }, []);
 
@@ -83,7 +99,9 @@ export default function GlobeHero() {
       {/* کره سه‌بعدی - ریسپانسیو */}
       <div ref={globeRef} className="relative z-0 w-full flex justify-center px-4">
         <div className="scale-95 sm:scale-100">
-            <SimpleGlobe />
+            {showGlobe ? <SimpleGlobe /> : (
+              <div className="w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] md:w-[420px] md:h-[420px] lg:w-[500px] lg:h-[500px] xl:w-[600px] xl:h-[600px] rounded-full bg-white/5 animate-pulse" aria-hidden="true" />
+            )}
         </div>
       </div>
 

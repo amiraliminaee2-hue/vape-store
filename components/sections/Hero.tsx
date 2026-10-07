@@ -1,14 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
-import ProductScene from "../three/ProductScene";
+const ProductScene = dynamic(() => import("../three/ProductScene"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] flex items-center justify-center" aria-hidden="true">
+      <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full bg-white/5 animate-pulse" />
+    </div>
+  ),
+});
 import MagneticButton from "../animations/MagneticButton";
 import FloatingParticles from "../animations/FloatingParticles";
 
 export default function Hero() {
+  const [showProductScene, setShowProductScene] = useState(false);
   const badgeRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -19,7 +27,12 @@ export default function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const tl = gsap.timeline({ delay: 0.2 });
+    let cancelled = false;
+
+    import("gsap").then(({ default: gsap }) => {
+      if (cancelled) return;
+
+      const tl = gsap.timeline({ delay: 0.2 });
 
     tl.fromTo(
       badgeRef.current,
@@ -55,12 +68,22 @@ export default function Hero() {
       "-=0.4"
     );
 
-    tl.fromTo(
-      statsRef.current,
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
-      "-=0.3"
-    );
+      tl.fromTo(
+        statsRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        "-=0.3"
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowProductScene(true), 1200);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -288,7 +311,11 @@ export default function Hero() {
               transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)`,
             }}
           >
-            <ProductScene />
+            {showProductScene ? <ProductScene /> : (
+              <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] flex items-center justify-center" aria-hidden="true">
+                <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full bg-white/5 animate-pulse" />
+              </div>
+            )}
           </div>
 
         </div>

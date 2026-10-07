@@ -37,19 +37,19 @@ export default function Footer() {
             <ul className="space-y-2 text-xs sm:text-sm text-zinc-500">
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>📞</span>
-                <span>{settings["site_phone"] || "۰۷۷-۳۲۳۵۹۶۷۸"}</span>
+                <span>{settings["site_phone"]}</span>
               </li>
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>✉️</span>
-                <span className="break-all">{settings["site_email"] || "info@padbushehr.ir"}</span>
+                <span className="break-all">{settings["site_email"]}</span>
               </li>
               <li className="flex items-start justify-center sm:justify-start gap-2">
                 <span>📍</span>
-                <span className="break-words">{settings["site_address"] || "بوشهر، خیابان انقلاب"}</span>
+                <span className="break-words">{settings["site_address"]}</span>
               </li>
               <li className="flex items-center justify-center sm:justify-start gap-2">
                 <span>🕒</span>
-                <span>{settings["working_hours"] || "شنبه تا پنجشنبه ۱۰ صبح تا ۸ شب"}</span>
+                <span>{settings["working_hours"]}</span>
               </li>
             </ul>
           </div>

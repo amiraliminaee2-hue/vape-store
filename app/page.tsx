@@ -1,7 +1,5 @@
-export const dynamic = 'force-dynamic';
 import { Metadata } from "next";
 import { getPrisma } from "@/lib/prisma";
-import Navbar from "../components/layout/Navbar";
 import GlobeHero from "../components/sections/GlobeHero";
 import Hero from "../components/sections/Hero";
 import ProductSlider from "@/components/sections/ProductSlider";
@@ -164,8 +162,6 @@ export default async function Home() {
 
   return (
     <>
-      <Navbar />
-
       <div className="space-y-0 md:space-y-0">
         <GlobeHero />
         <Hero />

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 
 const ALLOWED_PATHS_FOR_BANNED = [
   "/",
@@ -17,73 +16,52 @@ const ALLOWED_PATHS_FOR_BANNED = [
   "/about",
 ];
 
+function isAllowedPath(pathname: string) {
+  return ALLOWED_PATHS_FOR_BANNED.some(
+    (path) => pathname === path || pathname.startsWith(path + "/")
+  );
+}
+
 export default function BanCheck({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isBanned, setIsBanned] = useState(false);
 
   useEffect(() => {
+    // مهم: بررسی مسدود بودن نباید رندر اولیه کل سایت را متوقف کند.
+    // خود APIها و صفحات حساس همچنان باید مجوز دسترسی را سمت سرور بررسی کنند.
+    if (status !== "authenticated" || !session?.user?.id) return;
+
+    let cancelled = false;
+
     async function checkBanStatus() {
-      if (status === "loading") return;
-
-      if (!session?.user?.id) {
-        setIsChecking(false);
-        return;
-      }
-
       try {
-        const res = await fetch("/api/user/ban-status");
-        if (res.ok) {
-          const data = await res.json();
-          setIsBanned(data.isBanned);
+        const res = await fetch("/api/user/ban-status", {
+          method: "GET",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
 
-          const isAllowedPath = ALLOWED_PATHS_FOR_BANNED.some(path => 
-            pathname === path || pathname.startsWith(path + "/")
-          );
+        if (!res.ok || cancelled) return;
 
-          if (data.isBanned && !isAllowedPath && pathname !== "/banned") {
-            router.replace("/banned");
-          }
+        const data = (await res.json()) as { isBanned?: boolean };
+
+        if (data.isBanned && !isAllowedPath(pathname) && pathname !== "/banned") {
+          router.replace("/banned");
         }
       } catch (error) {
+        // خطای Ban Check نباید سایت را از دسترس خارج کند.
         console.error("Ban check error:", error);
-      } finally {
-        setIsChecking(false);
       }
     }
 
-    checkBanStatus();
-  }, [session, status, pathname, router]);
+    void checkBanStatus();
 
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-zinc-400">در حال بارگذاری...</p>
-        </div>
-      </div>
-    );
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id, status, pathname, router]);
 
-  if (isBanned && !ALLOWED_PATHS_FOR_BANNED.some(path => pathname === path || pathname.startsWith(path + "/"))) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-10">
-        <div className="max-w-md w-full text-center bg-red-500/10 border border-red-500/30 rounded-3xl p-8">
-          <div className="text-6xl mb-6">⛔</div>
-          <h1 className="text-3xl font-bold text-red-500 mb-4">حساب کاربری شما مسدود شده است</h1>
-          <p className="text-zinc-300 mb-6">
-            شما دسترسی به این صفحه ندارید.
-          </p>
-          <Link href="/" className="inline-block px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500">
-            بازگشت به صفحه اصلی
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
+  // صفحه و محتوای اصلی فوراً رندر می‌شوند؛ BanCheck دیگر loading screen سراسری ندارد.
   return <>{children}</>;
 }
