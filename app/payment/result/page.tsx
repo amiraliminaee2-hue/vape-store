@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function PaymentResultPage() {
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"success" | "failed" | null>(null);
   const [message, setMessage] = useState("");
@@ -13,13 +11,21 @@ export default function PaymentResultPage() {
   const [refId, setRefId] = useState<string | null>(null);
 
   useEffect(() => {
-    const statusParam = searchParams.get("status");
-    const errorParam = searchParams.get("error");
-    const orderIdParam = searchParams.get("orderId");
-    const messageParam = searchParams.get("message");
-    const refIdParam = searchParams.get("refId");
+    const params = new URLSearchParams(window.location.search);
 
-    console.log("Payment result params:", { statusParam, errorParam, orderIdParam, messageParam, refIdParam });
+    const statusParam = params.get("status");
+    const errorParam = params.get("error");
+    const orderIdParam = params.get("orderId");
+    const messageParam = params.get("message");
+    const refIdParam = params.get("refId");
+
+    console.log("Payment result params:", {
+      statusParam,
+      errorParam,
+      orderIdParam,
+      messageParam,
+      refIdParam,
+    });
 
     setOrderId(orderIdParam);
     setRefId(refIdParam);
@@ -33,7 +39,7 @@ export default function PaymentResultPage() {
     }
 
     setLoading(false);
-  }, [searchParams]);
+  }, []);
 
   if (loading) {
     return (
@@ -53,17 +59,39 @@ export default function PaymentResultPage() {
           {status === "success" ? (
             <>
               <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-10 h-10 text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-2">پرداخت موفق</h2>
+
+              <h2 className="text-2xl font-bold mb-2">
+                پرداخت موفق
+              </h2>
+
               <p className="text-zinc-400 mb-2">{message}</p>
+
               {refId && (
-                <p className="text-sm text-zinc-500 mb-4">شماره تراکنش: {refId}</p>
+                <p className="text-sm text-zinc-500 mb-4">
+                  شماره تراکنش: {refId}
+                </p>
               )}
+
               <Link
-                href={orderId ? `/dashboard/orders/${orderId}` : "/dashboard/orders"}
+                href={
+                  orderId
+                    ? `/dashboard/orders/${orderId}`
+                    : "/dashboard/orders"
+                }
                 className="inline-block px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition-colors"
               >
                 مشاهده سفارش
@@ -72,12 +100,27 @@ export default function PaymentResultPage() {
           ) : (
             <>
               <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-10 h-10 text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-2">پرداخت ناموفق</h2>
+
+              <h2 className="text-2xl font-bold mb-2">
+                پرداخت ناموفق
+              </h2>
+
               <p className="text-zinc-400 mb-6">{message}</p>
+
               <Link
                 href="/cart"
                 className="inline-block px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition-colors"

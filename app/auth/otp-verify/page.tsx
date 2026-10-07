@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 
 export default function OtpVerifyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const phoneParam = searchParams.get("phone");
-  
+
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,29 +15,38 @@ export default function OtpVerifyPage() {
   const [countdown, setCountdown] = useState(0);
   const [canResend, setCanResend] = useState(false);
 
-  // دریافت شماره تلفن از sessionStorage یا پارامترهای URL
+  // دریافت شماره تلفن از sessionStorage یا پارامتر URL
   useEffect(() => {
     const storedPhone = sessionStorage.getItem("verifyPhone");
+
     if (storedPhone) {
       setPhone(storedPhone);
-    } else if (phoneParam) {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const phoneParam = params.get("phone");
+
+    if (phoneParam) {
       setPhone(phoneParam);
     } else {
-      // اگر شماره تلفن وجود نداشت، برگرد به صفحه اول
+      // اگر شماره تلفن وجود نداشت، برگرد به صفحه ورود
       router.push("/auth/phone-signin");
     }
-  }, [phoneParam, router]);
+  }, [router]);
 
   // تایمر برای ارسال مجدد کد
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
-    
+
     if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      timer = setTimeout(() => {
+        setCountdown((current) => current - 1);
+      }, 1000);
     } else {
       setCanResend(true);
     }
-    
+
     return () => {
       if (timer) {
         clearTimeout(timer);
@@ -49,9 +56,9 @@ export default function OtpVerifyPage() {
 
   const handleResendCode = async () => {
     if (!canResend || !phone) return;
-    
+
     setCanResend(false);
-    setCountdown(120); // 2 دقیقه
+    setCountdown(120);
     setError("");
 
     try {
@@ -108,13 +115,13 @@ export default function OtpVerifyPage() {
         return;
       }
 
-      // ورود با استفاده از next-auth (credentials)
+      // ورود با استفاده از next-auth
       const signInRes = await signIn("phone-otp", {
         phone: data.user.phone,
         redirect: false,
       });
 
-console.log(signInRes);
+      console.log(signInRes);
 
       if (signInRes?.error) {
         setError("خطا در ورود به حساب کاربری");
@@ -124,7 +131,7 @@ console.log(signInRes);
 
       // پاک کردن شماره تلفن ذخیره شده
       sessionStorage.removeItem("verifyPhone");
-      
+
       // هدایت به داشبورد
       router.push("/dashboard");
       router.refresh();
@@ -140,6 +147,7 @@ console.log(signInRes);
       <div className="max-w-md w-full rounded-3xl border border-white/10 p-6 sm:p-8 bg-white/[0.03]">
         <div className="text-center mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold">تأیید کد</h1>
+
           <p className="mt-2 text-zinc-500 text-sm sm:text-base">
             کد ارسال شده به شماره {phone}
           </p>
@@ -150,10 +158,15 @@ console.log(signInRes);
             <label className="block text-sm text-zinc-400 mb-2">
               کد تأیید ۶ رقمی
             </label>
+
             <input
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setCode(
+                  e.target.value.replace(/\D/g, "").slice(0, 6)
+                )
+              }
               placeholder="------"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none transition-colors text-center text-2xl tracking-widest"
               autoComplete="off"
@@ -175,10 +188,27 @@ console.log(signInRes);
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                <svg
+                  className="animate-spin h-5 w-5"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
+
                 در حال تأیید...
               </span>
             ) : (
@@ -198,7 +228,11 @@ console.log(signInRes);
               }`}
             >
               {countdown > 0
-                ? `ارسال مجدد کد (${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, "0")})`
+                ? `ارسال مجدد کد (${Math.floor(countdown / 60)}:${(
+                    countdown % 60
+                  )
+                    .toString()
+                    .padStart(2, "0")})`
                 : "ارسال مجدد کد"}
             </button>
           </div>

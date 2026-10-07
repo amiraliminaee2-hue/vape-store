@@ -1,3 +1,5 @@
+// app/api/orders/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
@@ -6,40 +8,117 @@ import { isAdmin } from "@/lib/isAdmin";
 import { getPrisma } from "@/lib/prisma";
 import { sendOrderStatusSMS } from "@/lib/sms";
 
-// Schema validation for params
+// =========================================================
+// Schema validation
+// =========================================================
+
 const paramsSchema = z.object({
   id: z.string().regex(/^\d+$/, "id باید عدد باشد"),
 });
 
-// Schema validation for PATCH request body
 const patchBodySchema = z.object({
-  status: z.enum(["REGISTERED", "PAYED", "PROCESSING", "SHIPPING", "SHIPPED", "CANCELLED", "ERROR"]),
+  status: z.enum([
+    "REGISTERED",
+    "PAYED",
+    "PROCESSING",
+    "SHIPPING",
+    "SHIPPED",
+    "CANCELLED",
+    "ERROR",
+  ]),
 });
 
-export async function GET(
-  request: NextRequest,
-  {
-    params,
-  }: {
-    params: Promise<{ id: string }>;
+// =========================================================
+// Types
+// =========================================================
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+// =========================================================
+// Helper - validate order ID
+// =========================================================
+
+async function getValidatedOrderId(
+  params: Promise<{ id: string }>
+): Promise<
+  | { success: true; id: number }
+  | { success: false; response: NextResponse }
+> {
+  const { id } = await params;
+
+  const validationResult = paramsSchema.safeParse({ id });
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        {
+          error: "پارامتر نامعتبر",
+        },
+        {
+          status: 400,
+        }
+      ),
+    };
   }
+
+  const orderId = Number(validationResult.data.id);
+
+  if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        {
+          error: "شناسه سفارش نامعتبر است",
+        },
+        {
+          status: 400,
+        }
+      ),
+    };
+  }
+
+  return {
+    success: true,
+    id: orderId,
+  };
+}
+
+// =========================================================
+// GET - دریافت سفارش توسط کاربر خودش
+// =========================================================
+
+export async function GET(
+  _request: NextRequest,
+  { params }: RouteContext
 ) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        {
+          error: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
       );
     }
 
+    const validatedId = await getValidatedOrderId(params);
+
+    if (!validatedId.success) {
+      return validatedId.response;
+    }
+
     const prisma = await getPrisma();
-    const { id } = await params;
 
     const order = await prisma.order.findFirst({
       where: {
-        id: Number(id),
+        id: validatedId.id,
         userId: session.user.id,
       },
       include: {
@@ -56,8 +135,12 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json(
-        { error: "سفارشی یافت نشد" },
-        { status: 404 }
+        {
+          error: "سفارشی یافت نشد",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
@@ -76,17 +159,19 @@ export async function GET(
   }
 }
 
-export async function POST(
+// =========================================================
+// Update Order Status
+// =========================================================
+
+async function updateOrderStatus(
   request: NextRequest,
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
-  }
+  params: Promise<{ id: string }>
 ) {
   try {
+    // =======================================================
+    // Session
+    // =======================================================
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -100,8 +185,12 @@ export async function POST(
       );
     }
 
-    // Check if user is admin
+    // =======================================================
+    // Admin Access
+    // =======================================================
+
     const adminAccess = await isAdmin(session.user.id);
+
     if (!adminAccess) {
       return NextResponse.json(
         {
@@ -113,16 +202,30 @@ export async function POST(
       );
     }
 
-    const prisma = await getPrisma();
-    const { id } = await params;
+    // =======================================================
+    // Validate Order ID
+    // =======================================================
 
-    // Validate params with Zod
-    const paramsValidationResult = paramsSchema.safeParse({ id });
-    if (!paramsValidationResult.success) {
+    const validatedId = await getValidatedOrderId(params);
+
+    if (!validatedId.success) {
+      return validatedId.response;
+    }
+
+    const orderId = validatedId.id;
+
+    // =======================================================
+    // Validate Body
+    // =======================================================
+
+    let body: unknown;
+
+    try {
+      body = await request.json();
+    } catch {
       return NextResponse.json(
         {
-          error: "پارامتر نامعتبر",
-          details: paramsValidationResult.error.issues,
+          error: "بدنه درخواست نامعتبر است",
         },
         {
           status: 400,
@@ -130,15 +233,14 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
+    const bodyValidationResult =
+      patchBodySchema.safeParse(body);
 
-    // Validate body with Zod
-    const bodyValidationResult = patchBodySchema.safeParse(body);
     if (!bodyValidationResult.success) {
       return NextResponse.json(
         {
-          error: "ورودی نامعتبر. وضعیت باید یکی از مقادیر REGISTERED, PAYED, PROCESSING, SHIPPING, SHIPPED, CANCELLED, ERROR باشد",
-          details: bodyValidationResult.error.issues,
+          error:
+            "ورودی نامعتبر. وضعیت باید یکی از مقادیر REGISTERED, PAYED, PROCESSING, SHIPPING, SHIPPED, CANCELLED, ERROR باشد",
         },
         {
           status: 400,
@@ -148,28 +250,78 @@ export async function POST(
 
     const { status } = bodyValidationResult.data;
 
-    // ابتدا سفارش را دریافت کنیم تا شماره تلفن را داشته باشیم
-    const existingOrder = await prisma.order.findUnique({
-      where: { id: Number(id) },
-      select: { phone: true, id: true },
-    });
+    const prisma = await getPrisma();
+
+    // =======================================================
+    // دریافت وضعیت فعلی سفارش
+    // =======================================================
+
+    const existingOrder =
+      await prisma.order.findUnique({
+        where: {
+          id: orderId,
+        },
+        select: {
+          id: true,
+          status: true,
+          phone: true,
+        },
+      });
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        {
+          error: "سفارشی یافت نشد",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // =======================================================
+    // اگر وضعیت تغییری نکرده، Update و SMS انجام نده
+    // =======================================================
+
+    if (existingOrder.status === status) {
+      return NextResponse.json({
+        id: existingOrder.id,
+        status: existingOrder.status,
+      });
+    }
+
+    // =======================================================
+    // Update Order
+    // =======================================================
 
     const order = await prisma.order.update({
       where: {
-        id: Number(id),
+        id: orderId,
       },
       data: {
-        status: status,
+        status,
       },
     });
 
-    // ==================== ارسال پیامک تغییر وضعیت ====================
-    if (existingOrder?.phone) {
+    // =======================================================
+    // ارسال پیامک تغییر وضعیت
+    // فقط زمانی که وضعیت واقعاً تغییر کرده باشد
+    // =======================================================
+
+    if (existingOrder.phone) {
       try {
-        await sendOrderStatusSMS(existingOrder.phone, order.id, status);
+        await sendOrderStatusSMS(
+          existingOrder.phone,
+          order.id,
+          status
+        );
       } catch (smsError) {
-        console.error("SMS sending error (status change):", smsError);
-        // خطای پیامک نباید باعث شکست عملیات شود
+        console.error(
+          "SMS sending error (status change):",
+          smsError
+        );
+
+        // خطای SMS نباید باعث شکست Update سفارش شود
       }
     }
 
@@ -186,4 +338,26 @@ export async function POST(
       }
     );
   }
+}
+
+// =========================================================
+// POST - سازگاری با API فعلی پنل مدیریت
+// =========================================================
+
+export async function POST(
+  request: NextRequest,
+  { params }: RouteContext
+) {
+  return updateOrderStatus(request, params);
+}
+
+// =========================================================
+// PATCH - متد استاندارد برای تغییر وضعیت
+// =========================================================
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: RouteContext
+) {
+  return updateOrderStatus(request, params);
 }
