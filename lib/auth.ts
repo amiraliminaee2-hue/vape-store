@@ -4,6 +4,13 @@ import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getPrisma } from "@/lib/prisma";
 
+const isProduction = process.env.NODE_ENV === "production";
+const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+
+if (isProduction && !nextAuthSecret) {
+  throw new Error("NEXTAUTH_SECRET is not configured in production.");
+}
+
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -36,8 +43,16 @@ export const authOptions: AuthOptions = {
           where: {
             phone,
           },
-          include: {
-            profile: true,
+          select: {
+            id: true,
+            phone: true,
+            name: true,
+            profile: {
+              select: {
+                isBanned: true,
+                banExpiry: true,
+              },
+            },
           },
         });
 
@@ -48,7 +63,7 @@ export const authOptions: AuthOptions = {
         if (user.profile?.isBanned) {
           if (
             !user.profile.banExpiry ||
-            new Date(user.profile.banExpiry) > new Date()
+            user.profile.banExpiry > new Date()
           ) {
             throw new Error("حساب کاربری شما مسدود شده است");
           }
@@ -92,7 +107,7 @@ export const authOptions: AuthOptions = {
     maxAge: 30 * 24 * 60 * 60,
   },
 
-  secret: process.env.NEXTAUTH_SECRET || "",
+  secret: nextAuthSecret || "",
 
   debug: process.env.NODE_ENV === "development",
 
@@ -104,7 +119,7 @@ export const authOptions: AuthOptions = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isProduction,
       },
     },
   },
