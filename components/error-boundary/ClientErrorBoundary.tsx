@@ -6,6 +6,7 @@ interface ClientErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  // ;elrl,rlrpe
 }
 
 interface ClientErrorBoundaryState {
