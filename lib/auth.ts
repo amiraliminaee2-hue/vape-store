@@ -7,10 +7,6 @@ import { getPrisma } from "@/lib/prisma";
 const isProduction = process.env.NODE_ENV === "production";
 const nextAuthSecret = process.env.NEXTAUTH_SECRET;
 
-if (isProduction && !nextAuthSecret) {
-  throw new Error("NEXTAUTH_SECRET is not configured in production.");
-}
-
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -107,7 +103,7 @@ export const authOptions: AuthOptions = {
     maxAge: 30 * 24 * 60 * 60,
   },
 
-  secret: nextAuthSecret || "",
+  secret: nextAuthSecret,
 
   debug: process.env.NODE_ENV === "development",
 
