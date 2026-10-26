@@ -1,3 +1,4 @@
+
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
@@ -6,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   const databaseUrl = process.env["DATABASE_URL"];
 
   if (!databaseUrl) {
@@ -22,13 +23,11 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma =
-  globalForPrisma.prisma ?? createPrismaClient();
+// ایجاد Prisma فقط هنگام اولین استفاده
+export async function getPrisma(): Promise<PrismaClient> {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
 
-if (process.env["NODE_ENV"] !== "production") {
-  globalForPrisma.prisma = prisma;
-}
-
-export async function getPrisma() {
-  return prisma;
+  return globalForPrisma.prisma;
 }

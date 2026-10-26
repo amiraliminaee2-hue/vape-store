@@ -5,6 +5,9 @@ import { isAdmin } from "@/lib/isAdmin";
 import { authOptions } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 // GET - لیست روش‌های پرداخت
 export async function GET() {
   try {
